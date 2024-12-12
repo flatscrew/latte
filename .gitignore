@@ -1,0 +1,56 @@
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Compiled files
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Logs
+logs/
+*.log
+log/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Debug and temp files
+*.swp
+*.swo
+*~
+
+# Spring Boot specific
+*.pid
+spring.log
+
+# Build folders
+build/
+bin/
+
+# VS Code (if you sometimes use it)
+.vscode/
+
+# Eclipse (if you sometimes use it)
+.classpath
+.project
+.settings/
