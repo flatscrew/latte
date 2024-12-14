@@ -65,6 +65,11 @@ class ProgramTest {
 
         Thread programThread = new Thread(program::run);
         programThread.start();
+        try {
+            program.waitForInit();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         // when
         program.send(new BatchMessage(
@@ -109,12 +114,23 @@ class ProgramTest {
 
         Thread programThread = new Thread(program::run);
         programThread.start();
+        try {
+            program.waitForInit();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
 
         // when
         program.send(new SequenceMessage(
                 first,
                 second,
-                QuitMessage::new
+                new Command() {
+                    @Override
+                    public Message execute() {
+                        return new QuitMessage();
+                    }
+                }
         ));
 
         try {
