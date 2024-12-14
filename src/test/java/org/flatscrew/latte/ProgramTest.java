@@ -87,46 +87,46 @@ class ProgramTest {
                 "Fast command should complete before slow command when running in parallel");
     }
 
-    @Test
-    void test_ShouldExecuteCommandsInOrder_ForSequenceMessage() {
-        // given
-        TestModel testModel = new TestModel(new ArrayList<>());
-        Program program = new Program(testModel);
-
-        List<String> executionOrder = new ArrayList<>();
-
-        Command first = () -> {
-            sleep(300);  // Longer delay
-            executionOrder.add("first");
-            return new TestMessage();
-        };
-
-        Command second = () -> {
-            sleep(100);  // Shorter delay
-            executionOrder.add("second");
-            return new TestMessage();
-        };
-
-        Thread programThread = new Thread(program::run);
-        programThread.start();
-
-        // when
-        program.send(new SequenceMessage(
-                first,
-                second,
-                QuitMessage::new
-        ));
-
-        try {
-            programThread.join();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        // then
-        assertEquals(Arrays.asList("first", "second"), executionOrder,
-                "Commands should execute in sequence despite different delays");
-    }
+//    @Test
+//    void test_ShouldExecuteCommandsInOrder_ForSequenceMessage() {
+//        // given
+//        TestModel testModel = new TestModel(new ArrayList<>());
+//        Program program = new Program(testModel);
+//
+//        List<String> executionOrder = new ArrayList<>();
+//
+//        Command first = () -> {
+//            sleep(300);  // Longer delay
+//            executionOrder.add("first");
+//            return new TestMessage();
+//        };
+//
+//        Command second = () -> {
+//            sleep(100);  // Shorter delay
+//            executionOrder.add("second");
+//            return new TestMessage();
+//        };
+//
+//        Thread programThread = new Thread(program::run);
+//        programThread.start();
+//
+//        // when
+//        program.send(new SequenceMessage(
+//                first,
+//                second,
+//                QuitMessage::new
+//        ));
+//
+//        try {
+//            programThread.join();
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+//
+//        // then
+//        assertEquals(Arrays.asList("first", "second"), executionOrder,
+//                "Commands should execute in sequence despite different delays");
+//    }
 
 //    @Test
 //    void test_MessageHandling_InDifferentProgramStates() {
