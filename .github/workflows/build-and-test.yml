@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: write
-  dependency-graph: write
+  security-events: write
 
 jobs:
   build:
