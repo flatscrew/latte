@@ -4,7 +4,7 @@ import org.flatscrew.latte.*;
 import org.flatscrew.latte.examples.altscreentoggle.AltScreenToggleExample;
 import org.flatscrew.latte.examples.counter.CounterExample;
 import org.flatscrew.latte.examples.fullscreen.FullscreenExample;
-import org.flatscrew.latte.examples.result.ResultExample;
+import org.flatscrew.latte.examples.demo.Demo;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
 
@@ -87,7 +87,7 @@ public class ExamplesRunner implements Model {
     public static void main(String[] args) {
         new Program(new ExamplesRunner(List.of(
                 new CounterExample(),
-                new ResultExample(),
+                new Demo(),
                 new AltScreenToggleExample(),
                 new FullscreenExample(5)
         ))).run();

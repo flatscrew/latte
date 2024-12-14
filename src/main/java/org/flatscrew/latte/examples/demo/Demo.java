@@ -1,6 +1,8 @@
-package org.flatscrew.latte.examples.result;
+package org.flatscrew.latte.examples.demo;
 
 import org.flatscrew.latte.Command;
+import org.flatscrew.latte.cream.Color;
+import org.flatscrew.latte.cream.Style;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
@@ -24,7 +26,9 @@ enum Choice {
     }
 }
 
-public class ResultExample implements Model  {
+public class Demo implements Model  {
+
+    private final static Style SELECTION = new Style().foreground(new Color(205));
 
     private int cursor;
     private String choice;
@@ -85,12 +89,11 @@ public class ResultExample implements Model  {
         Choice[] values = Choice.values();
         for (int index = 0; index < values.length; index++) {
             if (cursor == index) {
-                buffer.append("(•) ");
+                buffer.append(SELECTION.render("[•]", values[index].getName()));
             } else {
-                buffer.append("( ) ");
-
+                buffer.append("[ ] ").append(values[index].getName());
             }
-            buffer.append(values[index].getName()).append("\n");
+            buffer.append("\n");
         }
         buffer.append("\n(press q to quit)");
         return buffer.toString();
@@ -101,7 +104,7 @@ public class ResultExample implements Model  {
     }
 
     public static void main(String[] args) {
-        ResultExample resultModel = new ResultExample();
+        Demo resultModel = new Demo();
         Program program = new Program(resultModel);
         program.run();
 
