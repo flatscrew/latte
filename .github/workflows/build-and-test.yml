@@ -6,9 +6,12 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+  dependency-graph: write
+
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -22,6 +25,5 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
-      # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
       - name: Update dependency graph
         uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
