@@ -156,7 +156,11 @@ public class Program {
         }
     }
 
-    public void waitForInit() throws InterruptedException {
-        initLatch.await();
+    public void waitForInit() {
+        try {
+            initLatch.await();
+        } catch (InterruptedException e) {
+            throw new ProgramException(e);
+        }
     }
 }

@@ -65,11 +65,7 @@ class ProgramTest {
 
         Thread programThread = new Thread(program::run);
         programThread.start();
-        try {
-            program.waitForInit();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        program.waitForInit();
 
         // when
         program.send(new BatchMessage(
@@ -114,11 +110,7 @@ class ProgramTest {
 
         Thread programThread = new Thread(program::run);
         programThread.start();
-        try {
-            program.waitForInit();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        program.waitForInit();
 
 
         // when
@@ -156,11 +148,7 @@ class ProgramTest {
 
         Thread programThread = new Thread(program::run);
         programThread.start();
-        try {
-            program.waitForInit();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        program.waitForInit();
 
         program.send(new TestMessage());
 
