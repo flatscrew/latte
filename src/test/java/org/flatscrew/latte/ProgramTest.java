@@ -128,41 +128,41 @@ class ProgramTest {
 //                "Commands should execute in sequence despite different delays");
 //    }
 
-//    @Test
-//    void test_MessageHandling_InDifferentProgramStates() {
-//        // given
-//        List<String> executionOrder = new ArrayList<>();
-//        TestModel testModel = new TestModel(executionOrder);
-//        Program program = new Program(testModel);
-//
-//        // when
-//        assertEquals(0, executionOrder.size(), "Message before start should be dropped");
-//
-//        Thread programThread = new Thread(program::run);
-//        programThread.start();
-//        try {
-//            program.waitForInit();
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//        program.send(new TestMessage());
-//
-//        long startTime = System.currentTimeMillis();
-//        while (executionOrder.isEmpty() && System.currentTimeMillis() - startTime < 5000) {
-//            sleep(50);
-//        }
-//
-//        // then
-//        assertEquals(1, executionOrder.size(), "Message during runtime should be processed");
-//
-//        program.send(new QuitMessage());
-//        try {
-//            programThread.join();
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+    @Test
+    void test_MessageHandling_InDifferentProgramStates() {
+        // given
+        List<String> executionOrder = new ArrayList<>();
+        TestModel testModel = new TestModel(executionOrder);
+        Program program = new Program(testModel);
+
+        // when
+        assertEquals(0, executionOrder.size(), "Message before start should be dropped");
+
+        Thread programThread = new Thread(program::run);
+        programThread.start();
+        try {
+            program.waitForInit();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        program.send(new TestMessage());
+
+        long startTime = System.currentTimeMillis();
+        while (executionOrder.isEmpty() && System.currentTimeMillis() - startTime < 5000) {
+            sleep(50);
+        }
+
+        // then
+        assertEquals(1, executionOrder.size(), "Message during runtime should be processed");
+
+        program.send(new QuitMessage());
+        try {
+            programThread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private static void sleep(long delay) {
         try {
