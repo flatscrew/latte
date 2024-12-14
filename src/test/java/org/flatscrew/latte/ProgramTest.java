@@ -162,7 +162,7 @@ class ProgramTest {
 //        } catch (InterruptedException e) {
 //            throw new RuntimeException(e);
 //        }
-    }
+//    }
 
     private static void sleep(long delay) {
         try {
