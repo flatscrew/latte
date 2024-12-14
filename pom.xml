@@ -9,6 +9,9 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
+        <jline.version>3.26.1</jline.version>
+        <junit.version>RELEASE</junit.version>
+
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,7 +21,13 @@
         <dependency>
             <groupId>org.jline</groupId>
             <artifactId>jline-terminal-jni</artifactId>
-            <version>3.26.1</version>
+            <version>${jline.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

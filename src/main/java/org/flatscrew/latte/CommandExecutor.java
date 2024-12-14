@@ -13,11 +13,11 @@ public class CommandExecutor {
         executorService.shutdown();
     }
 
-    public void executeIfPresent(Command command,
-                                 Consumer<Message> messageConsumer,
-                                 Consumer<Throwable> errorConsumer) {
+    public CompletableFuture<Void> executeIfPresent(Command command,
+                                                    Consumer<Message> messageConsumer,
+                                                    Consumer<Throwable> errorConsumer) {
         if (command != null) {
-            CompletableFuture
+            return CompletableFuture
                     .supplyAsync(command::execute, executorService)
                     .thenAccept(messageConsumer)
                     .exceptionally(ex -> {
@@ -25,5 +25,6 @@ public class CommandExecutor {
                         return null;
                     });
         }
+        return CompletableFuture.completedFuture(null);
     }
 }

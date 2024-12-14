@@ -9,6 +9,7 @@ import org.jline.utils.Signals;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -117,6 +118,13 @@ public class Program {
                     } else if (msg instanceof BatchMessage batchMessage) {
                         for (Command command : batchMessage.commands()) {
                             commandExecutor.executeIfPresent(command, this::send, this::sendError);
+                        }
+                    } else if (msg instanceof SequenceMessage sequenceMessage) {
+                        CompletableFuture<Void> sequence = CompletableFuture.completedFuture(null);
+                        for (Command command : sequenceMessage.commands()) {
+                            sequence = sequence.thenCompose(ignored ->
+                                    commandExecutor.executeIfPresent(command, this::send, this::sendError)
+                            );
                         }
                     } else if (msg instanceof ErrorMessage errorMessage) {
                         throw new ProgramException(errorMessage.error());
