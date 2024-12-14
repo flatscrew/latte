@@ -11,10 +11,17 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class IgnoredMessage implements Message {
+class TestMessage implements Message {
 }
 
 class TestModel implements Model {
+
+    private final List<String> executionOrder;
+
+    TestModel(List<String> executionOrder) {
+        this.executionOrder = executionOrder;
+    }
+
     @Override
     public Command init() {
         return null;
@@ -22,6 +29,9 @@ class TestModel implements Model {
 
     @Override
     public UpdateResult<? extends Model> update(Message msg) {
+        if (msg instanceof TestMessage) {
+            executionOrder.add("processed");
+        }
         return new UpdateResult<>(this, null);
     }
 
@@ -36,7 +46,7 @@ class ProgramTest {
     @Test
     void test_ShouldExecuteCommandsInParallel_ForBatchMessage() {
         // given
-        TestModel testModel = new TestModel();
+        TestModel testModel = new TestModel(new ArrayList<>());
         Program program = new Program(testModel);
 
         List<String> executionOrder = new ArrayList<>();
@@ -44,13 +54,13 @@ class ProgramTest {
         Command slow = () -> {
             sleep(300);
             executionOrder.add("slow");
-            return new IgnoredMessage();
+            return new TestMessage();
         };
 
         Command fast = () -> {
             sleep(100);  // Faster command
             executionOrder.add("fast");
-            return new IgnoredMessage();
+            return new TestMessage();
         };
 
         Thread programThread = new Thread(program::run);
@@ -80,7 +90,7 @@ class ProgramTest {
     @Test
     void test_ShouldExecuteCommandsInOrder_ForSequenceMessage() {
         // given
-        TestModel testModel = new TestModel();
+        TestModel testModel = new TestModel(new ArrayList<>());
         Program program = new Program(testModel);
 
         List<String> executionOrder = new ArrayList<>();
@@ -88,13 +98,13 @@ class ProgramTest {
         Command first = () -> {
             sleep(300);  // Longer delay
             executionOrder.add("first");
-            return new IgnoredMessage();
+            return new TestMessage();
         };
 
         Command second = () -> {
             sleep(100);  // Shorter delay
             executionOrder.add("second");
-            return new IgnoredMessage();
+            return new TestMessage();
         };
 
         Thread programThread = new Thread(program::run);
@@ -116,6 +126,42 @@ class ProgramTest {
         // then
         assertEquals(Arrays.asList("first", "second"), executionOrder,
                 "Commands should execute in sequence despite different delays");
+    }
+
+    @Test
+    void test_MessageHandling_InDifferentProgramStates() {
+        // given
+        List<String> executionOrder = new ArrayList<>();
+        TestModel testModel = new TestModel(executionOrder);
+        Program program = new Program(testModel);
+
+        // when
+        assertEquals(0, executionOrder.size(), "Message before start should be dropped");
+
+        Thread programThread = new Thread(program::run);
+        programThread.start();
+        try {
+            program.waitForInit();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        program.send(new TestMessage());
+
+        long startTime = System.currentTimeMillis();
+        while (executionOrder.isEmpty() && System.currentTimeMillis() - startTime < 5000) {
+            sleep(50);
+        }
+
+        // then
+        assertEquals(1, executionOrder.size(), "Message during runtime should be processed");
+
+        program.send(new QuitMessage());
+        try {
+            programThread.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void sleep(long delay) {

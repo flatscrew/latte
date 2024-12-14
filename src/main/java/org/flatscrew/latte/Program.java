@@ -10,6 +10,7 @@ import org.jline.utils.Signals;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -20,9 +21,10 @@ public class Program {
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
     private final BlockingQueue<Message> messageQueue = new LinkedBlockingQueue<>();
     private final CommandExecutor commandExecutor;
-    private volatile Model currentModel;
-
     private final Terminal terminal;
+
+    private volatile Model currentModel;
+    private final CountDownLatch initLatch = new CountDownLatch(1);
 
     public Program(Model initialModel) {
         this.currentModel = initialModel;
@@ -37,9 +39,7 @@ public class Program {
 
             this.renderer = new StandardRenderer(terminal);
         } catch (IOException e) {
-            System.err.println("Failed to initialize terminal: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Failed to initialize terminal", e);
+            throw new ProgramException("Failed to initialize terminal", e);
         }
     }
 
@@ -56,7 +56,7 @@ public class Program {
                     send(new KeyPressMessage(reader.read()));
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new ProgramException("Unable to initialize keyboard input", e);
             }
         });
         inputThread.setDaemon(true);
@@ -102,6 +102,7 @@ public class Program {
 
         renderer.hideCursor();
         renderer.start();
+        initLatch.countDown();
 
         while (isRunning.get()) {
             try {
@@ -153,5 +154,9 @@ public class Program {
         if (isRunning.get()) {
             messageQueue.offer(msg);
         }
+    }
+
+    public void waitForInit() throws InterruptedException {
+        initLatch.await();
     }
 }
