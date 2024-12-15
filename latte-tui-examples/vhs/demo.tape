@@ -1,7 +1,7 @@
 Set Shell fish
 Set Height 450
 Output demo.gif
-Type "./examples/demo"
+Type "./demo"
 Sleep 500ms
 Enter
 Sleep 1s

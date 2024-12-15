@@ -4,4 +4,6 @@
 Latte tends to be a Java port of Golang's [Bubble Tea](https://github.com/charmbracelet/bubbletea),
 [The Elm Architecture](https://guide.elm-lang.org/architecture/) driven TUI framework.
 
-![Demo](examples/demo-tape.gif "Demo")
+![Demo](latte-tui-examples/demo-tape.gif "Demo")
+
+## Tutorial
