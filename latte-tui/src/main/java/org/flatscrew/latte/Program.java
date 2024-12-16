@@ -66,6 +66,15 @@ public class Program {
         // start reading keyboard input
         inputHandler.start();
 
+        // starting renderer
+        renderer.hideCursor();
+        renderer.start();
+
+        // execute init command
+        Command initCommand = currentModel.init();
+        commandExecutor.executeIfPresent(initCommand, this::send, this::sendError);
+        initLatch.countDown();
+
         // run event loop
         Model finalModel = eventLoop();
 
@@ -96,13 +105,6 @@ public class Program {
     }
 
     private Model eventLoop() {
-        Command initCommand = currentModel.init();
-        commandExecutor.executeIfPresent(initCommand, this::send, this::sendError);
-
-        renderer.hideCursor();
-        renderer.start();
-        initLatch.countDown();
-
         while (isRunning.get()) {
             try {
                 Message msg = messageQueue.poll(50, TimeUnit.MILLISECONDS);
