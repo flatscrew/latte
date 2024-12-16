@@ -1,10 +1,15 @@
 package org.flatscrew.latte;
 
-import org.flatscrew.latte.message.*;
+import org.flatscrew.latte.input.InputHandler;
+import org.flatscrew.latte.message.BatchMessage;
+import org.flatscrew.latte.message.EnterAltScreen;
+import org.flatscrew.latte.message.ErrorMessage;
+import org.flatscrew.latte.message.ExitAltScreen;
+import org.flatscrew.latte.message.QuitMessage;
+import org.flatscrew.latte.message.SequenceMessage;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp;
-import org.jline.utils.NonBlockingReader;
 import org.jline.utils.Signals;
 
 import java.io.IOException;
@@ -17,14 +22,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Program {
 
-    private final Renderer renderer;
     private final AtomicBoolean isRunning = new AtomicBoolean(false);
+    private final CountDownLatch initLatch = new CountDownLatch(1);
     private final BlockingQueue<Message> messageQueue = new LinkedBlockingQueue<>();
     private final CommandExecutor commandExecutor;
-    private final Terminal terminal;
+    private final InputHandler inputHandler;
 
     private volatile Model currentModel;
-    private final CountDownLatch initLatch = new CountDownLatch(1);
+    private final Renderer renderer;
+    private final Terminal terminal;
 
     public Program(Model initialModel) {
         this.currentModel = initialModel;
@@ -38,6 +44,7 @@ public class Program {
             terminal.enterRawMode();
 
             this.renderer = new StandardRenderer(terminal);
+            this.inputHandler = new InputHandler(terminal, this::send);
         } catch (IOException e) {
             throw new ProgramException("Failed to initialize terminal", e);
         }
@@ -48,30 +55,22 @@ public class Program {
         return this;
     }
 
-    private void startKeyboardInput() {
-        Thread inputThread = new Thread(() -> {
-            try {
-                NonBlockingReader reader = terminal.reader();
-                while (isRunning.get()) {
-                    send(new KeyPressMessage(reader.read()));
-                }
-            } catch (IOException e) {
-                throw new ProgramException("Unable to initialize keyboard input", e);
-            }
-        });
-        inputThread.setDaemon(true);
-        inputThread.start();
-    }
 
     public void run() {
         if (!isRunning.compareAndSet(false, true)) {
             throw new IllegalStateException("Program is already running!");
         }
 
-        startKeyboardInput();
         handleTerminationSignals();
 
+        // start reading keyboard input
+        inputHandler.start();
+
+        // run event loop
         Model finalModel = eventLoop();
+
+        // stop reading keyboard input
+        inputHandler.stop();
 
         // render final model view before closing
         renderer.write(finalModel.view());
