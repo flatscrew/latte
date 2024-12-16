@@ -1,34 +1,19 @@
 package org.flatscrew.latte.examples.demo;
 
 import org.flatscrew.latte.Command;
-import org.flatscrew.latte.cream.Color;
-import org.flatscrew.latte.cream.Style;
-import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
 import org.flatscrew.latte.Program;
-import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.UpdateResult;
+import org.flatscrew.latte.cream.Color;
+import org.flatscrew.latte.cream.Style;
+import org.flatscrew.latte.message.KeyPressMessage;
+import org.flatscrew.latte.message.QuitMessage;
 
-enum Choice {
-    ESPRESSO("Espresso"),
-    AMERICANO("Americano"),
-    LATTE("Latte");
-
-    private final String name;
-
-    Choice(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-}
-
-public class Demo implements Model  {
+public class Demo implements Model {
 
     private final static Style SELECTION = new Style().foreground(new Color(205));
+    private final static String[] CHOICES = {"Espresso", "Americano", "Lattee"};
 
     private int cursor;
     private String choice;
@@ -53,10 +38,10 @@ public class Demo implements Model  {
     }
 
     private Model makeChoice() {
-        Choice[] values = Choice.values();
-        for (Choice choice : values) {
-            if (choice.ordinal() == cursor) {
-                this.choice =  choice.getName();
+        for (int index = 0; index < CHOICES.length ; index++) {
+            String choice = CHOICES[index];
+            if (index == cursor) {
+                this.choice = choice;
                 return this;
             }
         }
@@ -64,7 +49,7 @@ public class Demo implements Model  {
     }
 
     private Model moveUp() {
-        if (cursor - 1 <= 0 ) {
+        if (cursor - 1 <= 0) {
             cursor = 0;
             return this;
         }
@@ -73,7 +58,7 @@ public class Demo implements Model  {
     }
 
     private Model moveDown() {
-        if (cursor + 1 >= Choice.values().length) {
+        if (cursor + 1 >= CHOICES.length) {
             cursor = 0;
             return this;
         }
@@ -86,12 +71,11 @@ public class Demo implements Model  {
         StringBuilder buffer = new StringBuilder();
         buffer.append("What kind of Coffee would you like to order?\n\n");
 
-        Choice[] values = Choice.values();
-        for (int index = 0; index < values.length; index++) {
+        for (int index = 0; index < CHOICES.length; index++) {
             if (cursor == index) {
-                buffer.append(SELECTION.render("[•]", values[index].getName()));
+                buffer.append(SELECTION.render("[•]", CHOICES[index]));
             } else {
-                buffer.append("[ ] ").append(values[index].getName());
+                buffer.append("[ ] ").append(CHOICES[index]);
             }
             buffer.append("\n");
         }
@@ -104,13 +88,13 @@ public class Demo implements Model  {
     }
 
     public static void main(String[] args) {
-        Demo resultModel = new Demo();
-        Program program = new Program(resultModel);
+        Demo demoModel = new Demo();
+        Program program = new Program(demoModel);
         program.run();
 
-        if (resultModel.getChoice() == null) {
+        if (demoModel.getChoice() == null) {
             return;
         }
-        System.out.printf("\n---\nYou chose: %s!\n", resultModel.getChoice());
+        System.out.printf("\n---\nYou chose: %s!\n", demoModel.getChoice());
     }
 }
