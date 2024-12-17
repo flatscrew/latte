@@ -9,8 +9,6 @@ Latte tends to be a Java port of Golang's [Bubble Tea](https://github.com/charmb
 ## Tutorial
 For this tutorial, we're making a coffee ordering application (by the way, the non-annotated source code for this program is available [on GitHub](https://github.com/flatscrew/latte/tree/main/latte-tui-examples/src/main/java/org/flatscrew/latte/examples/demo)).
 
- 
-
 Everything starts with a **model** - an implementation of `org.flatscrew.latte.Model` interface, that describes the application state and three simple methods on that model:
 
 - **init**, a method that returns an initial command for the applicatin to run,
@@ -24,7 +22,7 @@ So let's start by deifning our model which will store our application's state. I
 import org.flatscrew.latte.Model;
 
 public class Demo implements Model {
-    private final static String[] CHOICES = {"Espresso", "Americano", "Lattee"};
+    private final static String[] CHOICES = {"Espresso", "Americano", "Latte"};
 
     private int cursor;
     private String choice;
@@ -108,5 +106,21 @@ public String view() {
     }
     buffer.append("\n(press q to quit)");
     return buffer.toString();
+}
+```
+
+### All together now
+The last setp is to simply run our program. We pass oir initial model as an argument for new instance of `org.flatscrew.latte.Program` and call `run` method.
+
+```java
+public static void main(String[] args) {
+    Demo demoModel = new Demo();
+    Program program = new Program(demoModel);
+    program.run();
+
+    if (demoModel.getChoice() == null) {
+        return;
+    }
+    System.out.printf("\n---\nYou chose: %s!\n", demoModel.getChoice());
 }
 ```

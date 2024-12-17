@@ -8,16 +8,61 @@
     <artifactId>latte-parent</artifactId>
     <version>0.0.1</version>
     <packaging>pom</packaging>
-    <modules>
-        <module>latte-tui</module>
-        <module>latte-tui-examples</module>
-    </modules>
+    <description>Terminal User Interface framework</description>
+    <url>https://github.com/flatscrew/latte</url>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <modules>
+                <module>latte-tui</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>latte-tui</module>
+                <module>latte-tui-examples</module>
+            </modules>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.6.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencyManagement>
         <dependencies>
@@ -29,5 +74,22 @@
         </dependencies>
     </dependencyManagement>
 
+    <developers>
+        <developer>
+            <name>Lukasz Grabski</name>
+            <email>activey@doaplatform.org</email>
+        </developer>
+    </developers>
 
+    <scm>
+        <connection>scm:git:git://github.com/flatscrew/latte.git</connection>
+        <url>https://github.com/flatscrew/latte</url>
+    </scm>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/license/mit</url>
+        </license>
+    </licenses>
 </project>
