@@ -49,8 +49,8 @@ public class Demo implements Model {
     }
 
     private Model moveUp() {
-        if (cursor - 1 <= 0) {
-            cursor = 0;
+        if (cursor - 1 < 0) {
+            cursor = CHOICES.length - 1;
             return this;
         }
         cursor--;

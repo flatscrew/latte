@@ -16,4 +16,6 @@ public interface Renderer {
     void disableReportFocus();
     void enableReportFocus();
     void repaint();
+
+    void handleMessage(Message msg);
 }

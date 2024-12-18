@@ -1,9 +1,12 @@
 package org.flatscrew.latte;
 
+import org.flatscrew.latte.message.PrintLineMessage;
 import org.jline.terminal.Terminal;
 import org.jline.utils.InfoCmp;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +28,8 @@ public class StandardRenderer implements Renderer {
     private final ScheduledExecutorService ticker;
     private final long frameTime;
     private String[] lastRenderedLines = new String[0];
+    private final List<String> queuedMessageLines = new ArrayList<>();  // Add this field
+
     private int linesRendered = 0;
     private int width;
     private int height;
@@ -66,6 +71,7 @@ public class StandardRenderer implements Renderer {
     public void stop() {
         isRunning = false;
         try {
+            ticker.shutdownNow();
             ticker.awaitTermination(100, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             throw new ProgramException(e);
@@ -86,19 +92,36 @@ public class StandardRenderer implements Renderer {
             StringBuilder outputBuffer = new StringBuilder();
             String[] newLines = buffer.toString().split("\n");
 
-            // If height is known and content exceeds it, trim from top
+            // if height is known and content exceeds it, trim from top
             if (height > 0 && newLines.length > height) {
                 newLines = Arrays.copyOfRange(newLines, newLines.length - height, newLines.length);
             }
 
-            // Move cursor to start of render area
+            // move cursor to start of render area
             if (linesRendered > 1) {
                 outputBuffer.append("\033[").append(linesRendered - 1).append("A");
             }
 
+            // first handle queued messages if we're not in alt screen
+            boolean flushQueuedMessages = !queuedMessageLines.isEmpty() && !isInAltScreen;
+
+            if (flushQueuedMessages) {
+                for (String line : queuedMessageLines) {
+                    // add line and erase to end if needed
+                    if (width > 0 && line.length() < width) {
+                        outputBuffer.append(line).append("\033[K"); // EraseLineRight
+                    } else {
+                        outputBuffer.append(line);
+                    }
+                    outputBuffer.append("\r\n");
+                }
+                queuedMessageLines.clear();
+            }
+
             // Paint new lines
             for (int i = 0; i < newLines.length; i++) {
-                boolean canSkip = lastRenderedLines.length > i &&
+                boolean canSkip = !flushQueuedMessages && // Skip only if we haven't flushed messages
+                        lastRenderedLines.length > i &&
                         newLines[i].equals(lastRenderedLines[i]);
 
                 if (canSkip) {
@@ -108,15 +131,18 @@ public class StandardRenderer implements Renderer {
                     continue;
                 }
 
-                // Truncate lines wider than the width of the window to avoid
-                // wrapping, which will mess up rendering. If we don't have the
-                // width of the window this will be ignored.
+                // Truncate lines wider than the width of the window to avoid wrapping
                 String line = newLines[i];
                 if (this.width > 0 && line.length() > width) {
                     line = line.substring(0, this.width);
                 }
+
                 // Clear line and write new content
-                outputBuffer.append("\r\033[K").append(line);
+                if (width > 0 && line.length() < width) {
+                    outputBuffer.append("\r").append(line).append("\033[K");
+                } else {
+                    outputBuffer.append("\r").append(line);
+                }
 
                 if (i < newLines.length - 1) {
                     outputBuffer.append("\n");
@@ -183,8 +209,7 @@ public class StandardRenderer implements Renderer {
         try {
             terminal.puts(InfoCmp.Capability.clear_screen);
             terminal.flush();
-            lastRender = "";
-            buffer.setLength(0);
+            repaint();
         } finally {
             renderLock.unlock();
         }
@@ -282,5 +307,22 @@ public class StandardRenderer implements Renderer {
     public void repaint() {
         lastRender = "";
         lastRenderedLines = new String[]{};
+    }
+
+    @Override
+    public void handleMessage(Message msg) {
+        if (msg instanceof PrintLineMessage printLineMessage) {
+            if (!isInAltScreen) {
+                renderLock.lock();
+                try {
+                    String[] lines = printLineMessage.messageBody().split("\n");
+                    queuedMessageLines.addAll(Arrays.asList(lines));
+                    needsRender = true;
+                    repaint();
+                } finally {
+                    renderLock.unlock();
+                }
+            }
+        }
     }
 }

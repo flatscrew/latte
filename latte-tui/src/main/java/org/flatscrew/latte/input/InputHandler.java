@@ -10,16 +10,19 @@ import org.jline.terminal.Terminal;
 import org.jline.utils.NonBlockingReader;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class InputHandler {
     private static final Pattern MOUSE_SGR_REGEX = Pattern.compile("(\\d+);(\\d+);(\\d+)([Mm])");
-    private final Thread inputThread;
     private final Terminal terminal;
     private final Consumer<Message> messageConsumer;
-    private boolean running;
+    private volatile boolean running;
+    private final ExecutorService inputExecutor;
 
     // Buffer for handling escape sequences
     private final StringBuilder escapeCharactersBuffer = new StringBuilder();
@@ -28,19 +31,25 @@ public class InputHandler {
     public InputHandler(Terminal terminal, Consumer<Message> messageConsumer) {
         this.terminal = terminal;
         this.messageConsumer = messageConsumer;
-        this.inputThread = new Thread(this::handleInput);
-        this.inputThread.setDaemon(true);
+        this.inputExecutor = Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "Latte-Input-Thread");
+            t.setDaemon(true);
+            return t;
+        });
     }
 
     public void start() {
-        this.running = true;
-        inputThread.start();
+        if (!running) {
+            running = true;
+            inputExecutor.submit(this::handleInput);
+        }
     }
 
     public void stop() {
-        this.running = false;
+        running = false;
+        inputExecutor.shutdownNow();
         try {
-            inputThread.join(500); // wait up to 500ms for thread to finish
+            inputExecutor.awaitTermination(100, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -54,55 +63,62 @@ public class InputHandler {
                 if (input == -1) break;
 
                 if (input == '\u001b') { // ESC character
-                    handleEscapeSequence(reader);
-                } else {
+                    StringBuilder sequence = new StringBuilder();
+                    sequence.append((char)input);
+
+                    // Look ahead for [ and next character
+                    int nextChar = reader.read(ESCAPE_TIMEOUT_MS);
+                    if (nextChar != -1) {
+                        sequence.append((char)nextChar);
+
+                        if (nextChar == '[') {
+                            int thirdChar = reader.read(ESCAPE_TIMEOUT_MS);
+                            if (thirdChar != -1) {
+                                sequence.append((char)thirdChar);
+
+                                // Handle known special cases
+                                if (thirdChar == 'I') {
+                                    messageConsumer.accept(new FocusMessage());
+                                    continue;
+                                } else if (thirdChar == 'O') {
+                                    messageConsumer.accept(new BlurMessage());
+                                    continue;
+                                } else if (thirdChar == 'M') {
+                                    handleX10MouseEvent(reader);
+                                    continue;
+                                } else if (thirdChar == '<') {
+                                    handleSGRMouseEvent(reader);
+                                    continue;
+                                } else if (thirdChar == '?') {
+                                    // This is definitely an unknown control sequence
+                                    // Read the rest of the sequence
+                                    int ch;
+                                    while ((ch = reader.read(ESCAPE_TIMEOUT_MS)) != -1) {
+                                        sequence.append((char)ch);
+                                    }
+                                    messageConsumer.accept(new UnknownSequenceMessage(sequence.toString()));
+                                    continue;
+                                }
+                                // For arrow keys and other known sequences
+                                messageConsumer.accept(new KeyPressMessage(thirdChar));
+                                continue;
+                            }
+                        } else {
+                            // Handle Alt+key combination
+                            messageConsumer.accept(new KeyPressMessage(nextChar, true));
+                            continue;
+                        }
+                    }
                     messageConsumer.accept(new KeyPressMessage(input));
+                    continue;
                 }
+                messageConsumer.accept(new KeyPressMessage(input));
             }
         } catch (IOException e) {
-            throw new ProgramException("Unable to initialize keyboard input", e);
-        }
-    }
-
-    private void handleEscapeSequence(NonBlockingReader reader) throws IOException {
-        escapeCharactersBuffer.setLength(0);
-        escapeCharactersBuffer.append('\u001b');
-
-        // Read the next character with a timeout
-        int nextChar = reader.read(ESCAPE_TIMEOUT_MS);
-
-        if (nextChar == -1) {
-            // Timeout occurred - it was just an ESC key
-            messageConsumer.accept(new KeyPressMessage('\u001b'));
-            return;
-        }
-
-        escapeCharactersBuffer.append((char) nextChar);
-
-        // Handle focus events
-        if (nextChar == '[') {
-            nextChar = reader.read(ESCAPE_TIMEOUT_MS);
-            if (nextChar != -1) {
-                escapeCharactersBuffer.append((char) nextChar);
-
-                if (nextChar == 'I') {
-                    messageConsumer.accept(new FocusMessage()); // Focus gained
-                    return;
-                } else if (nextChar == 'O') {
-                    messageConsumer.accept(new BlurMessage()); // Focus lost
-                    return;
-                } else if (nextChar == 'M') {
-                    handleX10MouseEvent(reader);
-                    return;
-                } else if (nextChar == '<') {
-                    handleSGRMouseEvent(reader);
-                    return;
-                }
+            if (!Thread.currentThread().isInterrupted()) {
+                throw new ProgramException("Unable to initialize keyboard input", e);
             }
         }
-
-        // If we got here, it's either an Alt+key combination or an unknown sequence
-        handleRemainingSequence(reader);
     }
 
     private void handleX10MouseEvent(NonBlockingReader reader) throws IOException {
@@ -147,24 +163,6 @@ public class InputHandler {
                     row,
                     release
             ));
-        }
-    }
-
-    private void handleRemainingSequence(NonBlockingReader reader) throws IOException {
-        // Read any remaining characters in the sequence with timeout
-        int ch;
-        while ((ch = reader.read(ESCAPE_TIMEOUT_MS)) != -1) {
-            escapeCharactersBuffer.append((char) ch);
-        }
-
-        // Process the complete sequence
-        String sequence = escapeCharactersBuffer.toString();
-        if (sequence.length() == 2 && sequence.charAt(0) == '\u001b') {
-            // Alt + key combination
-            messageConsumer.accept(new KeyPressMessage(sequence.charAt(1), true));
-        } else {
-            // Unknown sequence - you might want to handle this differently
-            messageConsumer.accept(new UnknownSequenceMessage(sequence));
         }
     }
 }

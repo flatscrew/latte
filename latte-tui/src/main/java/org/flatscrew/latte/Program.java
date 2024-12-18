@@ -2,22 +2,21 @@ package org.flatscrew.latte;
 
 import org.flatscrew.latte.input.InputHandler;
 import org.flatscrew.latte.message.BatchMessage;
+import org.flatscrew.latte.message.CheckWindowSizeMessage;
 import org.flatscrew.latte.message.EnterAltScreen;
 import org.flatscrew.latte.message.ErrorMessage;
 import org.flatscrew.latte.message.ExitAltScreen;
 import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.message.SequenceMessage;
+import org.flatscrew.latte.message.WindowSizeMessage;
+import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp;
 import org.jline.utils.Signals;
 
 import java.io.IOException;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Program {
@@ -87,7 +86,6 @@ public class Program {
 
         // render final model view before closing
         renderer.write(finalModel.view());
-        renderer.stop();
         renderer.showCursor();
 
         if (renderer.reportFocus()) {
@@ -114,45 +112,57 @@ public class Program {
 
     private Model eventLoop() {
         while (isRunning.get()) {
+            Message msg;
             try {
-                Message msg = messageQueue.poll(50, TimeUnit.MILLISECONDS);
-                if (msg != null) {
-                    if (msg instanceof QuitMessage) {
-                        return currentModel;
-                    } else if (msg instanceof EnterAltScreen) {
-                        renderer.enterAltScreen();
-                        continue;
-                    } else if (msg instanceof ExitAltScreen) {
-                        renderer.exitAltScreen();
-                        continue;
-                    } else if (msg instanceof BatchMessage batchMessage) {
-                        for (Command command : batchMessage.commands()) {
-                            commandExecutor.executeIfPresent(command, this::send, this::sendError);
-                        }
-                    } else if (msg instanceof SequenceMessage sequenceMessage) {
-                        CompletableFuture<Void> sequence = CompletableFuture.completedFuture(null);
-                        for (Command command : sequenceMessage.commands()) {
-                            sequence = sequence.thenCompose(ignored ->
-                                    commandExecutor.executeIfPresent(command, this::send, this::sendError)
-                            );
-                        }
-                    } else if (msg instanceof ErrorMessage errorMessage) {
-                        throw new ProgramException(errorMessage.error());
-                    }
-
-                    UpdateResult<? extends Model> updateResult = currentModel.update(msg);
-
-                    currentModel = updateResult.model();
-                    renderer.notifyModelChanged();
-                    commandExecutor.executeIfPresent(updateResult.command(), this::send, this::sendError);
-                }
+                msg = messageQueue.poll(10, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
             }
+
+            if (msg != null) {
+                if (msg instanceof QuitMessage) {
+                    return currentModel;
+                } else if (msg instanceof EnterAltScreen) {
+                    renderer.enterAltScreen();
+                    continue;
+                } else if (msg instanceof ExitAltScreen) {
+                    renderer.exitAltScreen();
+                    continue;
+                } else if (msg instanceof BatchMessage batchMessage) {
+                    for (Command command : batchMessage.commands()) {
+                        commandExecutor.executeIfPresent(command, this::send, this::sendError);
+                    }
+                } else if (msg instanceof SequenceMessage sequenceMessage) {
+                    CompletableFuture<Void> sequence = CompletableFuture.completedFuture(null);
+                    for (Command command : sequenceMessage.commands()) {
+                        sequence = sequence.thenCompose(__ ->
+                                commandExecutor.executeIfPresent(command, this::send, this::sendError)
+                        );
+                    }
+                } else if (msg instanceof ErrorMessage errorMessage) {
+                    throw new ProgramException(errorMessage.error());
+                } else if (msg instanceof CheckWindowSizeMessage) {
+                    commandExecutor.executeIfPresent(this::checkSize, this::send, this::sendError);
+                }
+
+                // process internal messages for the renderer
+                renderer.handleMessage(msg);
+
+                UpdateResult<? extends Model> updateResult = currentModel.update(msg);
+
+                currentModel = updateResult.model();
+                renderer.notifyModelChanged();
+                commandExecutor.executeIfPresent(updateResult.command(), this::send, this::sendError);
+            }
             renderer.write(currentModel.view());
         }
         return currentModel;
+    }
+
+    private Message checkSize() {
+        Size size = terminal.getSize();
+        return new WindowSizeMessage(size.getColumns(), size.getRows());
     }
 
     private void sendError(Throwable error) {
