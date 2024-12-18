@@ -108,6 +108,7 @@ public class Program {
     private void handleTerminationSignals() {
         Signals.register("INT", () -> send(new QuitMessage()));
         Signals.register("TERM", () -> send(new QuitMessage()));
+        Signals.register("WINCH", () -> send(new CheckWindowSizeMessage()));
     }
 
     private Model eventLoop() {
