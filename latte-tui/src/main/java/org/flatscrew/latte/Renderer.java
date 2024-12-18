@@ -11,7 +11,9 @@ public interface Renderer {
     boolean altScreen();
     void enterAltScreen();
     void exitAltScreen();
+    boolean reportFocus();
     void notifyModelChanged();
-
+    void disableReportFocus();
+    void enableReportFocus();
     void repaint();
 }

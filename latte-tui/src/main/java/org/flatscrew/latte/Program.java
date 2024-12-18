@@ -55,6 +55,10 @@ public class Program {
         return this;
     }
 
+    public Program withReportFocus() {
+        renderer.enableReportFocus();
+        return this;
+    }
 
     public void run() {
         if (!isRunning.compareAndSet(false, true)) {
@@ -85,6 +89,10 @@ public class Program {
         renderer.write(finalModel.view());
         renderer.stop();
         renderer.showCursor();
+
+        if (renderer.reportFocus()) {
+            renderer.disableReportFocus();
+        }
 
         if (renderer.altScreen()) {
             renderer.exitAltScreen();

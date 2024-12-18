@@ -12,6 +12,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class StandardRenderer implements Renderer {
 
+    private static final String ENABLE_FOCUS_REPORTING = "\u001b[?1004h";
+    private static final String DISABLE_FOCUS_REPORTING = "\u001b[?1004l";
     private static final int DEFAULT_FPS = 60;
 
     private volatile boolean needsRender = true;
@@ -27,6 +29,7 @@ public class StandardRenderer implements Renderer {
     private int width;
     private int height;
     private boolean isInAltScreen;
+    private boolean isReportFocus;
 
     public StandardRenderer(Terminal terminal) {
         this(terminal, DEFAULT_FPS);
@@ -233,6 +236,38 @@ public class StandardRenderer implements Renderer {
             isInAltScreen = false;
 
             terminal.flush();
+        } finally {
+            renderLock.unlock();
+        }
+    }
+
+    @Override
+    public boolean reportFocus() {
+        renderLock.lock();
+        try {
+            return isReportFocus;
+        } finally {
+            renderLock.unlock();
+        }
+    }
+
+    @Override
+    public void enableReportFocus() {
+        renderLock.lock();
+        try {
+            terminal.writer().print(ENABLE_FOCUS_REPORTING);
+            terminal.writer().flush();
+        } finally {
+            renderLock.unlock();
+        }
+    }
+
+    @Override
+    public void disableReportFocus() {
+        renderLock.lock();
+        try {
+            terminal.writer().print(DISABLE_FOCUS_REPORTING);
+            terminal.writer().flush();
         } finally {
             renderLock.unlock();
         }
