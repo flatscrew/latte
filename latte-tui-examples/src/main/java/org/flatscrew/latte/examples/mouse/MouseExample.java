@@ -5,10 +5,12 @@ import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
 import org.flatscrew.latte.Program;
 import org.flatscrew.latte.UpdateResult;
+import org.flatscrew.latte.command.Printf;
 import org.flatscrew.latte.input.MouseMessage;
+import org.flatscrew.latte.message.KeyPressMessage;
+import org.flatscrew.latte.message.QuitMessage;
 
 public class MouseExample implements Model {
-    private MouseMessage mouseMessage;
 
     @Override
     public Command init() {
@@ -17,15 +19,24 @@ public class MouseExample implements Model {
 
     @Override
     public UpdateResult<? extends Model> update(Message msg) {
-        return null;
+        if (msg instanceof MouseMessage mouseMessage) {
+            return UpdateResult.from(this, Printf.printf("(X: %d, Y: %d)", mouseMessage.column(), mouseMessage.row()));
+        } else if (msg instanceof KeyPressMessage keyPressMessage) {
+            if (keyPressMessage.key() == 'q') {
+                return UpdateResult.from(this, QuitMessage::new);
+            }
+        }
+        return UpdateResult.from(this);
     }
 
     @Override
     public String view() {
-        return "";
+        return "Do mouse stuff. When you're done press q to quit.\n";
     }
 
     public static void main(String[] args) {
-        new Program(new MouseExample()).run();
+        new Program(new MouseExample())
+                .withMouseAllMotion()
+                .run();
     }
 }

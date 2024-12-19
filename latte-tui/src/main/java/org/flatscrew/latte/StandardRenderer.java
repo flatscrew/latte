@@ -1,5 +1,6 @@
 package org.flatscrew.latte;
 
+import org.flatscrew.latte.ansi.Code;
 import org.flatscrew.latte.message.PrintLineMessage;
 import org.jline.terminal.Terminal;
 import org.jline.utils.InfoCmp;
@@ -15,8 +16,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class StandardRenderer implements Renderer {
 
-    private static final String ENABLE_FOCUS_REPORTING = "\u001b[?1004h";
-    private static final String DISABLE_FOCUS_REPORTING = "\u001b[?1004l";
     private static final int DEFAULT_FPS = 60;
 
     private volatile boolean needsRender = true;
@@ -204,6 +203,50 @@ public class StandardRenderer implements Renderer {
     }
 
     @Override
+    public void enableMouseAllMotion() {
+        renderLock.lock();
+        try {
+            terminal.writer().print(Code.EnableMouseAllMotion.value());
+            terminal.writer().flush();
+        } finally {
+            renderLock.unlock();
+        }
+    }
+
+    @Override
+    public void disableMouseAllMotion() {
+        renderLock.lock();
+        try {
+            terminal.writer().print(Code.DisableMouseAllMotion.value());
+            terminal.writer().flush();
+        } finally {
+            renderLock.unlock();
+        }
+    }
+
+    @Override
+    public void enableMouseSGRMode() {
+        renderLock.lock();
+        try {
+            terminal.writer().print(Code.EnableMouseSgrExt.value());
+            terminal.writer().flush();
+        } finally {
+            renderLock.unlock();
+        }
+    }
+
+    @Override
+    public void disableMouseSGRMode() {
+        renderLock.lock();
+        try {
+            terminal.writer().print(Code.DisableMouseSgrExt.value());
+            terminal.writer().flush();
+        } finally {
+            renderLock.unlock();
+        }
+    }
+
+    @Override
     public void clearScreen() {
         renderLock.lock();
         try {
@@ -280,7 +323,8 @@ public class StandardRenderer implements Renderer {
     public void enableReportFocus() {
         renderLock.lock();
         try {
-            terminal.writer().print(ENABLE_FOCUS_REPORTING);
+            isReportFocus = true;
+            terminal.writer().print(Code.EnableFocusReporting.value());
             terminal.writer().flush();
         } finally {
             renderLock.unlock();
@@ -291,7 +335,8 @@ public class StandardRenderer implements Renderer {
     public void disableReportFocus() {
         renderLock.lock();
         try {
-            terminal.writer().print(DISABLE_FOCUS_REPORTING);
+            isReportFocus = false;
+            terminal.writer().print(Code.DisableFocusReporting.value());
             terminal.writer().flush();
         } finally {
             renderLock.unlock();

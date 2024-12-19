@@ -59,6 +59,16 @@ public class Program {
         return this;
     }
 
+    public Program withMouseAllMotion() {
+        renderer.enableMouseAllMotion();
+        renderer.enableMouseSGRMode();
+        return this;
+    }
+
+    public Program withMouseCellMotion() {
+        return null;
+    }
+
     public void run() {
         if (!isRunning.compareAndSet(false, true)) {
             throw new IllegalStateException("Program is already running!");
@@ -87,6 +97,10 @@ public class Program {
         // render final model view before closing
         renderer.write(finalModel.view());
         renderer.showCursor();
+        renderer.stop();
+
+        // disabling mouse support
+        disableMouse();
 
         if (renderer.reportFocus()) {
             renderer.disableReportFocus();
@@ -182,5 +196,10 @@ public class Program {
         } catch (InterruptedException e) {
             throw new ProgramException(e);
         }
+    }
+
+    private void disableMouse() {
+        renderer.disableMouseSGRMode();
+        renderer.disableMouseAllMotion();
     }
 }
