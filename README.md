@@ -1,6 +1,5 @@
 # Latte
-[![Build and test](https://github.com/flatscrew/latte/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/flatscrew/latte/actions/workflows/build-and-test.yml) ![Maven Central](https://img.shields.io/maven-central/v/org.flatscrew/latte-tui)
-(https://central.sonatype.com/artifact/org.flatscrew/latte-tui)
+[![Build and test](https://github.com/flatscrew/latte/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/flatscrew/latte/actions/workflows/build-and-test.yml) [![Maven Central](https://img.shields.io/maven-central/v/org.flatscrew/latte-tui)](https://central.sonatype.com/artifact/org.flatscrew/latte-tui)
 
 Latte tends to be a Java port of Golang's [Bubble Tea](https://github.com/charmbracelet/bubbletea),
 [The Elm Architecture](https://guide.elm-lang.org/architecture/) driven TUI framework.
