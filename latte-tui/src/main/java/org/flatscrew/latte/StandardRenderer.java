@@ -84,9 +84,9 @@ public class StandardRenderer implements Renderer {
 
         renderLock.lock();
         try {
-            if (buffer.isEmpty() || buffer.toString().equals(lastRender)) {
-                return;
-            }
+//            if (buffer.isEmpty() || buffer.toString().equals(lastRender)) {
+//                return;
+//            }
 
             StringBuilder outputBuffer = new StringBuilder();
             String[] newLines = buffer.toString().split("\n");
@@ -103,7 +103,6 @@ public class StandardRenderer implements Renderer {
 
             // first handle queued messages if we're not in alt screen
             boolean flushQueuedMessages = !queuedMessageLines.isEmpty() && !isInAltScreen;
-
             if (flushQueuedMessages) {
                 for (String line : queuedMessageLines) {
                     // add line and erase to end if needed

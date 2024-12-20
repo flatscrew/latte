@@ -16,6 +16,7 @@ import org.jline.utils.InfoCmp;
 import org.jline.utils.Signals;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -88,6 +89,9 @@ public class Program {
         commandExecutor.executeIfPresent(initCommand, this::send, this::sendError);
         initLatch.countDown();
 
+        // render the initial view
+        renderer.write(currentModel.view());
+
         // run event loop
         Model finalModel = eventLoop();
 
@@ -145,16 +149,21 @@ public class Program {
                     renderer.exitAltScreen();
                     continue;
                 } else if (msg instanceof BatchMessage batchMessage) {
-                    for (Command command : batchMessage.commands()) {
-                        commandExecutor.executeIfPresent(command, this::send, this::sendError);
-                    }
+                    CompletableFuture.allOf(
+                            Arrays.stream(batchMessage.commands())
+                                    .map(command -> commandExecutor.executeIfPresent(command, this::send, this::sendError))
+                                    .toArray(CompletableFuture[]::new)
+                    ).join();
                 } else if (msg instanceof SequenceMessage sequenceMessage) {
-                    CompletableFuture<Void> sequence = CompletableFuture.completedFuture(null);
-                    for (Command command : sequenceMessage.commands()) {
-                        sequence = sequence.thenCompose(__ ->
-                                commandExecutor.executeIfPresent(command, this::send, this::sendError)
-                        );
-                    }
+                    Arrays.stream(sequenceMessage.commands())
+                            .reduce(
+                                    CompletableFuture.completedFuture(null),
+                                    (CompletableFuture<Void> future, Command command) ->
+                                            future.thenCompose(__ ->
+                                                    commandExecutor.executeIfPresent(command, this::send, this::sendError)
+                                            ),
+                                    (f1, f2) -> f1.thenCompose(__ -> f2)
+                            ).join();
                 } else if (msg instanceof ErrorMessage errorMessage) {
                     throw new ProgramException(errorMessage.error());
                 } else if (msg instanceof CheckWindowSizeMessage) {

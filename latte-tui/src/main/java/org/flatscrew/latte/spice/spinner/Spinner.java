@@ -4,10 +4,11 @@ import org.flatscrew.latte.Command;
 import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
 import org.flatscrew.latte.UpdateResult;
-import org.flatscrew.latte.command.Tick;
 import org.flatscrew.latte.cream.Style;
 
 import java.time.LocalDateTime;
+
+import static org.flatscrew.latte.Command.tick;
 
 public class Spinner implements Model {
 
@@ -47,7 +48,7 @@ public class Spinner implements Model {
             tag++;
             return UpdateResult.from(
                     this,
-                    Tick.tick(type.duration(), localDateTime -> new TickMessage(localDateTime, tag, id))
+                    tick(type.duration(), localDateTime -> new TickMessage(localDateTime, tag, id))
             );
         }
 

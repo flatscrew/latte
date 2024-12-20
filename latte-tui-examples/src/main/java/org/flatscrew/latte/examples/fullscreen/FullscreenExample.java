@@ -1,11 +1,16 @@
 package org.flatscrew.latte.examples.fullscreen;
 
-import org.flatscrew.latte.*;
-import org.flatscrew.latte.command.Tick;
+import org.flatscrew.latte.Command;
+import org.flatscrew.latte.Message;
+import org.flatscrew.latte.Model;
+import org.flatscrew.latte.Program;
+import org.flatscrew.latte.UpdateResult;
 import org.flatscrew.latte.message.QuitMessage;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+
+import static org.flatscrew.latte.Command.tick;
 
 class TickMessage implements Message {
     private final LocalDateTime time;
@@ -25,7 +30,7 @@ public class FullscreenExample implements Model {
 
     @Override
     public Command init() {
-        return Tick.tick(Duration.ofSeconds(1), TickMessage::new);
+        return tick(Duration.ofSeconds(1), TickMessage::new);
     }
 
     @Override
@@ -35,7 +40,7 @@ public class FullscreenExample implements Model {
             if (seconds <= 0) {
                 return UpdateResult.from(this, QuitMessage::new);
             }
-            return UpdateResult.from(this, Tick.tick(Duration.ofSeconds(1), TickMessage::new));
+            return UpdateResult.from(this, tick(Duration.ofSeconds(1), TickMessage::new));
         }
         return UpdateResult.from(this, null);
     }

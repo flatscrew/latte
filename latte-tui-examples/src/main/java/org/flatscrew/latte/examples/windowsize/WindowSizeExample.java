@@ -10,7 +10,7 @@ import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.message.WindowSizeMessage;
 
-import static org.flatscrew.latte.command.Printf.printf;
+import static org.flatscrew.latte.Command.printf;
 
 public class WindowSizeExample implements Model {
     @Override

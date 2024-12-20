@@ -1,10 +1,11 @@
 package org.flatscrew.latte.examples.mouse;
 
 import org.flatscrew.latte.*;
-import org.flatscrew.latte.command.Printf;
 import org.flatscrew.latte.input.MouseMessage;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
+
+import static org.flatscrew.latte.Command.printf;
 
 public class MouseExample implements Model {
 
@@ -18,7 +19,7 @@ public class MouseExample implements Model {
         if (msg instanceof MouseMessage mouseMessage) {
             return UpdateResult.from(
                     this,
-                    Printf.printf(
+                    printf(
                             "(X: %d, Y: %d) %s",
                             mouseMessage.column(),
                             mouseMessage.row(),

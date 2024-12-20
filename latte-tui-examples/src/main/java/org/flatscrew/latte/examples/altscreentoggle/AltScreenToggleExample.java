@@ -38,7 +38,6 @@ public class AltScreenToggleExample implements Model {
 
     private boolean altScreen;
     private boolean quitting;
-    private boolean suspending;
 
     @Override
     public Command init() {
@@ -72,9 +71,6 @@ public class AltScreenToggleExample implements Model {
 
     @Override
     public String view() {
-        if (suspending) {
-            return "";
-        }
         if (quitting) {
             return "Bye!\n";
         }
@@ -87,7 +83,7 @@ public class AltScreenToggleExample implements Model {
         }
 
         return "\n\n  You're in %s\n\n\n".formatted(KEYWORD_STYLE.render(mode.getDescription())) +
-                HELP_STYLE.render("  space: switch modes • ctrl-z: suspend • q: exit\n");
+                HELP_STYLE.render("  space: switch modes • q: exit\n");
     }
 
     public static void main(String[] args) {
