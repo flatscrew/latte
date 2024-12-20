@@ -123,17 +123,11 @@ public class InputHandler {
 
     private void handleX10MouseEvent(NonBlockingReader reader) throws IOException {
         // Read 3 bytes for button and coordinates
-        int button = reader.read() - 32;
-        int col = reader.read() - 32;
-        int row = reader.read() - 32;
+        int button = reader.read();
+        int col = reader.read();
+        int row = reader.read();
 
-        messageConsumer.accept(new MouseMessage(
-                MouseMessage.Type.X10,
-                button,
-                col,
-                row,
-                false  // not an SGR event
-        ));
+        messageConsumer.accept(MouseMessage.parseX10MouseEvent(button, col, row));
     }
 
     private void handleSGRMouseEvent(NonBlockingReader reader) throws IOException {
@@ -156,13 +150,7 @@ public class InputHandler {
             int row = Integer.parseInt(matcher.group(3));
             boolean release = matcher.group(4).equals("m");
 
-            messageConsumer.accept(new MouseMessage(
-                    MouseMessage.Type.SGR,
-                    button,
-                    col,
-                    row,
-                    release
-            ));
+            messageConsumer.accept(MouseMessage.parseSGRMouseEvent(button, col, row, release));
         }
     }
 }

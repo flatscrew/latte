@@ -201,11 +201,17 @@ class InputHandlerTest {
             messageLatch.countDown();
         };
 
+        // Simulating a left click at position (10, 20) with Alt modifier
+        // Binary: 0000_1000 (Alt bit set) = 8
+        int button = 32 + 8; // Adding X10_MOUSE_BYTE_OFFSET (32) + Alt modifier (8)
+        int col = 32 + 10;  // X coordinate 10
+        int row = 32 + 20;  // Y coordinate 20
+
         when(reader.read()).thenReturn(
                 (int) '\u001b',
-                32,
-                32 + 10,
-                32 + 20,
+                button,
+                col,
+                row,
                 -1
         );
 
@@ -228,10 +234,14 @@ class InputHandlerTest {
         assertThat(receivedMessages.getFirst()).isInstanceOf(MouseMessage.class);
 
         MouseMessage mouseMessage = (MouseMessage) receivedMessages.getFirst();
-        assertThat(mouseMessage.type()).isEqualTo(MouseMessage.Type.X10);
-        assertThat(mouseMessage.button()).isEqualTo(0);
-        assertThat(mouseMessage.column()).isEqualTo(10);
-        assertThat(mouseMessage.row()).isEqualTo(20);
+        assertThat(mouseMessage.column()).isEqualTo(9);  // 10 - 1 for zero-based
+        assertThat(mouseMessage.row()).isEqualTo(19);    // 20 - 1 for zero-based
+        assertThat(mouseMessage.isAlt()).isTrue();
+        assertThat(mouseMessage.isCtrl()).isFalse();
+        assertThat(mouseMessage.isShift()).isFalse();
+        assertThat(mouseMessage.getButton()).isEqualTo(MouseButton.MouseButtonLeft);
+        assertThat(mouseMessage.getAction()).isEqualTo(MouseAction.MouseActionPress);
+        assertThat(mouseMessage.isWheel()).isFalse();
     }
 
     @Test
@@ -251,15 +261,17 @@ class InputHandlerTest {
                 -1          // End of input
         );
 
+        // Simulating a left button press at position (10, 20)
+        // button = 0 represents left button with no modifiers in SGR mode
         when(reader.read(50)).thenReturn(
                 (int)'[',    // First char after ESC
                 (int)'<',    // SGR mouse indicator
-                (int)'0',    // button
+                (int)'0',    // button (left click, no modifiers)
                 (int)';',    // separator
                 (int)'1', (int)'0',  // x = 10
                 (int)';',    // separator
                 (int)'2', (int)'0',  // y = 20
-                (int)'M',    // Press indicator
+                (int)'M',    // Press indicator ('M' for press, 'm' would be release)
                 -1
         );
 
@@ -276,11 +288,23 @@ class InputHandlerTest {
         assertThat(receivedMessages.getFirst()).isInstanceOf(MouseMessage.class);
 
         MouseMessage mouseMessage = (MouseMessage) receivedMessages.getFirst();
-        assertThat(mouseMessage.type()).isEqualTo(MouseMessage.Type.SGR);
-        assertThat(mouseMessage.button()).isEqualTo(0);
-        assertThat(mouseMessage.column()).isEqualTo(10);
-        assertThat(mouseMessage.row()).isEqualTo(20);
-        assertThat(mouseMessage.release()).isFalse();
+        assertThat(mouseMessage.column()).isEqualTo(9);  // 10 - 1 for zero-based
+        assertThat(mouseMessage.row()).isEqualTo(19);    // 20 - 1 for zero-based
+        assertThat(mouseMessage.isAlt()).isFalse();
+        assertThat(mouseMessage.isCtrl()).isFalse();
+        assertThat(mouseMessage.isShift()).isFalse();
+        assertThat(mouseMessage.getButton()).isEqualTo(MouseButton.MouseButtonLeft);
+        assertThat(mouseMessage.getAction()).isEqualTo(MouseAction.MouseActionPress);
+        assertThat(mouseMessage.isWheel()).isFalse();
+
+        assertThat(mouseMessage.toString())
+                .contains("x=9")
+                .contains("y=19")
+                .contains("shift=false")
+                .contains("alt=false")
+                .contains("ctrl=false")
+                .contains("action=press")
+                .contains("button=left");
     }
 
     @Test
@@ -300,15 +324,17 @@ class InputHandlerTest {
                 -1          // End of input
         );
 
+        // Simulating a button release at position (10, 20)
+        // button = 0 represents left button with no modifiers in SGR mode
         when(reader.read(50)).thenReturn(
                 (int)'[',    // First char after ESC
                 (int)'<',    // SGR mouse indicator
-                (int)'0',    // button
+                (int)'0',    // button (left button, no modifiers)
                 (int)';',    // separator
                 (int)'1', (int)'0',  // x = 10
                 (int)';',    // separator
                 (int)'2', (int)'0',  // y = 20
-                (int)'m',    // Release indicator (lowercase 'm')
+                (int)'m',    // Release indicator (lowercase 'm' for release)
                 -1
         );
 
@@ -325,11 +351,22 @@ class InputHandlerTest {
         assertThat(receivedMessages.getFirst()).isInstanceOf(MouseMessage.class);
 
         MouseMessage mouseMessage = (MouseMessage) receivedMessages.getFirst();
-        assertThat(mouseMessage.type()).isEqualTo(MouseMessage.Type.SGR);
-        assertThat(mouseMessage.button()).isEqualTo(0);
-        assertThat(mouseMessage.column()).isEqualTo(10);
-        assertThat(mouseMessage.row()).isEqualTo(20);
-        assertThat(mouseMessage.release()).isTrue();
+        assertThat(mouseMessage.column()).isEqualTo(9);  // 10 - 1 for zero-based
+        assertThat(mouseMessage.row()).isEqualTo(19);    // 20 - 1 for zero-based
+        assertThat(mouseMessage.isAlt()).isFalse();
+        assertThat(mouseMessage.isCtrl()).isFalse();
+        assertThat(mouseMessage.isShift()).isFalse();
+        assertThat(mouseMessage.getButton()).isEqualTo(MouseButton.MouseButtonNone);  // None on release
+        assertThat(mouseMessage.getAction()).isEqualTo(MouseAction.MouseActionRelease);
+        assertThat(mouseMessage.isWheel()).isFalse();
+
+        assertThat(mouseMessage.toString()).contains("x=9")
+                .contains("y=19")
+                .contains("shift=false")
+                .contains("alt=false")
+                .contains("ctrl=false")
+                .contains("action=release")
+                .contains("button=none");  // None on release
     }
 
     @Test
