@@ -1,10 +1,14 @@
 package org.flatscrew.latte.examples;
 
-import org.flatscrew.latte.*;
+import org.flatscrew.latte.Command;
+import org.flatscrew.latte.Message;
+import org.flatscrew.latte.Model;
+import org.flatscrew.latte.Program;
+import org.flatscrew.latte.UpdateResult;
 import org.flatscrew.latte.examples.altscreentoggle.AltScreenToggleExample;
 import org.flatscrew.latte.examples.counter.CounterExample;
-import org.flatscrew.latte.examples.fullscreen.FullscreenExample;
 import org.flatscrew.latte.examples.demo.Demo;
+import org.flatscrew.latte.examples.fullscreen.FullscreenExample;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
 

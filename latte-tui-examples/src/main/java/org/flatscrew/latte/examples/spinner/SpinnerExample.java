@@ -4,11 +4,11 @@ import org.flatscrew.latte.Command;
 import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
 import org.flatscrew.latte.Program;
-import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.UpdateResult;
 import org.flatscrew.latte.cream.Color;
 import org.flatscrew.latte.cream.Style;
 import org.flatscrew.latte.message.KeyPressMessage;
+import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.spice.spinner.Spinner;
 import org.flatscrew.latte.spice.spinner.SpinnerType;
 

@@ -1,6 +1,10 @@
 package org.flatscrew.latte.examples.sequence;
 
-import org.flatscrew.latte.*;
+import org.flatscrew.latte.Command;
+import org.flatscrew.latte.Message;
+import org.flatscrew.latte.Model;
+import org.flatscrew.latte.Program;
+import org.flatscrew.latte.UpdateResult;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
 
