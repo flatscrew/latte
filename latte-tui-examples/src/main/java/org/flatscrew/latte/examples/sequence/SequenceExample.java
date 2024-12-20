@@ -4,7 +4,8 @@ import org.flatscrew.latte.*;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
 
-import static org.flatscrew.latte.Command.*;
+import static org.flatscrew.latte.Command.println;
+import static org.flatscrew.latte.Command.sequence;
 
 public class SequenceExample implements Model {
 
