@@ -8,7 +8,7 @@ Each entry below represents a single example code fragment and the status of it'
 
 `⚪ TODO` No effort have been put into this one yet 
 
-` 🟡In Progress` It's currently under development and it might be some notable changes will be applied to Latte logic to conform it
+`🟡 In Progress` It's currently under development and it might be some notable changes will be applied to Latte logic to conform it
 
 `🟢 Done` It's done like DONE, the example works 100% the same as original code does.
 
