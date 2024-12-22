@@ -20,15 +20,11 @@ public interface Command {
     Message execute();
 
     static Command batch(Command... commands) {
-        return () -> {
-            return new BatchMessage(commands);
-        };
+        return () -> new BatchMessage(commands);
     }
 
     static Command sequence(Command... commands) {
-        return () -> {
-            return new SequenceMessage(commands);
-        };
+        return () -> new SequenceMessage(commands);
     }
 
     static Command tick(Duration duration, Function<LocalDateTime, Message> fn) {

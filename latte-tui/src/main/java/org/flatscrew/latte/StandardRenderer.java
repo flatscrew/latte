@@ -171,10 +171,20 @@ public class StandardRenderer implements Renderer {
     public void write(String view) {
         if (!isRunning) return;
 
+        // FIXME: copied from original golang code
+        // If an empty string was passed we should clear existing output and
+        // rendering nothing. Rather than introduce additional state to manage
+        // this, we render a single space as a simple (albeit less correct)
+        // solution.
+        String string = view;
+        if (string.isEmpty()) {
+            string = " ";
+        }
+
         renderLock.lock();
         try {
             buffer.setLength(0);  // Clear existing buffer
-            buffer.append(view);
+            buffer.append(string);
         } finally {
             renderLock.unlock();
         }

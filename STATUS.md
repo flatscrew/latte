@@ -16,75 +16,75 @@ Each entry below represents a single example code fragment and the status of its
 
 I'll rewrite the table to match your legend formatting. Here's the table with the new emoji-based status indicators:
 
-| Example  | Status  | Notes
-|-----------------| ------- | --------
+| Example          | Status  | Notes
+|------------------| ------- | --------
 | altscreen-toggle | `🟢 Done` |
-| autocomplete | `⚪ TODO` |
-| cellbuffer | `⚪ TODO` |
-| chat | `⚪ TODO` |
+| autocomplete     | `⚪ TODO` |
+| cellbuffer       | `⚪ TODO` |
+| chat             | `⚪ TODO` |
 | composable-views | `⚪ TODO` |
 | credit-card-form | `⚪ TODO` |
-| debounce | `⚪ TODO` |
-| exec | `⚪ TODO` |
-| file-picker | `⚪ TODO` |
-| focus-blur | `🟢 Done` |
-| fullscreen | `🟢 Done` |
-| glamour | `⚪ TODO` |
-| help | `⚪ TODO` |
-| http | `🟢 Done` |
-| list-default | `⚪ TODO` |
-| list-fancy | `⚪ TODO` |
-| list-simple | `⚪ TODO` |
-| mouse | `🟢 Done` |
-| package-manager | `⚪ TODO` |
-| pager | `⚪ TODO` |
-| paginator | `⚪ TODO` |
-| pipe | `⚪ TODO` |
-| prevent-quit | `⚪ TODO` |
+| debounce         | `⚪ TODO` |
+| exec             | `⚪ TODO` |
+| file-picker      | `⚪ TODO` |
+| focus-blur       | `🟢 Done` |
+| fullscreen       | `🟢 Done` |
+| glamour          | `⚪ TODO` |
+| help             | `⚪ TODO` |
+| http             | `🟢 Done` |
+| list-default     | `⚪ TODO` |
+| list-fancy       | `⚪ TODO` |
+| list-simple      | `⚪ TODO` |
+| mouse            | `🟢 Done` |
+| package-manager  | `⚪ TODO` |
+| pager            | `⚪ TODO` |
+| paginator        | `⚪ TODO` |
+| pipe             | `⚪ TODO` |
+| prevent-quit     | `⚪ TODO` |
 | progress-animated | `⚪ TODO` |
 | progress-download | `⚪ TODO` |
-| progress-static | `⚪ TODO` |
-| realtime | `⚪ TODO` |
-| result | `🔴 Won't do` | Rewritten as **demo** example.
-| send-msg | `⚪ TODO` |
-| sequence | `🟡 In Progress` | Nested sequences and batches are not supported yet,<br>needs to be revisited as golang implementation feels odd.
+| progress-static  | `⚪ TODO` |
+| realtime         | `⚪ TODO` |
+| result           | `🔴 Won't do` | Rewritten as **demo** example.
+| send-msg         | `⚪ TODO` |
+| sequence         | `🟡 In Progress` | Nested sequences and batches are not supported yet,<br>needs to be revisited as golang implementation feels odd.
 | set-window-title | `🟢 Done` |
-| simple | `⚪ TODO` |
-| spinner | `🟢 Done` |
-| spinners | `⚪ TODO` |
-| split-editors | `⚪ TODO` |
-| stopwatch | `⚪ TODO` |
-| suspend | `⚪ TODO` |
-| table-resize | `⚪ TODO` |
-| table | `⚪ TODO` |
-| tabs | `⚪ TODO` |
-| textarea | `⚪ TODO` |
-| textinput | `⚪ TODO` |
-| textinputs | `⚪ TODO` |
-| timer | `⚪ TODO` | Needs **timer** bubble.
+| simple           | `⚪ TODO` |
+| spinner          | `🟢 Done` |
+| spinners         | `⚪ TODO` |
+| split-editors    | `⚪ TODO` |
+| stopwatch        | `⚪ TODO` |
+| suspend          | `⚪ TODO` |
+| table-resize     | `⚪ TODO` |
+| table            | `⚪ TODO` |
+| tabs             | `⚪ TODO` |
+| textarea         | `⚪ TODO` |
+| textinput        | `⚪ TODO` |
+| textinputs       | `⚪ TODO` |
+| timer            | `⚪ TODO` | Needs **timer** bubble.
 | tui-daemon-combo | `⚪ TODO` |
-| views | `⚪ TODO` |
-| window-size | `🟢 Done` |
+| views            | `⚪ TODO` |
+| window-size      | `🟢 Done` |
 
 
 ## Bubbles
 This table covers all the Bubble's ported so far. The same status labels apply.
 
-| Bubble  | Status  | Notes
-|-----------------| ------- | --------
-| cursor | `🟢 Done` |
-| filepicker | `⚪ TODO` |
-| filepicker | `⚪ TODO` |
-| help | `⚪ TODO` |
-| key | `⚪ TODO` |
-| list | `⚪ TODO` |
-| paginator | `⚪ TODO` |
-| progress | `⚪ TODO` |
-| runeutil | `⚪ TODO` |
-| spinner | `🟢 Done` |
-| stopwatch | `⚪ TODO` |
-| table | `⚪ TODO` |
-| extarea | `⚪ TODO` |
-| textinput | `⚪ TODO` |
-| timer | `⚪ TODO` |
-| viewport | `⚪ TODO` |
+| Bubble     | Status    | Notes |
+|------------|-----------|-------|
+| cursor     | `🟢 Done` |       |
+| filepicker | `⚪ TODO`  |       |
+| filepicker | `⚪ TODO`  |       |
+| help       | `⚪ TODO`  |       |
+| key        | `⚪ TODO`  |       |
+| list       | `⚪ TODO`  |       |
+| paginator  | `⚪ TODO`  |       |
+| progress   | `⚪ TODO`  |       |
+| runeutil   | `⚪ TODO`  |       |
+| spinner    | `🟢 Done` |       |
+| stopwatch  | `⚪ TODO`  |       |
+| table      | `⚪ TODO`  |       |
+| textarea   | `⚪ TODO`  |       |
+| textinput  | `⚪ TODO`  |       |
+| timer      | `⚪ TODO`  |       |
+| viewport   | `⚪ TODO`  |       |
