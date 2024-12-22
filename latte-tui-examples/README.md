@@ -11,6 +11,7 @@ screen buffer and the normal screen buffer using Latte.
 
 ### Cursor
 The `cursor` example shows how to spawn an artificial cursor in Latte application, to be used mostly as a component in more complex scenarios (eg. Input, Text area)
+
 <a href="./src/main/java/org/flatscrew/latte/examples/cursor/CursorExample.java">
 <img width="750" src="cursor-tape.gif" />
 </a>
