@@ -61,7 +61,30 @@ I'll rewrite the table to match your legend formatting. Here's the table with th
 | textarea | `⚪ TODO` |
 | textinput | `⚪ TODO` |
 | textinputs | `⚪ TODO` |
-| timer | `⚪ TODO` |
+| timer | `⚪ TODO` | Needs **timer** bubble.
 | tui-daemon-combo | `⚪ TODO` |
 | views | `⚪ TODO` |
 | window-size | `🟢 Done` |
+
+
+## Bubbles
+This table covers all the Bubble's ported so far. The same status labels apply.
+
+| Bubble  | Status  | Notes
+|-----------------| ------- | --------
+| cursor | `⚪ TODO` |
+| filepicker | `⚪ TODO` |
+| filepicker | `⚪ TODO` |
+| help | `⚪ TODO` |
+| key | `⚪ TODO` |
+| list | `⚪ TODO` |
+| paginator | `⚪ TODO` |
+| progress | `⚪ TODO` |
+| runeutil | `⚪ TODO` |
+| spinner | `🟢 Done` |
+| stopwatch | `⚪ TODO` |
+| table | `⚪ TODO` |
+| extarea | `⚪ TODO` |
+| textinput | `⚪ TODO` |
+| timer | `⚪ TODO` |
+| viewport | `⚪ TODO` |
