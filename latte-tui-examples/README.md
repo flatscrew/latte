@@ -33,3 +33,11 @@ The `demo` example shows a choice menu with the ability to select an option.
 <a href="./src/main/java/org/flatscrew/latte/examples/demo/Demo.java">
   <img width="750" src="demo-tape.gif" />
 </a>
+
+### Http
+
+The `http` example shows how to make an `http` call within your Latte application.
+
+<a href="./src/main/java/org/flatscrew/latte/examples/http/HttpExample.java">
+  <img width="750" src="http-tape.gif" />
+</a>
