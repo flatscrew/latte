@@ -22,6 +22,11 @@ public class Style {
         return this;
     }
 
+    public Style reverse() {
+        this.style = style.inverse();
+        return this;
+    }
+
     public String render(String... strings) {
         return new AttributedString(String.join(" ", strings), style).toAnsi();
     }

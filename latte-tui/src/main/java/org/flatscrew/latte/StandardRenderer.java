@@ -85,9 +85,9 @@ public class StandardRenderer implements Renderer {
 
         renderLock.lock();
         try {
-//            if (buffer.isEmpty() || buffer.toString().equals(lastRender)) {
-//                return;
-//            }
+            if (buffer.isEmpty() || buffer.toString().equals(lastRender)) {
+                return;
+            }
 
             StringBuilder outputBuffer = new StringBuilder();
             String[] newLines = buffer.toString().split("\n");

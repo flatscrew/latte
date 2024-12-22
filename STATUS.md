@@ -72,7 +72,7 @@ This table covers all the Bubble's ported so far. The same status labels apply.
 
 | Bubble  | Status  | Notes
 |-----------------| ------- | --------
-| cursor | `⚪ TODO` |
+| cursor | `🟢 Done` |
 | filepicker | `⚪ TODO` |
 | filepicker | `⚪ TODO` |
 | help | `⚪ TODO` |
