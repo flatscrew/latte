@@ -2,6 +2,7 @@ package org.flatscrew.latte;
 
 import org.flatscrew.latte.ansi.Code;
 import org.flatscrew.latte.message.PrintLineMessage;
+import org.flatscrew.latte.message.SetWindowTitleMessage;
 import org.jline.terminal.Terminal;
 import org.jline.utils.InfoCmp;
 
@@ -367,6 +368,12 @@ public class StandardRenderer implements Renderer {
                     renderLock.unlock();
                 }
             }
+        } else if (msg instanceof SetWindowTitleMessage windowTitleMessage) {
+            setWindowTitle(windowTitleMessage.title());
         }
+    }
+
+    private void setWindowTitle(String title) {
+        terminal.writer().print("\u001b]2;" + title + "\u0007");
     }
 }

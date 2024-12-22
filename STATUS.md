@@ -48,7 +48,7 @@ I'll rewrite the table to match your legend formatting. Here's the table with th
 | result | `🔴 Won't do` | Rewritten as **demo** example.
 | send-msg | `⚪ TODO` |
 | sequence | `🟡 In Progress` | Nested sequences and batches are not supported yet,<br>needs to be revisited as golang implementation feels odd.
-| set-window-title | `⚪ TODO` |
+| set-window-title | `🟢 Done` |
 | simple | `⚪ TODO` |
 | spinner | `🟢 Done` |
 | spinners | `⚪ TODO` |

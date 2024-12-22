@@ -3,6 +3,7 @@ package org.flatscrew.latte;
 import org.flatscrew.latte.message.BatchMessage;
 import org.flatscrew.latte.message.PrintLineMessage;
 import org.flatscrew.latte.message.SequenceMessage;
+import org.flatscrew.latte.message.SetWindowTitleMessage;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -60,5 +61,8 @@ public interface Command {
 
     static Command printf(String template, Object... arguments) {
         return () -> new PrintLineMessage(template.formatted(arguments));
+    }
+    static Command setWidowTitle(String title) {
+        return () -> new SetWindowTitleMessage(title);
     }
 }
