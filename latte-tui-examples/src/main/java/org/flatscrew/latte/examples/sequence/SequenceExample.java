@@ -22,7 +22,6 @@ public class SequenceExample implements Model {
                         println("C")
                 ),
                 println("X"),
-                println("Y"),
                 println("Z"),
                 QuitMessage::new
         );

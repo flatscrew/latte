@@ -6,6 +6,9 @@ Latte tends to be a Java port of Golang's [Bubble Tea](https://github.com/charmb
 
 ![Demo](latte-tui-examples/demo-tape.gif "Demo")
 
+## Porting status
+Check out [this page](STATUS.md) to see porting status.
+
 ## Tutorial
 For this tutorial, we're making a coffee ordering application (by the way, the non-annotated source code for this program is available [on GitHub](https://github.com/flatscrew/latte/tree/main/latte-tui-examples/src/main/java/org/flatscrew/latte/examples/demo)).
 
