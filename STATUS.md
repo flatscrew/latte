@@ -4,15 +4,15 @@ This page covers the current status of porting Bubble Tea to Latte.
 ## Examples
 Table presents an overall status of porting code available under **examples** directory of Bubble Tea codebase. The idea is to rewrite all the code samples and enhance Latte logic with missing parts found during implementation.
 
-Each entry below represents a single example code fragment and the status of it's migration into Java equivalent which is represented by one of the labels:
+Each entry below represents a single example code fragment and the status of its migration into Java equivalent which is represented by one of the labels:
 
 `⚪ TODO` No effort have been put into this one yet 
 
-`🟡 In Progress` It's currently under development and it might be some notable changes will be applied to Latte logic to conform it
+`🟡 In Progress` It's currently under development, and it might be some notable changes will be applied to Latte logic to conform it
 
 `🟢 Done` It's done like DONE, the example works 100% the same as original code does.
 
-`🔴 Won't do` It won't be done because of some technical limiations or was done some other way with explanation in **Notes**.
+`🔴 Won't do` It won't be done because of some technical limitations or was done some other way with explanation in **Notes**.
 
 I'll rewrite the table to match your legend formatting. Here's the table with the new emoji-based status indicators:
 
@@ -31,7 +31,7 @@ I'll rewrite the table to match your legend formatting. Here's the table with th
 | fullscreen | `🟢 Done` |
 | glamour | `⚪ TODO` |
 | help | `⚪ TODO` |
-| http | `⚪ TODO` |
+| http | `🟢 Done` |
 | list-default | `⚪ TODO` |
 | list-fancy | `⚪ TODO` |
 | list-simple | `⚪ TODO` |
