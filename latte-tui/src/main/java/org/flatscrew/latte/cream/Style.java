@@ -45,12 +45,7 @@ public class Style {
     }
 
     public String render(String... strings) {
-        String str = String.join(" ", strings);
-
-//        TermStyle te = colorProfile.string();
-
         AttributedStyle style = new AttributedStyle();
-
         if (foreground != null) {
             style = foreground.applyAsForeground(style);
         }
@@ -64,6 +59,10 @@ public class Style {
             style = style.inverse();
         }
 
-        return new AttributedString(String.join(" ", strings), style).toAnsi();
+        String string = String.join(" ", strings);
+        if (colorProfile == ColorProfile.Ascii) {
+            return string;
+        }
+        return new AttributedString(string, style).toAnsi();
     }
 }

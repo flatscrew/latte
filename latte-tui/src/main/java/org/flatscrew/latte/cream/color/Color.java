@@ -7,26 +7,28 @@ import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
 public class Color implements TerminalColor {
 
     public static Color color(String color) {
-        if (color == null || color.isBlank()) {
-            return null;
-        }
-        if (color.startsWith("#")) {
-
-        }
         return new Color(color);
     }
 
+    private final String color;
+
     private Color(String color) {
+        this.color = color;
     }
 
     @Override
     public AttributedStyle applyAsBackground(AttributedStyle style) {
-        defaultRenderer().colorProfile();
-        return null;
+        return defaultRenderer()
+                .colorProfile()
+                .color(color)
+                .applyAsBackground(style);
     }
 
     @Override
     public AttributedStyle applyAsForeground(AttributedStyle style) {
-        return null;
+        return defaultRenderer()
+                .colorProfile()
+                .color(color)
+                .applyAsForeground(style);
     }
 }
