@@ -16,7 +16,7 @@ public class Spinner implements Model {
     private int frame;
     private int id;
     private int tag;
-    private Style style = new Style();
+    private Style style = Style.newStyle();
 
     public Spinner(SpinnerType type) {
         this.type = type;

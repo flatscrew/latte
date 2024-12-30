@@ -5,7 +5,7 @@ import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
 import org.flatscrew.latte.Program;
 import org.flatscrew.latte.UpdateResult;
-import org.flatscrew.latte.cream.Color;
+import org.flatscrew.latte.cream.color.ANSIColor;
 import org.flatscrew.latte.cream.Style;
 import org.flatscrew.latte.message.EnterAltScreen;
 import org.flatscrew.latte.message.ExitAltScreen;
@@ -29,12 +29,12 @@ enum Mode {
 
 public class AltScreenToggleExample implements Model {
 
-    private static final Style KEYWORD_STYLE = new Style()
-            .foreground(new Color(204))
-            .background(new Color(235));
+    private static final Style KEYWORD_STYLE = Style.newStyle()
+            .foreground(new ANSIColor(204))
+            .background(new ANSIColor(235));
 
-    private static final Style HELP_STYLE = new Style()
-            .foreground(new Color(241));
+    private static final Style HELP_STYLE = Style.newStyle()
+            .foreground(new ANSIColor(241));
 
     private boolean altScreen;
     private boolean quitting;

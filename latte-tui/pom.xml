@@ -25,6 +25,13 @@
             <version>${jline.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.hsluv</groupId>
+            <artifactId>hsluv</artifactId>
+            <version>0.3</version>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>${junit.version}</version>

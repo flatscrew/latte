@@ -1,7 +1,8 @@
-package org.flatscrew.latte.cream;
+package org.flatscrew.latte.cream.color;
+
 import org.jline.utils.AttributedStyle;
 
-interface ColorApplyStrategy {
+public interface ColorApplyStrategy {
     AttributedStyle applyForForeground(AttributedStyle attributedStyle);
     AttributedStyle applyForBackground(AttributedStyle attributedStyle);
 }
@@ -46,25 +47,33 @@ class RGBAApplyStrategy implements ColorApplyStrategy {
     public AttributedStyle applyForBackground(AttributedStyle attributedStyle) {
         return attributedStyle.background(r, g, b);
     }
+//
+//    public RGB getRGB() {
+//        return new RGB()
+//    }
+
 }
 
-public class Color {
+class HexColorApplyStrategy implements ColorApplyStrategy {
 
-    private final ColorApplyStrategy applyStrategy;
+    private RGBAApplyStrategy rgbaApplyStrategy;
 
-    public Color(int colorCode) {
-        this.applyStrategy = new ColorCodeApplyStrategy(colorCode);
+    public HexColorApplyStrategy(String hexValue) {
+        String hex = hexValue.replace("#", "").trim();
+        this.rgbaApplyStrategy = new RGBAApplyStrategy(
+                Integer.parseInt(hex.substring(0, 2), 16),
+                Integer.parseInt(hex.substring(2, 4), 16),
+                Integer.parseInt(hex.substring(4, 6), 16)
+        );
     }
 
-    public Color(int r, int g, int b) {
-        this.applyStrategy = new RGBAApplyStrategy(r, g, b);
+    @Override
+    public AttributedStyle applyForForeground(AttributedStyle attributedStyle) {
+        return rgbaApplyStrategy.applyForForeground(attributedStyle);
     }
 
-    public AttributedStyle applyAsBackground(AttributedStyle style) {
-        return applyStrategy.applyForBackground(style);
-    }
-
-    public AttributedStyle applyAsForeground(AttributedStyle style) {
-        return applyStrategy.applyForForeground(style);
+    @Override
+    public AttributedStyle applyForBackground(AttributedStyle attributedStyle) {
+        return rgbaApplyStrategy.applyForBackground(attributedStyle);
     }
 }

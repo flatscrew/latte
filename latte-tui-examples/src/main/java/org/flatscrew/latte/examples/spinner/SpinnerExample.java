@@ -5,7 +5,7 @@ import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
 import org.flatscrew.latte.Program;
 import org.flatscrew.latte.UpdateResult;
-import org.flatscrew.latte.cream.Color;
+import org.flatscrew.latte.cream.color.ANSIColor;
 import org.flatscrew.latte.cream.Style;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
@@ -17,7 +17,7 @@ public class SpinnerExample implements Model {
     private Model spinner;
 
     public SpinnerExample() {
-        this.spinner = new Spinner(SpinnerType.DOT).style(new Style().foreground(new Color(205)));
+        this.spinner = new Spinner(SpinnerType.DOT).style(Style.newStyle().foreground(new ANSIColor(205)));
     }
 
     @Override

@@ -45,8 +45,8 @@ public class Cursor implements Model {
         this.blink = true;
         this.focus = true;
         this.mode = Mode.CursorBlink;
-        this.style = new Style();
-        this.textStyle = new Style();
+        this.style = Style.newStyle();
+        this.textStyle = Style.newStyle();
     }
 
     @Override

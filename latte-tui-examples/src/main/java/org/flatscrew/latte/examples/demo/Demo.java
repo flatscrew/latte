@@ -5,14 +5,14 @@ import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
 import org.flatscrew.latte.Program;
 import org.flatscrew.latte.UpdateResult;
-import org.flatscrew.latte.cream.Color;
+import org.flatscrew.latte.cream.color.ANSIColor;
 import org.flatscrew.latte.cream.Style;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
 
 public class Demo implements Model {
 
-    private final static Style SELECTION = new Style().foreground(new Color(205));
+    private final static Style SELECTION = Style.newStyle().foreground(new ANSIColor(205));
     private final static String[] CHOICES = {"Espresso", "Americano", "Lattee"};
 
     private int cursor;
