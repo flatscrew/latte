@@ -55,8 +55,7 @@ public enum ColorProfile {
             return terminalColor;
         } else if (terminalColor instanceof RGBColor rgbColor) {
             if (this != TrueColor) {
-                RGB rgb = rgbColor.toRGB();
-                ANSI256Color ansi256Color = rgb.toANSI256Color();
+                ANSI256Color ansi256Color = rgbColor.toANSI256Color();
                 if (this == ANSI) {
                     return ansi256Color.toANSIColor();
                 }

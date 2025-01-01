@@ -1,5 +1,6 @@
 package org.flatscrew.latte.cream.color;
 
+import org.flatscrew.latte.cream.Renderer;
 import org.jline.utils.AttributedStyle;
 
 /**
@@ -7,25 +8,34 @@ import org.jline.utils.AttributedStyle;
  */
 public class RGBColor implements TerminalColor {
 
-    private final HexColorApplyStrategy colorApplyStrategy;
-    private final String hexValue;
+    private final ColorApplyStrategy colorApplyStrategy;
+    private final RGB rgb;
 
     public RGBColor(String hexValue) {
         this.colorApplyStrategy = new HexColorApplyStrategy(hexValue);
-        this.hexValue = hexValue;
+        this.rgb = RGB.fromHexString(hexValue);
+    }
+
+    public RGBColor(int r, int g, int b) {
+        this.colorApplyStrategy = new RGBAApplyStrategy(r, g, b);
+        this.rgb = new RGB(r, g, b);
     }
 
     @Override
-    public AttributedStyle applyAsBackground(AttributedStyle style) {
+    public AttributedStyle applyAsBackground(AttributedStyle style, Renderer renderer) {
         return colorApplyStrategy.applyForBackground(style);
     }
 
     @Override
-    public AttributedStyle applyAsForeground(AttributedStyle style) {
+    public AttributedStyle applyAsForeground(AttributedStyle style, Renderer renderer) {
         return colorApplyStrategy.applyForForeground(style);
     }
 
-    public RGB toRGB() {
-        return RGB.fromHexString(hexValue);
+    public RGB rgb() {
+        return rgb;
+    }
+
+    public ANSI256Color toANSI256Color() {
+        return rgb.toANSI256Color();
     }
 }

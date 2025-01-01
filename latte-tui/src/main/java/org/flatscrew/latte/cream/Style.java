@@ -13,15 +13,14 @@ public class Style {
         return defaultRenderer.newStyle();
     }
 
-    private final ColorProfile colorProfile;
-
+    private final Renderer renderer;
     private boolean bold;
     private boolean reverse;
     private TerminalColor background;
     private TerminalColor foreground;
 
-    Style(ColorProfile colorProfile) {
-        this.colorProfile = colorProfile;
+    public Style(Renderer renderer) {
+        this.renderer = renderer;
     }
 
     public Style foreground(TerminalColor color) {
@@ -47,10 +46,10 @@ public class Style {
     public String render(String... strings) {
         AttributedStyle style = new AttributedStyle();
         if (foreground != null) {
-            style = foreground.applyAsForeground(style);
+            style = foreground.applyAsForeground(style, renderer);
         }
         if (background != null) {
-            style = background.applyAsBackground(style);
+            style = background.applyAsBackground(style, renderer);
         }
         if (bold) {
             style = style.bold();
@@ -60,6 +59,7 @@ public class Style {
         }
 
         String string = String.join(" ", strings);
+        ColorProfile colorProfile = renderer.colorProfile();
         if (colorProfile == ColorProfile.Ascii) {
             return string;
         }

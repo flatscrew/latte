@@ -1,8 +1,7 @@
 package org.flatscrew.latte.cream.color;
 
+import org.flatscrew.latte.cream.Renderer;
 import org.jline.utils.AttributedStyle;
-
-import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
 
 public class Color implements TerminalColor {
 
@@ -17,18 +16,18 @@ public class Color implements TerminalColor {
     }
 
     @Override
-    public AttributedStyle applyAsBackground(AttributedStyle style) {
-        return defaultRenderer()
+    public AttributedStyle applyAsBackground(AttributedStyle style, Renderer renderer) {
+        return renderer
                 .colorProfile()
                 .color(color)
-                .applyAsBackground(style);
+                .applyAsBackground(style, renderer);
     }
 
     @Override
-    public AttributedStyle applyAsForeground(AttributedStyle style) {
-        return defaultRenderer()
+    public AttributedStyle applyAsForeground(AttributedStyle style, Renderer renderer) {
+        return renderer
                 .colorProfile()
                 .color(color)
-                .applyAsForeground(style);
+                .applyAsForeground(style, renderer);
     }
 }

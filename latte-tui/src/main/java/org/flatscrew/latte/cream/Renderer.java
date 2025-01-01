@@ -14,21 +14,35 @@ public class Renderer {
         return defaultRenderer;
     }
 
-    public static void setDefaultRenderer(Renderer renderer) {
-        Renderer.defaultRenderer = renderer;
-    }
-
     private final Lock renderLock = new ReentrantLock();
     private Output output;
     private ColorProfile colorProfile;
     private boolean explicitColorProfile;
+
+    private boolean hasDarkBackground;
+    private boolean hasDarkBackgroundSet;
 
     public Renderer(Output output) {
         this.output = output;
     }
 
     public Style newStyle() {
-        return new Style(colorProfile());
+        return new Style(this);
+    }
+
+    public boolean hasDarkBackground() {
+        if (hasDarkBackgroundSet) {
+            return hasDarkBackground;
+        }
+
+        renderLock.lock();
+        try {
+            hasDarkBackground = output.hasDarkBackground();
+            hasDarkBackgroundSet = true;
+            return hasDarkBackground;
+        } finally {
+            renderLock.unlock();
+        }
     }
 
     public ColorProfile colorProfile() {
@@ -43,32 +57,4 @@ public class Renderer {
         return colorProfile;
     }
 
-    public void setColorProfile(ColorProfile colorProfile) {
-        renderLock.lock();
-        try {
-            this.colorProfile = colorProfile;
-            this.explicitColorProfile = true;
-        } finally {
-            renderLock.unlock();
-        }
-    }
-
-    public Output output() {
-        renderLock.lock();
-        try {
-            return output;
-        } finally {
-            renderLock.unlock();
-        }
-    }
-
-    public void setOutput(Output output) {
-        renderLock.lock();
-        try {
-            this.output = output;
-        } finally {
-            renderLock.unlock();
-        }
-        this.output = output;
-    }
 }

@@ -1,5 +1,6 @@
 package org.flatscrew.latte.cream.color;
 
+import org.flatscrew.latte.cream.Renderer;
 import org.jline.utils.AttributedStyle;
 
 public class ANSI256Color implements TerminalColor {
@@ -13,13 +14,17 @@ public class ANSI256Color implements TerminalColor {
     }
 
     @Override
-    public AttributedStyle applyAsBackground(AttributedStyle style) {
+    public AttributedStyle applyAsBackground(AttributedStyle style, Renderer renderer) {
         return applyStrategy.applyForBackground(style);
     }
 
     @Override
-    public AttributedStyle applyAsForeground(AttributedStyle style) {
+    public AttributedStyle applyAsForeground(AttributedStyle style, Renderer renderer) {
         return applyStrategy.applyForForeground(style);
+    }
+
+    public RGB rgb() {
+        return RGB.fromHexString(ANSIColors.ANSI_HEX[colorCode]);
     }
 
     public ANSIColor toANSIColor() {

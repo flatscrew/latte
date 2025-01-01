@@ -47,16 +47,11 @@ class RGBAApplyStrategy implements ColorApplyStrategy {
     public AttributedStyle applyForBackground(AttributedStyle attributedStyle) {
         return attributedStyle.background(r, g, b);
     }
-//
-//    public RGB getRGB() {
-//        return new RGB()
-//    }
-
 }
 
 class HexColorApplyStrategy implements ColorApplyStrategy {
 
-    private RGBAApplyStrategy rgbaApplyStrategy;
+    private final ColorApplyStrategy rgbaApplyStrategy;
 
     public HexColorApplyStrategy(String hexValue) {
         String hex = hexValue.replace("#", "").trim();

@@ -4,6 +4,10 @@ import org.hsluv.HUSLColorConverter;
 
 public record RGB(float r, float g, float b) {
 
+    public static RGB black() {
+        return new RGB(0, 0, 0);
+    }
+
     public static RGB fromHexString(String hexValue) {
         String hex = hexValue.replace("#", "").trim();
         float factor = 1.0f / 255.0f;
@@ -90,5 +94,44 @@ public record RGB(float r, float g, float b) {
         double dL = hsluv1[2] - hsluv2[2];
 
         return (float)Math.sqrt(dH * dH + dS * dS + dL * dL);
+    }
+
+    public HSL toHSL() {
+        float min = Math.min(Math.min(r, g), b);
+        float max = Math.max(Math.max(r, g), b);
+
+        float l = (max + min) / 2;
+        float h, s;
+
+        if (min == max) {
+            s = 0;
+            h = 0;
+        } else {
+            if (l < 0.5f) {
+                s = (max - min) / (max + min);
+            } else {
+                s = (max - min) / (2.0f - max - min);
+            }
+
+            if (max == r) {
+                h = (g - b) / (max - min);
+            } else if (max == g) {
+                h = 2.0f + (b - r) / (max - min);
+            } else {
+                h = 4.0f + (r - g) / (max - min);
+            }
+
+            h *= 60;
+
+            if (h < 0) {
+                h += 360;
+            }
+        }
+        return new HSL(h, s, l);
+    }
+
+    @Override
+    public String toString() {
+        return "%f,%f,%f".formatted(r, g, b);
     }
 }
