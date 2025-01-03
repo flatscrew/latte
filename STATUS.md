@@ -19,31 +19,31 @@ I'll rewrite the table to match your legend formatting. Here's the table with th
 | Example          | Status  | Notes
 |------------------| ------- | --------
 | altscreen-toggle | `🟢 Done` |
-| autocomplete     | `⚪ TODO` |
-| cellbuffer       | `⚪ TODO` |
-| chat             | `⚪ TODO` |
-| composable-views | `⚪ TODO` |
-| credit-card-form | `⚪ TODO` |
-| debounce         | `⚪ TODO` |
+| autocomplete     | `⚪ TODO` | Needs **help**, **key** and **textinput** bubbles.
+| cellbuffer       | `⚪ TODO` | Any reasonable port of **harmonica** is needed.
+| chat             | `⚪ TODO` | Needs **textarea** and **viewport** bubbles.
+| composable-views | `⚪ TODO` | Needs **timer** bubble.
+| credit-card-form | `⚪ TODO` | Needs **textinput** bubble.
+| debounce         | `⚪ TODO` | 
 | exec             | `⚪ TODO` |
-| file-picker      | `⚪ TODO` |
+| file-picker      | `⚪ TODO` | Needs **filepicker** bubble.
 | focus-blur       | `🟢 Done` |
 | fullscreen       | `🟢 Done` |
-| glamour          | `⚪ TODO` |
-| help             | `⚪ TODO` |
+| glamour          | `⚪ TODO` | Needs any reasonable port of **glamour**.
+| help             | `⚪ TODO` | Needs **help** and **key** bubbles.
 | http             | `🟢 Done` |
-| list-default     | `⚪ TODO` |
-| list-fancy       | `⚪ TODO` |
-| list-simple      | `⚪ TODO` |
+| list-default     | `⚪ TODO` | Needs **list** bubble.
+| list-fancy       | `⚪ TODO` | Needs **list** and **key** bubbles.
+| list-simple      | `⚪ TODO` | Needs **list** bubble.
 | mouse            | `🟢 Done` |
-| package-manager  | `⚪ TODO` |
-| pager            | `⚪ TODO` |
-| paginator        | `⚪ TODO` |
-| pipe             | `⚪ TODO` |
-| prevent-quit     | `⚪ TODO` |
-| progress-animated | `⚪ TODO` |
-| progress-download | `⚪ TODO` |
-| progress-static  | `⚪ TODO` |
+| package-manager  | `⚪ TODO` | Needs **progress** bubble.
+| pager            | `⚪ TODO` | Needs **viewport** bubble.
+| paginator        | `⚪ TODO` | Needs **paginator** bubble.
+| pipe             | `⚪ TODO` | Needs **textinput** bubble.
+| prevent-quit     | `⚪ TODO` | Needs **help**, **key** and **textarea** bubbles.
+| progress-animated | `⚪ TODO` | Needs **progress** bubble.
+| progress-download | `⚪ TODO` | Needs **progress** bubble.
+| progress-static  | `⚪ TODO` | Needs **progress** bubble.
 | realtime         | `⚪ TODO` |
 | result           | `🔴 Won't do` | Rewritten as **demo** example.
 | send-msg         | `⚪ TODO` |
@@ -53,16 +53,16 @@ I'll rewrite the table to match your legend formatting. Here's the table with th
 | spinner          | `🟢 Done` |
 | spinners         | `⚪ TODO` |
 | split-editors    | `⚪ TODO` |
-| stopwatch        | `⚪ TODO` |
+| stopwatch        | `⚪ TODO` | Needs **help**, **key** and **stopwatch** bubbles.
 | suspend          | `⚪ TODO` |
+| table            | `⚪ TODO` | Needs **table** bubble.
 | table-resize     | `⚪ TODO` |
-| table            | `⚪ TODO` |
 | tabs             | `⚪ TODO` |
-| textarea         | `⚪ TODO` |
-| textinput        | `⚪ TODO` |
-| textinputs       | `⚪ TODO` |
-| timer            | `⚪ TODO` | Needs **timer** bubble.
-| tui-daemon-combo | `⚪ TODO` |
+| textarea         | `⚪ TODO` | Needs **textarea** bubble.
+| textinput        | `⚪ TODO` | Needs **textinput** bubble.
+| textinputs       | `⚪ TODO` | Needs **textinput** bubble.
+| timer            | `⚪ TODO` | Needs **help**, **key** and **timer** bubbles.
+| tui-daemon-combo | `⚪ TODO` | 
 | views            | `⚪ TODO` |
 | window-size      | `🟢 Done` |
 
@@ -76,7 +76,7 @@ This table covers all the Bubble's ported so far. The same status labels apply.
 | filepicker | `⚪ TODO`  |       |
 | filepicker | `⚪ TODO`  |       |
 | help       | `⚪ TODO`  |       |
-| key        | `⚪ TODO`  |       |
+| key        | `🟢 Done`  |       |
 | list       | `⚪ TODO`  |       |
 | paginator  | `⚪ TODO`  |       |
 | progress   | `⚪ TODO`  |       |

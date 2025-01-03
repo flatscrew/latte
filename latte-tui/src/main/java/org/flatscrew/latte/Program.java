@@ -1,6 +1,7 @@
 package org.flatscrew.latte;
 
 import org.flatscrew.latte.input.InputHandler;
+import org.flatscrew.latte.term.jline.JLineTerminalInfoProvider;
 import org.flatscrew.latte.message.BatchMessage;
 import org.flatscrew.latte.message.CheckWindowSizeMessage;
 import org.flatscrew.latte.message.EnterAltScreen;
@@ -9,6 +10,7 @@ import org.flatscrew.latte.message.ExitAltScreen;
 import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.message.SequenceMessage;
 import org.flatscrew.latte.message.WindowSizeMessage;
+import org.flatscrew.latte.term.TerminalInfo;
 import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
@@ -47,6 +49,9 @@ public class Program {
                     .build();
             terminal.enterRawMode();
 
+            // terminal info provider here
+            TerminalInfo.provide(new JLineTerminalInfoProvider(terminal));
+
             this.renderer = new StandardRenderer(terminal);
             this.inputHandler = new InputHandler(terminal, this::send);
         } catch (IOException e) {
@@ -70,10 +75,6 @@ public class Program {
         return this;
     }
 
-    public Program withMouseCellMotion() {
-        return null;
-    }
-
     public void run() {
         if (!isRunning.compareAndSet(false, true)) {
             throw new IllegalStateException("Program is already running!");
@@ -90,8 +91,9 @@ public class Program {
 
         // execute init command
         Command initCommand = currentModel.init();
-        commandExecutor.executeIfPresent(initCommand, this::send, this::sendError);
-        initLatch.countDown();
+        commandExecutor
+                .executeIfPresent(initCommand, this::send, this::sendError)
+                .thenRun(initLatch::countDown);
 
         // render the initial view
         renderer.write(currentModel.view());
@@ -125,6 +127,11 @@ public class Program {
         // Finally clean up
         isRunning.set(false);
         commandExecutor.shutdown();
+        try {
+            terminal.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void handleTerminationSignals() {

@@ -1,7 +1,8 @@
-package org.flatscrew.latte.cream;
+package org.flatscrew.latte.cream.color;
+
 import org.jline.utils.AttributedStyle;
 
-interface ColorApplyStrategy {
+public interface ColorApplyStrategy {
     AttributedStyle applyForForeground(AttributedStyle attributedStyle);
     AttributedStyle applyForBackground(AttributedStyle attributedStyle);
 }
@@ -37,6 +38,12 @@ class RGBAApplyStrategy implements ColorApplyStrategy {
         this.b = b;
     }
 
+    public RGBAApplyStrategy(RGB rgb) {
+        this.r = (int) (rgb.r() * 255);
+        this.g = (int) (rgb.g() * 255);
+        this.b = (int) (rgb.b() * 255);
+    }
+
     @Override
     public AttributedStyle applyForForeground(AttributedStyle attributedStyle) {
         return attributedStyle.foreground(r, g, b);
@@ -48,23 +55,21 @@ class RGBAApplyStrategy implements ColorApplyStrategy {
     }
 }
 
-public class Color {
+class HexColorApplyStrategy implements ColorApplyStrategy {
 
-    private final ColorApplyStrategy applyStrategy;
+    private final ColorApplyStrategy rgbaApplyStrategy;
 
-    public Color(int colorCode) {
-        this.applyStrategy = new ColorCodeApplyStrategy(colorCode);
+    public HexColorApplyStrategy(String hexValue) {
+        this.rgbaApplyStrategy = RGB.fromHexString(hexValue).asColorApplyStrategy();
     }
 
-    public Color(int r, int g, int b) {
-        this.applyStrategy = new RGBAApplyStrategy(r, g, b);
+    @Override
+    public AttributedStyle applyForForeground(AttributedStyle attributedStyle) {
+        return rgbaApplyStrategy.applyForForeground(attributedStyle);
     }
 
-    public AttributedStyle applyAsBackground(AttributedStyle style) {
-        return applyStrategy.applyForBackground(style);
-    }
-
-    public AttributedStyle applyAsForeground(AttributedStyle style) {
-        return applyStrategy.applyForForeground(style);
+    @Override
+    public AttributedStyle applyForBackground(AttributedStyle attributedStyle) {
+        return rgbaApplyStrategy.applyForBackground(attributedStyle);
     }
 }

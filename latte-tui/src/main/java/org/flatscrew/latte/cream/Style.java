@@ -1,33 +1,69 @@
 package org.flatscrew.latte.cream;
 
+import org.flatscrew.latte.cream.color.ColorProfile;
+import org.flatscrew.latte.cream.color.TerminalColor;
+import org.jline.utils.AttributedCharSequence;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 
+import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
+
 public class Style {
 
-    private AttributedStyle style = new AttributedStyle();
+    public static Style newStyle() {
+        return defaultRenderer.newStyle();
+    }
 
-    public Style foreground(Color color) {
-        this.style = color.applyAsForeground(style);
+    private final Renderer renderer;
+    private boolean bold;
+    private boolean reverse;
+    private TerminalColor background;
+    private TerminalColor foreground;
+
+    public Style(Renderer renderer) {
+        this.renderer = renderer;
+    }
+
+    public Style foreground(TerminalColor color) {
+        this.foreground = color;
         return this;
     }
 
-    public Style background(Color color) {
-        this.style = color.applyAsBackground(style);
+    public Style background(TerminalColor color) {
+        this.background = color;
         return this;
     }
 
     public Style bold() {
-        this.style = style.bold();
+        this.bold = true;
         return this;
     }
 
     public Style reverse() {
-        this.style = style.inverse();
+        this.reverse = true;
         return this;
     }
 
     public String render(String... strings) {
-        return new AttributedString(String.join(" ", strings), style).toAnsi();
+        AttributedStyle style = new AttributedStyle();
+        if (foreground != null) {
+            style = foreground.applyAsForeground(style, renderer);
+        }
+        if (background != null) {
+            style = background.applyAsBackground(style, renderer);
+        }
+        if (bold) {
+            style = style.bold();
+        }
+        if (reverse) {
+            style = style.inverse();
+        }
+
+        String string = String.join(" ", strings);
+        ColorProfile colorProfile = renderer.colorProfile();
+        if (colorProfile == ColorProfile.Ascii) {
+            return string;
+        }
+        return new AttributedString(string, style).toAnsi(colorProfile.colorsCount(), AttributedCharSequence.ForceMode.None);
     }
 }
