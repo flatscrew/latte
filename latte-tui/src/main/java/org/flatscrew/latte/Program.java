@@ -1,7 +1,6 @@
 package org.flatscrew.latte;
 
 import org.flatscrew.latte.input.InputHandler;
-import org.flatscrew.latte.term.jline.JLineTerminalInfoProvider;
 import org.flatscrew.latte.message.BatchMessage;
 import org.flatscrew.latte.message.CheckWindowSizeMessage;
 import org.flatscrew.latte.message.EnterAltScreen;
@@ -11,6 +10,7 @@ import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.message.SequenceMessage;
 import org.flatscrew.latte.message.WindowSizeMessage;
 import org.flatscrew.latte.term.TerminalInfo;
+import org.flatscrew.latte.term.jline.JLineTerminalInfoProvider;
 import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;

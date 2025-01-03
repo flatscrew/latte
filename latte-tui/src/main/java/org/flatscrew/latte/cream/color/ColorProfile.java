@@ -1,6 +1,5 @@
 package org.flatscrew.latte.cream.color;
 
-import org.jline.terminal.Terminal;
 import org.jline.utils.AttributedCharSequence;
 
 public enum ColorProfile {

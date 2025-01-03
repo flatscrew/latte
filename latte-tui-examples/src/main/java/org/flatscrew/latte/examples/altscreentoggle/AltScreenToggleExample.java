@@ -5,7 +5,6 @@ import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
 import org.flatscrew.latte.Program;
 import org.flatscrew.latte.UpdateResult;
-import org.flatscrew.latte.cream.color.ANSIColor;
 import org.flatscrew.latte.cream.Style;
 import org.flatscrew.latte.cream.color.Color;
 import org.flatscrew.latte.message.EnterAltScreen;
