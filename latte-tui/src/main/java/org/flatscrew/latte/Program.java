@@ -130,7 +130,7 @@ public class Program {
         try {
             terminal.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ProgramException(e);
         }
     }
 

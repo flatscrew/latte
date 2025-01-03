@@ -6,7 +6,7 @@ import org.jline.utils.AttributedStyle;
 /**
  * RGBColor is a hex-encoded color, e.g. "#ff0000"
  */
-public class RGBColor implements TerminalColor {
+public class RGBColor implements TerminalColor, RGBSupplier {
 
     private final ColorApplyStrategy colorApplyStrategy;
     private final RGB rgb;
@@ -19,7 +19,6 @@ public class RGBColor implements TerminalColor {
     public RGBColor(int r, int g, int b) {
         this.rgb = new RGB(r, g, b);
         this.colorApplyStrategy = rgb().asColorApplyStrategy();
-
     }
 
     @Override
@@ -32,6 +31,7 @@ public class RGBColor implements TerminalColor {
         return colorApplyStrategy.applyForForeground(style);
     }
 
+    @Override
     public RGB rgb() {
         return rgb;
     }

@@ -7,6 +7,7 @@ import org.flatscrew.latte.cream.color.HSL;
 import org.flatscrew.latte.cream.color.NoColor;
 import org.flatscrew.latte.cream.color.RGB;
 import org.flatscrew.latte.cream.color.RGBColor;
+import org.flatscrew.latte.cream.color.RGBSupplier;
 import org.flatscrew.latte.cream.color.TerminalColor;
 import org.flatscrew.latte.term.TerminalInfo;
 
@@ -95,12 +96,8 @@ public class Output {
         TerminalColor terminalColor = backgroundColor();
 
         RGB rgb = RGB.black();
-        if (terminalColor instanceof RGBColor rgbColor) {
-            rgb = rgbColor.rgb();
-        } else if (terminalColor instanceof ANSIColor ansiColor) {
-            rgb = ansiColor.rgb();
-        } else if (terminalColor instanceof ANSI256Color ansi256Color) {
-            rgb = ansi256Color.rgb();
+        if (terminalColor instanceof RGBSupplier rgbSupplier) {
+            rgb = rgbSupplier.rgb();
         }
 
         HSL hsl = rgb.toHSL();
