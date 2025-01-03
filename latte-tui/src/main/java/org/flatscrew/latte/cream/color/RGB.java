@@ -59,7 +59,7 @@ public record RGB(float r, float g, float b) {
         if (average > 238) {
             grayIndex = 23;
         } else {
-            grayIndex = (int)((average - 3) / 10); // 0..23
+            grayIndex = (int) ((average - 3) / 10); // 0..23
         }
         float grayValue = (8 + 10 * grayIndex) / 255.0f;
 
@@ -80,58 +80,26 @@ public record RGB(float r, float g, float b) {
         if (value < 115) {
             return 1;
         }
-        return Math.min(5, (int)((value - 35) / 40));
+        return Math.min(5, (int) ((value - 35) / 40));
     }
 
     public float distanceHSLuv(RGB other) {
-        // Convert both colors to HSLuv and calculate distance
-        double[] hsluv1 = HUSLColorConverter.rgbToHsluv(new double[]{r, g, b});
-        double[] hsluv2 = HUSLColorConverter.rgbToHsluv(new double[]{other.r, other.g, other.b});
-
-        // Use the same distance calculation as the Go version
-        double dH = (hsluv1[0] - hsluv2[0]) / 100.0;
-        double dS = hsluv1[1] - hsluv2[1];
-        double dL = hsluv1[2] - hsluv2[2];
-
-        return (float)Math.sqrt(dH * dH + dS * dS + dL * dL);
+        HSL hsluv1 = toHSL();
+        HSL hsluv2 = other.toHSL();
+        return hsluv1.distance(hsluv2);
     }
 
     public HSL toHSL() {
-        float min = Math.min(Math.min(r, g), b);
-        float max = Math.max(Math.max(r, g), b);
-
-        float l = (max + min) / 2;
-        float h, s;
-
-        if (min == max) {
-            s = 0;
-            h = 0;
-        } else {
-            if (l < 0.5f) {
-                s = (max - min) / (max + min);
-            } else {
-                s = (max - min) / (2.0f - max - min);
-            }
-
-            if (max == r) {
-                h = (g - b) / (max - min);
-            } else if (max == g) {
-                h = 2.0f + (b - r) / (max - min);
-            } else {
-                h = 4.0f + (r - g) / (max - min);
-            }
-
-            h *= 60;
-
-            if (h < 0) {
-                h += 360;
-            }
-        }
-        return new HSL(h, s, l);
+        double[] hsluv = HUSLColorConverter.rgbToHsluv(new double[]{r, g, b});
+        return new HSL((float) hsluv[0], (float) hsluv[1] / 100, (float) hsluv[2] / 100);
     }
 
     @Override
     public String toString() {
         return "%f,%f,%f".formatted(r, g, b);
+    }
+
+    public ColorApplyStrategy asColorApplyStrategy() {
+        return new RGBAApplyStrategy((int) (r * 255.0f), (int) (g * 255.0f), (int) (b * 255.f));
     }
 }

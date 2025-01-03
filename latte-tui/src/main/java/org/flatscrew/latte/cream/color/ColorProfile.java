@@ -1,14 +1,23 @@
 package org.flatscrew.latte.cream.color;
 
+import org.jline.terminal.Terminal;
+import org.jline.utils.AttributedCharSequence;
+
 public enum ColorProfile {
     // TrueColor, 24-bit color profile
-    TrueColor,
+    TrueColor(AttributedCharSequence.TRUE_COLORS),
     // ANSI256, 8-bit color profile
-    ANSI256,
+    ANSI256(256),
     // ANSI, 4-bit color profile
-    ANSI,
+    ANSI(16),
     // Ascii, uncolored profile
-    Ascii;
+    Ascii(1);
+
+    private final int colorsCount;
+
+    ColorProfile(int colorsCount) {
+        this.colorsCount = colorsCount;
+    }
 
     /**
      * Color creates a {@link TerminalColor} from a string. Valid inputs are hex colors, as well as
@@ -64,5 +73,9 @@ public enum ColorProfile {
             return terminalColor;
         }
         return terminalColor;
+    }
+
+    public int colorsCount() {
+        return colorsCount;
     }
 }

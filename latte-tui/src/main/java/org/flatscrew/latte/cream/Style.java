@@ -2,6 +2,7 @@ package org.flatscrew.latte.cream;
 
 import org.flatscrew.latte.cream.color.ColorProfile;
 import org.flatscrew.latte.cream.color.TerminalColor;
+import org.jline.utils.AttributedCharSequence;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 
@@ -63,6 +64,6 @@ public class Style {
         if (colorProfile == ColorProfile.Ascii) {
             return string;
         }
-        return new AttributedString(string, style).toAnsi();
+        return new AttributedString(string, style).toAnsi(colorProfile.colorsCount(), AttributedCharSequence.ForceMode.None);
     }
 }

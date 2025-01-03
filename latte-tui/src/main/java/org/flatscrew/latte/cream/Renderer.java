@@ -57,4 +57,13 @@ public class Renderer {
         return colorProfile;
     }
 
+    public void setColorProfile(ColorProfile colorProfile) {
+        renderLock.lock();
+        try {
+            this.colorProfile = colorProfile;
+            this.explicitColorProfile = true;
+        } finally {
+            renderLock.unlock();
+        }
+    }
 }

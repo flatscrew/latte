@@ -43,6 +43,10 @@ public class JLineTerminalInfoProvider implements TerminalInfoProvider {
 
     private void readFromTerminal(Terminal terminal) {
         this.tty = !"dumb".equals(terminal.getType());
+        if (!tty) {
+            return;
+        }
+
         String backgroundColor = "";
 
         // Check if we're running in screen or tmux
@@ -161,7 +165,7 @@ public class JLineTerminalInfoProvider implements TerminalInfoProvider {
             throw new IllegalArgumentException("Invalid color format: wrong number of components");
         }
 
-        // Convert each component from 2-char hex to float
+        // Convert each component from 2-char hex to int
         try {
             int r = Integer.parseInt(parts[0].substring(0, 2), 16) / 255;
             int g = Integer.parseInt(parts[1].substring(0, 2), 16) / 255;
@@ -171,5 +175,4 @@ public class JLineTerminalInfoProvider implements TerminalInfoProvider {
             throw new IllegalArgumentException("Invalid color format: invalid hex values");
         }
     }
-
 }

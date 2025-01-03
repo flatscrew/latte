@@ -17,8 +17,9 @@ public class RGBColor implements TerminalColor {
     }
 
     public RGBColor(int r, int g, int b) {
-        this.colorApplyStrategy = new RGBAApplyStrategy(r, g, b);
         this.rgb = new RGB(r, g, b);
+        this.colorApplyStrategy = rgb().asColorApplyStrategy();
+
     }
 
     @Override

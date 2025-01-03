@@ -38,6 +38,12 @@ class RGBAApplyStrategy implements ColorApplyStrategy {
         this.b = b;
     }
 
+    public RGBAApplyStrategy(RGB rgb) {
+        this.r = (int) (rgb.r() * 255);
+        this.g = (int) (rgb.g() * 255);
+        this.b = (int) (rgb.b() * 255);
+    }
+
     @Override
     public AttributedStyle applyForForeground(AttributedStyle attributedStyle) {
         return attributedStyle.foreground(r, g, b);
@@ -54,12 +60,7 @@ class HexColorApplyStrategy implements ColorApplyStrategy {
     private final ColorApplyStrategy rgbaApplyStrategy;
 
     public HexColorApplyStrategy(String hexValue) {
-        String hex = hexValue.replace("#", "").trim();
-        this.rgbaApplyStrategy = new RGBAApplyStrategy(
-                Integer.parseInt(hex.substring(0, 2), 16),
-                Integer.parseInt(hex.substring(2, 4), 16),
-                Integer.parseInt(hex.substring(4, 6), 16)
-        );
+        this.rgbaApplyStrategy = RGB.fromHexString(hexValue).asColorApplyStrategy();
     }
 
     @Override

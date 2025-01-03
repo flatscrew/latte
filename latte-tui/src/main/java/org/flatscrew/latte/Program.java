@@ -49,7 +49,6 @@ public class Program {
                     .build();
             terminal.enterRawMode();
 
-
             // terminal info provider here
             TerminalInfo.provide(new JLineTerminalInfoProvider(terminal));
 

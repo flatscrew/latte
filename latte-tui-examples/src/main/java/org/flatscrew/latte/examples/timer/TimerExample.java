@@ -31,8 +31,6 @@ public class TimerExample implements Model {
         } else if (msg instanceof StartStopMessage) {
             UpdateResult<? extends Model> updateResult = timer.update(msg);
             this.timer = updateResult.model();
-
-
         }
         return null;
     }

@@ -4,13 +4,13 @@ import org.flatscrew.latte.cream.color.TerminalColor;
 
 public record TerminalInfo(boolean tty, TerminalColor backgroundColor) {
 
-    private static TerminalInfo terminalInfo;
+    private static TerminalInfoProvider infoProvider;
 
     public static void provide(TerminalInfoProvider infoProvider) {
-        terminalInfo = infoProvider.provide();
+        TerminalInfo.infoProvider = infoProvider;
     }
 
     public static TerminalInfo get() {
-        return terminalInfo;
+        return infoProvider.provide();
     }
 }

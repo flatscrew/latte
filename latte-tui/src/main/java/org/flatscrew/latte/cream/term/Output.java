@@ -112,7 +112,6 @@ public class Output {
             return backgroundColor;
         }
 
-        // FIXME it reads background color only once!
         TerminalColor terminalColor = TerminalInfo.get().backgroundColor();
         if (terminalColor == null) {
             String colorfgbg = Optional.ofNullable(getenv("COLORFGBG")).orElse("");
