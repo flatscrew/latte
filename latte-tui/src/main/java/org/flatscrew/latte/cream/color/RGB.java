@@ -17,7 +17,6 @@ public record RGB(float r, float g, float b) {
                     hex.charAt(0), hex.charAt(0),
                     hex.charAt(1), hex.charAt(1),
                     hex.charAt(2), hex.charAt(2));
-            factor = 1.0f / 15.0f;
         } else if (hex.length() != 6) {
             throw new NumberFormatException("color: %s is not a hex-color".formatted(hexValue));
         }
@@ -90,8 +89,34 @@ public record RGB(float r, float g, float b) {
     }
 
     public HSL toHSL() {
-        double[] hsluv = HUSLColorConverter.rgbToHsluv(new double[]{r, g, b});
-        return new HSL((float) hsluv[0], (float) hsluv[1] / 100, (float) hsluv[2] / 100);
+        float max = Math.max(Math.max(r, g), b);
+        float min = Math.min(Math.min(r, g), b);
+        float h, s, l;
+
+        l = (max + min) / 2.0f;
+
+        if (max == min) {
+            h = 0f;
+            s = 0f;
+        } else {
+            float d = max - min;
+
+            s = l > 0.5f ?
+                    d / (2.0f - max - min) :
+                    d / (max + min);
+
+            if (max == r) {
+                h = (g - b) / d + (g < b ? 6.0f : 0.0f);
+            } else if (max == g) {
+                h = (b - r) / d + 2.0f;
+            } else { // max == b
+                h = (r - g) / d + 4.0f;
+            }
+
+            h /= 6.0f;
+        }
+
+        return new HSL(h * 360f, s, l);
     }
 
     @Override
@@ -101,5 +126,9 @@ public record RGB(float r, float g, float b) {
 
     public ColorApplyStrategy asColorApplyStrategy() {
         return new RGBAApplyStrategy((int) (r * 255.0f), (int) (g * 255.0f), (int) (b * 255.f));
+    }
+
+    public int toInt() {
+        return ((int)(r * 255.0f) << 16) + ((int)(g * 255.0f) << 8) + (int)(b * 255.0f);
     }
 }
