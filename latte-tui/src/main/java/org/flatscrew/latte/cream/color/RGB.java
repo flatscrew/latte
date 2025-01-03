@@ -1,7 +1,5 @@
 package org.flatscrew.latte.cream.color;
 
-import org.hsluv.HUSLColorConverter;
-
 public record RGB(float r, float g, float b) {
 
     public static RGB black() {
