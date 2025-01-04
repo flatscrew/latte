@@ -107,7 +107,7 @@ class TextWrapperTest {
                         "Lorem ipsum dolor \u001B[1msit\u001B[m amet, consectetur adipiscing elit",
                         20,
                         "",
-                        "Lorem ipsum dolor \u001B[1msit\u001B[m\namet, consectetur\nadipiscing elit"
+                        "Lorem ipsum dolor\n\u001B[1msit\u001B[m amet,\nconsectetur\nadipiscing elit"
                 ),
 
                 Arguments.of(

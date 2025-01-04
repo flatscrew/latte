@@ -6,13 +6,14 @@ import org.flatscrew.latte.Model;
 import org.flatscrew.latte.Program;
 import org.flatscrew.latte.UpdateResult;
 import org.flatscrew.latte.cream.Style;
+import org.flatscrew.latte.cream.color.Color;
 import org.flatscrew.latte.message.QuitMessage;
 
 public class WidthExample implements Model {
 
     private final static Style limitedWidth = Style.newStyle().width(15);
-    private final static Style red = Style.newStyle();
-    private final static Style green = Style.newStyle();
+    private final static Style red = Style.newStyle().foreground(Color.color("#ff0000"));
+    private final static Style green = Style.newStyle().foreground(Color.color("#00ff00"));
 
     @Override
     public Command init() {
