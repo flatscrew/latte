@@ -24,6 +24,16 @@
             <artifactId>jline-terminal-jni</artifactId>
             <version>${jline.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.davidmoten</groupId>
+            <artifactId>word-wrap</artifactId>
+            <version>0.1.12</version>
+        </dependency>
+        <dependency>
+            <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
+            <version>76.1</version>
+        </dependency>
 
         <!-- Testing -->
         <dependency>

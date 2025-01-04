@@ -2,7 +2,7 @@ package org.flatscrew.latte.cream;
 
 import org.flatscrew.latte.cream.color.ColorProfile;
 import org.flatscrew.latte.cream.color.TerminalColor;
-import org.jline.utils.AttributedCharSequence;
+import org.jline.utils.AttributedCharSequence.ForceMode;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 
@@ -15,10 +15,15 @@ public class Style {
     }
 
     private final Renderer renderer;
-    private boolean bold;
-    private boolean reverse;
+
     private TerminalColor background;
     private TerminalColor foreground;
+    private boolean bold;
+    private boolean reverse;
+    private boolean inline;
+    private int width;
+    private int leftPadding;
+    private int rightPadding;
 
     public Style(Renderer renderer) {
         this.renderer = renderer;
@@ -44,6 +49,11 @@ public class Style {
         return this;
     }
 
+    public Style inline() {
+        this.inline = true;
+        return this;
+    }
+
     public String render(String... strings) {
         AttributedStyle style = new AttributedStyle();
         if (foreground != null) {
@@ -60,10 +70,16 @@ public class Style {
         }
 
         String string = String.join(" ", strings);
+        if (!inline && width > 0) {
+            int wrapAt = width - leftPadding - rightPadding;
+        }
+
+
+
         ColorProfile colorProfile = renderer.colorProfile();
         if (colorProfile == ColorProfile.Ascii) {
             return string;
         }
-        return new AttributedString(string, style).toAnsi(colorProfile.colorsCount(), AttributedCharSequence.ForceMode.None);
+        return new AttributedString(string, style).toAnsi(colorProfile.colorsCount(), ForceMode.None);
     }
 }
