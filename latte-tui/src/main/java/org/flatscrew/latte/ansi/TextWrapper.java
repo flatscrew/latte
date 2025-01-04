@@ -78,24 +78,32 @@ public class TextWrapper {
                     } else if (UCharacter.isWhitespace(r)) {
                         addWord();
                         space.append(r);
-                    } else if (r == '-' || breakpoints.indexOf(r) != -1) {
-                        addWord();
-                        buf.append(r);
-                        curWidth++;
+                    } else if (r == '-') {
+                        addSpace();
+                        if (curWidth + wordLen >= limit) {
+                            word.append(r);
+                            wordLen++;
+                        } else {
+                            addWord();
+                            buf.append(r);
+                            curWidth++;
+                        }
                     } else {
-                        if (curWidth + wordLen + space.length() > limit) {
+                        if (curWidth == limit) {
                             addNewLine();
                         }
-
                         word.append(r);
                         wordLen++;
 
                         if (wordLen == limit) {
                             addWord();
                         }
+
+                        if (curWidth + wordLen + space.length() > limit) {
+                            addNewLine();
+                        }
                     }
                 }
-
 
                 default -> word.append(r);
             }
@@ -112,9 +120,10 @@ public class TextWrapper {
             } else {
                 buf.append(space);
             }
+            space.setLength(0);
         }
-        addWord();
 
+        addWord();
         return buf.toString();
     }
 

@@ -55,6 +55,11 @@ public class Style {
         return this;
     }
 
+    public Style width(int width) {
+        this.width = width;
+        return this;
+    }
+
     public String render(String... strings) {
         AttributedStyle style = new AttributedStyle();
         if (foreground != null) {

@@ -26,6 +26,13 @@ class TextWrapperTest {
     }
 
     @Test
+    void testReallyLongText() {
+        String text = "This is a long text and it should be wrapped after 15 characters, we will see how it presents ...";
+        String expected = "This is a long\ntext and it\nshould be\nwrapped after\n15 characters,\nwe will see how\nit presents ...";
+        assertEquals(expected, new TextWrapper().wrap(text, 15, ""));
+    }
+
+    @Test
     void testDoubleSpaces() {
         String text = "f  bar foobaz";
         String expected = "f  bar\nfoobaz";
