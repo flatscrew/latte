@@ -1,5 +1,6 @@
 package org.flatscrew.latte.cream;
 
+import org.flatscrew.latte.ansi.TextWrapper;
 import org.flatscrew.latte.cream.color.ColorProfile;
 import org.flatscrew.latte.cream.color.TerminalColor;
 import org.jline.utils.AttributedCharSequence.ForceMode;
@@ -70,16 +71,17 @@ public class Style {
         }
 
         String string = String.join(" ", strings);
+
         if (!inline && width > 0) {
             int wrapAt = width - leftPadding - rightPadding;
+            string = new TextWrapper().wrap(string, wrapAt, "");
         }
-
-
 
         ColorProfile colorProfile = renderer.colorProfile();
-        if (colorProfile == ColorProfile.Ascii) {
-            return string;
+        if (colorProfile != ColorProfile.Ascii) {
+            string = new AttributedString(string, style).toAnsi(colorProfile.colorsCount(), ForceMode.None);
         }
-        return new AttributedString(string, style).toAnsi(colorProfile.colorsCount(), ForceMode.None);
+
+        return string;
     }
 }

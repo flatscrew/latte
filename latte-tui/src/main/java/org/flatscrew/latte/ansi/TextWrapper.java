@@ -37,7 +37,6 @@ public class TextWrapper {
                 GraphemeResult graphemeResult = GraphemeCluster.getFirstGrapheme(b, i, -1);
                 byte[] cluster = graphemeResult.cluster();
                 int width = graphemeResult.width();
-
                 i += cluster.length;
                 String r = new String(cluster, StandardCharsets.UTF_8);
 
@@ -79,12 +78,12 @@ public class TextWrapper {
                     } else if (UCharacter.isWhitespace(r)) {
                         addWord();
                         space.append(r);
-                    } else if (r == '-') {
+                    } else if (r == '-' || breakpoints.indexOf(r) != -1) {
                         addWord();
                         buf.append(r);
                         curWidth++;
                     } else {
-                        if (curWidth == limit) {
+                        if (curWidth + wordLen + space.length() > limit) {
                             addNewLine();
                         }
 
@@ -94,13 +93,9 @@ public class TextWrapper {
                         if (wordLen == limit) {
                             addWord();
                         }
-
-                        if (curWidth + wordLen + space.length() > limit) {
-                            addNewLine();
-                        }
-
                     }
                 }
+
 
                 default -> word.append(r);
             }
@@ -108,11 +103,9 @@ public class TextWrapper {
             if (pstate != State.UTF8) {
                 pstate = state;
             }
-
             i++;
         }
 
-        // Final flush
         if (wordLen == 0) {
             if (curWidth + space.length() > limit) {
                 curWidth = 0;
@@ -148,4 +141,5 @@ public class TextWrapper {
         curWidth = 0;
         space.setLength(0);
     }
+
 }

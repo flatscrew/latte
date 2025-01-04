@@ -39,12 +39,38 @@ public class GraphemeCluster {
     }
 
     private static int calculateWidth(String cluster) {
-        // Determine width for wrapping (handle wide characters, emojis, etc.)
-        int cp = cluster.codePointAt(0);
-        if (Character.isSupplementaryCodePoint(cp)) {
-            return 2; // Wide characters
+        int codePoint = cluster.codePointAt(0);
+
+        // Handle emojis
+        if (Character.isSupplementaryCodePoint(codePoint) ||
+                Character.UnicodeBlock.of(codePoint) == Character.UnicodeBlock.EMOTICONS ||
+                Character.UnicodeBlock.of(codePoint) == Character.UnicodeBlock.MISCELLANEOUS_SYMBOLS_AND_PICTOGRAPHS ||
+                Character.UnicodeBlock.of(codePoint) == Character.UnicodeBlock.TRANSPORT_AND_MAP_SYMBOLS ||
+                Character.UnicodeBlock.of(codePoint) == Character.UnicodeBlock.SUPPLEMENTAL_SYMBOLS_AND_PICTOGRAPHS) {
+            return 2; // Emojis and pictographs are wide
         }
-        return 1; // Default width
+
+        // Check for wide characters based on Unicode scripts and blocks
+        Character.UnicodeBlock block = Character.UnicodeBlock.of(codePoint);
+
+        // Check if the character belongs to CJK or other wide character blocks
+        if (block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS ||
+                block == Character.UnicodeBlock.HIRAGANA ||
+                block == Character.UnicodeBlock.KATAKANA ||
+                block == Character.UnicodeBlock.HANGUL_SYLLABLES ||
+                block == Character.UnicodeBlock.CJK_COMPATIBILITY ||
+                block == Character.UnicodeBlock.CJK_COMPATIBILITY_FORMS ||
+                block == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS ||
+                block == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS_SUPPLEMENT ||
+                block == Character.UnicodeBlock.CJK_RADICALS_SUPPLEMENT ||
+                block == Character.UnicodeBlock.CJK_SYMBOLS_AND_PUNCTUATION ||
+                block == Character.UnicodeBlock.ENCLOSED_CJK_LETTERS_AND_MONTHS ||
+                block == Character.UnicodeBlock.HALFWIDTH_AND_FULLWIDTH_FORMS) {
+            return 2; // Wide character
+        }
+
+        // Default width for narrow characters
+        return 1;
     }
 
     public record GraphemeResult(byte[] cluster, byte[] rest, int width, int newState) {
