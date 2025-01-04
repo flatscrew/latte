@@ -111,6 +111,14 @@ class TextWrapperTest {
                 ),
 
                 Arguments.of(
+                        "paragraph",
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+                        20,
+                        "",
+                        "Lorem ipsum dolor\nsit amet,\nconsectetur\nadipiscing elit"
+                ),
+
+                Arguments.of(
                         "osc8_wrap",
                         "สวัสดีสวัสดี\u001B]8;;https://example.com\u001B\\ สวัสดีสวัสดี\u001B]8;;\u001B\\",
                         8,
