@@ -104,7 +104,7 @@ This table represents porting status of each part of Lipgloss that can be anyway
 | Colors and color profiles     | `🟢 Done` |       |
 | Borders                       | `⚪ TODO`  |       |
 | Margins and paddings          | `⚪ TODO`  |       |
-| Width, max width and wrapping | `⚪ TODO`  |       |
+| Width, max width and wrapping | `🟢 Done` |       |
 | Horizontal and vertical join  | `⚪ TODO`  |       |
 | Alignment                     | `⚪ TODO`  |       |
 | List component                | `⚪ TODO`  |       |
