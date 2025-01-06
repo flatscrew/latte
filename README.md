@@ -89,6 +89,35 @@ public UpdateResult<? extends Model> update(Message msg) {
     // return the updated model to Latte for processing
     return new UpdateResult<>(this, null);
 }
+
+private Model moveUp() {
+    if (cursor - 1 < 0) {
+        cursor = CHOICES.length - 1;
+        return this;
+    }
+    cursor--;
+    return this;
+}
+
+private Model moveDown() {
+    if (cursor + 1 >= CHOICES.length) {
+        cursor = 0;
+        return this;
+    }
+    cursor++;
+    return this;
+}
+
+private Model makeChoice() {
+    for (int index = 0; index < CHOICES.length ; index++) {
+        String choice = CHOICES[index];
+        if (index == cursor) {
+            this.choice = choice;
+            return this;
+        }
+    }
+    return this;
+}
 ```
 You may have noticed that `q` above returns `QuitMessage` command with the model. That's a special message which intructs the Latte runtime to quit, exiting the program.
 
