@@ -43,7 +43,7 @@ class GraphemeClusterTest {
         int offset = 0;
 
         while (offset < bytes.length) {
-            GraphemeCluster.GraphemeResult result = GraphemeCluster.getFirstGrapheme(bytes, offset, -1);
+            GraphemeCluster.GraphemeResult result = GraphemeCluster.getFirstGraphemeCluster(bytes, offset, -1);
             actual.add(new String(result.cluster(), StandardCharsets.UTF_8));
             offset += result.cluster().length;
         }

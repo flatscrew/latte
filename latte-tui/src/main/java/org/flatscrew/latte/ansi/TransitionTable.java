@@ -5,8 +5,8 @@ import java.util.Arrays;
 public class TransitionTable {
 
     private static final int INDEX_STATE_SHIFT = 8;
-    private static final int TRANSITION_STATE_MASK = 0xFF;
-    private static final int TRANSITION_ACTION_SHIFT = 8;
+    private static final int TRANSITION_STATE_MASK = 15;
+    private static final int TRANSITION_ACTION_SHIFT = 4;
     private static final int DEFAULT_TABLE_SIZE = 4096;
 
     private final int[] table;

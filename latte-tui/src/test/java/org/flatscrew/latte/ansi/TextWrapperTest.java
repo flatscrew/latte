@@ -15,42 +15,42 @@ class TextWrapperTest {
     void testSimpleWrapping() {
         String text = "the quick brown fox";
         String expected = "the quick\nbrown fox";
-        assertEquals(expected, new TextWrapper().wrap(text, 10, ""));
+        assertEquals(expected, new TextWrapper().wrap(text, 10));
     }
 
     @Test
     void testLongerWrapping() {
         String text = "the quick brown foxxxxxxxxxxxxxxxx jumped over the lazy dog.";
         String expected = "the quick brown\nfoxxxxxxxxxxxxxx\nxx jumped over\nthe lazy dog.";
-        assertEquals(expected, new TextWrapper().wrap(text, 16, ""));
+        assertEquals(expected, new TextWrapper().wrap(text, 16));
     }
 
     @Test
     void testReallyLongText() {
         String text = "This is a long text and it should be wrapped after 15 characters, we will see how it presents ...";
         String expected = "This is a long\ntext and it\nshould be\nwrapped after\n15 characters,\nwe will see how\nit presents ...";
-        assertEquals(expected, new TextWrapper().wrap(text, 15, ""));
+        assertEquals(expected, new TextWrapper().wrap(text, 15));
     }
 
     @Test
     void testDoubleSpaces() {
         String text = "f  bar foobaz";
         String expected = "f  bar\nfoobaz";
-        assertEquals(expected, new TextWrapper().wrap(text, 6, ""));
+        assertEquals(expected, new TextWrapper().wrap(text, 6));
     }
 
     @Test
     void testNewlinesInInput() {
         String text = "line1\nline2";
         String expected = "line1\nline2";
-        assertEquals(expected, new TextWrapper().wrap(text, 10, ""));
+        assertEquals(expected, new TextWrapper().wrap(text, 10));
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("wrapCases")
     void testWrap(String name, String input, int limit, String expected) {
         // when
-        String result = new TextWrapper().wrap(input, limit, "");
+        String result = new TextWrapper().wrap(input, limit);
 
         // then
         assertEquals(expected, result, "Test case '" + name + "' failed");
