@@ -38,36 +38,6 @@ public class GraphemeCluster {
         return new GraphemeResult(clusterBytes, restBytes, width, newState);
     }
 
-    public static GraphemeStringResult getFirstGraphemeClusterInString(String input, int startIndex, int state) {
-        if (input == null || input.isEmpty() || startIndex >= input.length()) {
-            return new GraphemeStringResult("", "", 0, State.GROUND.ordinal());
-        }
-
-        // Use BreakIterator to find grapheme boundaries
-        BreakIterator iterator = BreakIterator.getCharacterInstance();
-        iterator.setText(input.substring(startIndex));
-
-        int clusterStart = iterator.first();
-        int clusterEnd = iterator.next();
-
-        // If no more clusters are found, return default result
-        if (clusterEnd == BreakIterator.DONE) {
-            return new GraphemeStringResult("", "", 0, State.GROUND.ordinal());
-        }
-
-        // Extract the grapheme cluster
-        String cluster = input.substring(startIndex + clusterStart, startIndex + clusterEnd);
-        String rest = input.substring(startIndex + clusterEnd);
-
-        // Calculate the visual width of the cluster
-        int width = calculateWidth(cluster);
-
-        // Determine the new state (simple placeholder logic; customize as needed)
-        int newState = (state == State.UTF8.ordinal()) ? State.GROUND.ordinal() : State.UTF8.ordinal();
-
-        return new GraphemeStringResult(cluster, rest, width, newState);
-    }
-
     private static int calculateWidth(String cluster) {
         int codePoint = cluster.codePointAt(0);
 
@@ -120,8 +90,5 @@ public class GraphemeCluster {
     }
 
     public record GraphemeResult(byte[] cluster, byte[] rest, int width, int newState) {
-    }
-
-    public record GraphemeStringResult(String cluster, String rest, int width, int newState) {
     }
 }
