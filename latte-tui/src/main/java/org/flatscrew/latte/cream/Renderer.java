@@ -21,6 +21,7 @@ public class Renderer {
 
     private boolean hasDarkBackground;
     private boolean hasDarkBackgroundSet;
+    private boolean explicitBackgroundColor;
 
     public Renderer(Output output) {
         this.output = output;
@@ -31,7 +32,7 @@ public class Renderer {
     }
 
     public boolean hasDarkBackground() {
-        if (hasDarkBackgroundSet) {
+        if (hasDarkBackgroundSet || explicitBackgroundColor) {
             return hasDarkBackground;
         }
 
@@ -62,6 +63,17 @@ public class Renderer {
         try {
             this.colorProfile = colorProfile;
             this.explicitColorProfile = true;
+        } finally {
+            renderLock.unlock();
+        }
+    }
+
+    public void setHasDarkBackground(boolean hasDarkBackground) {
+        renderLock.lock();
+        try {
+            this.hasDarkBackground = hasDarkBackground;
+            hasDarkBackgroundSet = true;
+            explicitBackgroundColor = true;
         } finally {
             renderLock.unlock();
         }

@@ -1,12 +1,10 @@
 package org.flatscrew.latte.cream.term;
 
-import org.flatscrew.latte.cream.color.ANSI256Color;
 import org.flatscrew.latte.cream.color.ANSIColor;
 import org.flatscrew.latte.cream.color.ColorProfile;
 import org.flatscrew.latte.cream.color.HSL;
 import org.flatscrew.latte.cream.color.NoColor;
 import org.flatscrew.latte.cream.color.RGB;
-import org.flatscrew.latte.cream.color.RGBColor;
 import org.flatscrew.latte.cream.color.RGBSupplier;
 import org.flatscrew.latte.cream.color.TerminalColor;
 import org.flatscrew.latte.term.TerminalInfo;

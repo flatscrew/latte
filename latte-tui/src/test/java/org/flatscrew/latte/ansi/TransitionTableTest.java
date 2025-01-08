@@ -2,13 +2,13 @@ package org.flatscrew.latte.ansi;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TransitionTableTest {
 
     @Test
     void testDefaultTransition() {
-        TransitionTable table = new TransitionTable();
+        TransitionTable table = TransitionTable.get();
         State initialState = State.GROUND;
         byte code = 0x00;
 
@@ -21,7 +21,7 @@ class TransitionTableTest {
 
     @Test
     void testEscapeTransition() {
-        TransitionTable table = new TransitionTable();
+        TransitionTable table = TransitionTable.get();
         State initialState = State.GROUND;
         byte code = 0x1B; // ESC character
 
@@ -33,7 +33,7 @@ class TransitionTableTest {
 
     @Test
     void testCsiEntryTransition() {
-        TransitionTable table = new TransitionTable();
+        TransitionTable table = TransitionTable.get();
         State initialState = State.GROUND;
         byte code = (byte) 0x9B; // CSI_ENTRY byte
 
@@ -45,7 +45,7 @@ class TransitionTableTest {
 
     @Test
     void testUtf8Transition() {
-        TransitionTable table = new TransitionTable();
+        TransitionTable table = TransitionTable.get();
         State initialState = State.GROUND;
         byte code = (byte) 0xC2; // UTF-8 multibyte start
 
@@ -57,7 +57,7 @@ class TransitionTableTest {
 
     @Test
     void testInvalidCode() {
-        TransitionTable table = new TransitionTable();
+        TransitionTable table = TransitionTable.get();
         State initialState = State.GROUND;
         byte code = (byte) 0xFF; // Unhandled byte
 
@@ -69,7 +69,7 @@ class TransitionTableTest {
 
     @Test
     void testRangeTransition() {
-        TransitionTable table = new TransitionTable();
+        TransitionTable table = TransitionTable.get();
         State initialState = State.ESCAPE;
         byte code = (byte) 0x31; // In range [0x30, 0x4F]
 
@@ -81,7 +81,7 @@ class TransitionTableTest {
 
     @Test
     void testIntermediateStateTransition() {
-        TransitionTable table = new TransitionTable();
+        TransitionTable table = TransitionTable.get();
         State initialState = State.ESCAPE_INTERMEDIATE;
         byte code = (byte) 0x20; // Intermediate range
 
@@ -93,7 +93,7 @@ class TransitionTableTest {
 
     @Test
     void testSosStringTransition() {
-        TransitionTable table = new TransitionTable();
+        TransitionTable table = TransitionTable.get();
         State initialState = State.GROUND;
         byte code = (byte) 0x98; // SOS byte
 

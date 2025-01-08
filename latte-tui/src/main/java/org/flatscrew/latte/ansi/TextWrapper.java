@@ -17,12 +17,12 @@ public class TextWrapper {
     private StringBuilder word = new StringBuilder(); // Current word
     private StringBuilder space = new StringBuilder(); // Current spaces
 
-    public String wrap(String text, int limit, String breakpoints) {
+    public String wrap(String text, int limit) {
         if (limit < 1 || text == null) {
             return text;
         }
 
-        TransitionTable table = new TransitionTable();
+        TransitionTable table = TransitionTable.get();
         State pstate = State.GROUND;
 
         byte[] b = text.getBytes(StandardCharsets.UTF_8);
@@ -34,7 +34,7 @@ public class TextWrapper {
             Action action = transition.action();
 
             if (state == State.UTF8) {
-                GraphemeResult graphemeResult = GraphemeCluster.getFirstGrapheme(b, i, -1);
+                GraphemeResult graphemeResult = GraphemeCluster.getFirstGraphemeCluster(b, i, -1);
                 byte[] cluster = graphemeResult.cluster();
                 int width = graphemeResult.width();
                 i += cluster.length;

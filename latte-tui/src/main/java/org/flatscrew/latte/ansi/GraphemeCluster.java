@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 public class GraphemeCluster {
 
-    public static GraphemeResult getFirstGrapheme(byte[] bytes, int startIndex, int state) {
+    public static GraphemeResult getFirstGraphemeCluster(byte[] bytes, int startIndex, int state) {
         // Convert bytes to string
         String text = new String(bytes, startIndex, bytes.length - startIndex, StandardCharsets.UTF_8);
 
@@ -38,8 +38,54 @@ public class GraphemeCluster {
         return new GraphemeResult(clusterBytes, restBytes, width, newState);
     }
 
+    public static GraphemeStringResult getFirstGraphemeClusterInString(String input, int startIndex, int state) {
+        if (input == null || input.isEmpty() || startIndex >= input.length()) {
+            return new GraphemeStringResult("", "", 0, State.GROUND.ordinal());
+        }
+
+        // Use BreakIterator to find grapheme boundaries
+        BreakIterator iterator = BreakIterator.getCharacterInstance();
+        iterator.setText(input.substring(startIndex));
+
+        int clusterStart = iterator.first();
+        int clusterEnd = iterator.next();
+
+        // If no more clusters are found, return default result
+        if (clusterEnd == BreakIterator.DONE) {
+            return new GraphemeStringResult("", "", 0, State.GROUND.ordinal());
+        }
+
+        // Extract the grapheme cluster
+        String cluster = input.substring(startIndex + clusterStart, startIndex + clusterEnd);
+        String rest = input.substring(startIndex + clusterEnd);
+
+        // Calculate the visual width of the cluster
+        int width = calculateWidth(cluster);
+
+        // Determine the new state (simple placeholder logic; customize as needed)
+        int newState = (state == State.UTF8.ordinal()) ? State.GROUND.ordinal() : State.UTF8.ordinal();
+
+        return new GraphemeStringResult(cluster, rest, width, newState);
+    }
+
     private static int calculateWidth(String cluster) {
         int codePoint = cluster.codePointAt(0);
+
+        // Check for combining characters and other zero-width characters
+        if (Character.getType(codePoint) == Character.NON_SPACING_MARK ||  // Combining marks
+                Character.getType(codePoint) == Character.ENCLOSING_MARK ||
+                Character.getType(codePoint) == Character.COMBINING_SPACING_MARK ||
+                codePoint == 0x200B || // ZERO WIDTH SPACE
+                codePoint == 0x200C || // ZERO WIDTH NON-JOINER
+                codePoint == 0x200D || // ZERO WIDTH JOINER
+                codePoint == 0xFEFF) { // ZERO WIDTH NO-BREAK SPACE
+            return 0;
+        }
+
+        // Handle control characters
+        if (Character.getType(codePoint) == Character.CONTROL) {
+            return 0;
+        }
 
         // Handle emojis
         if (Character.isSupplementaryCodePoint(codePoint) ||
@@ -74,5 +120,8 @@ public class GraphemeCluster {
     }
 
     public record GraphemeResult(byte[] cluster, byte[] rest, int width, int newState) {
+    }
+
+    public record GraphemeStringResult(String cluster, String rest, int width, int newState) {
     }
 }

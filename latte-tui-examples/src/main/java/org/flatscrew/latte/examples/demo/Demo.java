@@ -13,7 +13,7 @@ import org.flatscrew.latte.message.QuitMessage;
 public class Demo implements Model {
 
     private final static Style SELECTION = Style.newStyle().foreground(Color.color("205"));
-    private final static String[] CHOICES = {"Espresso", "Americano", "Lattee"};
+    private final static String[] CHOICES = {"Espresso", "Americano", "Latte"};
 
     private int cursor;
     private String choice;
@@ -27,18 +27,18 @@ public class Demo implements Model {
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof KeyPressMessage keyPressMessage) {
             return switch (keyPressMessage.key()) {
-                case 'k', 'K', 65 -> new UpdateResult<>(this.moveUp(), null);
-                case 'j', 'J', 66 -> new UpdateResult<>(this.moveDown(), null);
-                case 13 -> new UpdateResult<>(this.makeChoice(), QuitMessage::new);
-                case 'q', 'Q' -> new UpdateResult<>(this, QuitMessage::new);
-                default -> new UpdateResult<>(this, null);
+                case 'k', 'K', 65 -> UpdateResult.from(this.moveUp());
+                case 'j', 'J', 66 -> UpdateResult.from(this.moveDown());
+                case 13 -> UpdateResult.from(this.makeChoice(), QuitMessage::new);
+                case 'q', 'Q' -> UpdateResult.from(this, QuitMessage::new);
+                default -> UpdateResult.from(this);
             };
         }
-        return new UpdateResult<>(this, null);
+        return UpdateResult.from(this);
     }
 
     private Model makeChoice() {
-        for (int index = 0; index < CHOICES.length ; index++) {
+        for (int index = 0; index < CHOICES.length; index++) {
             String choice = CHOICES[index];
             if (index == cursor) {
                 this.choice = choice;
