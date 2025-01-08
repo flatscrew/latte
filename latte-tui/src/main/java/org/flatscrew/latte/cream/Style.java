@@ -24,6 +24,10 @@ public class Style {
     private TerminalColor background;
     private TerminalColor foreground;
     private boolean bold;
+    private boolean italic;
+    private boolean underline;
+    private boolean blink;
+    private boolean faint;
     private boolean reverse;
     private boolean inline;
     private int width;
@@ -57,8 +61,28 @@ public class Style {
         return this;
     }
 
+    public Style italic() {
+        this.italic = true;
+        return this;
+    }
+
+    public Style underline() {
+        this.underline = true;
+        return this;
+    }
+
     public Style reverse() {
         this.reverse = true;
+        return this;
+    }
+
+    public Style blink() {
+        this.blink = true;
+        return this;
+    }
+
+    public Style faint() {
+        this.faint = true;
         return this;
     }
 
@@ -119,7 +143,6 @@ public class Style {
         this.rightMargin = rightMargin;
         return this;
     }
-
     public Style marginBottom(int bottomMargin) {
         this.bottomMargin = bottomMargin;
         return this;
@@ -131,6 +154,7 @@ public class Style {
     }
 
     // TODO
+
     public Style marginBackgroundColor(TerminalColor marginBackgroundColor) {
         return this;
     }
@@ -145,6 +169,18 @@ public class Style {
         }
         if (bold) {
             style = style.bold();
+        }
+        if (italic) {
+            style = style.italic();
+        }
+        if (underline) {
+            style = style.underline();
+        }
+        if (faint) {
+            style = style.faint();
+        }
+        if (blink) {
+            style = style.blink();
         }
         if (reverse) {
             style = style.inverse();
