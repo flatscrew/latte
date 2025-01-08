@@ -10,12 +10,10 @@ import org.flatscrew.latte.cream.color.Color;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
 
-import static org.flatscrew.latte.UpdateResult.from;
-
 public class Demo implements Model {
 
     private final static Style SELECTION = Style.newStyle().foreground(Color.color("205"));
-    private final static String[] CHOICES = {"Espresso", "Americano", "Lattee"};
+    private final static String[] CHOICES = {"Espresso", "Americano", "Latte"};
 
     private int cursor;
     private String choice;

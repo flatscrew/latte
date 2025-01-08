@@ -22,7 +22,7 @@ public class TextWrapper {
             return text;
         }
 
-        TransitionTable table = new TransitionTable();
+        TransitionTable table = TransitionTable.get();
         State pstate = State.GROUND;
 
         byte[] b = text.getBytes(StandardCharsets.UTF_8);

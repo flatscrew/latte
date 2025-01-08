@@ -1,6 +1,7 @@
 package org.flatscrew.latte.ansi;
 
 import java.nio.charset.StandardCharsets;
+
 public class StringWidth {
 
     public static int measureWidth(String input) {
@@ -9,7 +10,7 @@ public class StringWidth {
         }
 
         int width = 0;
-        TransitionTable table = new TransitionTable();
+        TransitionTable table = TransitionTable.get();
         State pstate = State.GROUND;
 
         byte[] b = input.getBytes(StandardCharsets.UTF_8);
@@ -44,6 +45,4 @@ public class StringWidth {
 
         return width;
     }
-
-
 }

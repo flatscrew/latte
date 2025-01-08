@@ -19,7 +19,6 @@ public class Style {
         return defaultRenderer.newStyle();
     }
 
-
     private final Renderer renderer;
 
     private TerminalColor background;
@@ -38,7 +37,6 @@ public class Style {
     private int rightMargin;
     private int bottomMargin;
     private int leftMargin;
-    private TerminalColor marginBackgroundColor;
 
     public Style(Renderer renderer) {
         this.renderer = renderer;
@@ -132,8 +130,8 @@ public class Style {
         return this;
     }
 
+    // TODO
     public Style marginBackgroundColor(TerminalColor marginBackgroundColor) {
-        this.marginBackgroundColor = marginBackgroundColor;
         return this;
     }
 
@@ -164,10 +162,14 @@ public class Style {
             string = new AttributedString(string, style).toAnsi(colorProfile.colorsCount(), ForceMode.None);
         }
 
-        // apply block-level formatting
         if (!inline) {
             string = PaddingDecorator.applyPadding(string, topPadding, rightPadding, bottomPadding, leftPadding);
-            string = MarginDecorator.applyMargins(string, topMargin, rightMargin, bottomMargin, leftMargin, marginBackgroundColor);
+        }
+
+        // TODO apply alignment
+
+        if (!inline) {
+            string = MarginDecorator.applyMargins(string, topMargin, rightMargin, bottomMargin, leftMargin);
         }
         return string;
     }

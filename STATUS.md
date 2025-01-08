@@ -99,14 +99,14 @@ This table covers all the Bubble's ported so far. The same status labels apply.
 
 This table represents porting status of each part of Lipgloss that can be anyway measured.
 
-| What                          | Status    | Notes |
-|-------------------------------|-----------|-------|
-| Colors and color profiles     | `🟢 Done` |       |
-| Borders                       | `⚪ TODO`  |       |
-| Margins and paddings          | `⚪ TODO`  |       |
-| Width, max width and wrapping | `🟢 Done` |       |
-| Horizontal and vertical join  | `⚪ TODO`  |       |
-| Alignment                     | `⚪ TODO`  |       |
-| List component                | `⚪ TODO`  |       |
-| Tree component                | `⚪ TODO`  |       |
-| Table component               | `⚪ TODO`  |       |
+| What                          | Status    | Notes                                                                                           |
+|-------------------------------|-----------|-------------------------------------------------------------------------------------------------|
+| Colors and color profiles     | `🟢 Done` |                                                                                                 |
+| Borders                       | `⚪ TODO`  |                                                                                                 |
+| Margins and paddings          | `⚪ TODO`  |                                                                                                 |
+| Width, max width and wrapping | `🟢 Done` | Few test cases for text width measurements are failing (OSC, CSI), needs further investigation. |
+| Horizontal and vertical join  | `⚪ TODO`  |                                                                                                 |
+| Alignment                     | `⚪ TODO`  |                                                                                                 |
+| List component                | `⚪ TODO`  |                                                                                                 |
+| Tree component                | `⚪ TODO`  |                                                                                                 |
+| Table component               | `⚪ TODO`  |                                                                                                 |

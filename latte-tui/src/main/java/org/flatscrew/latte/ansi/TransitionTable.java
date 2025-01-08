@@ -4,6 +4,11 @@ import java.util.Arrays;
 
 public class TransitionTable {
 
+    private static final TransitionTable instance = new TransitionTable();
+    public static TransitionTable get() {
+        return instance;
+    }
+
     private static final int INDEX_STATE_SHIFT = 8;
     private static final int TRANSITION_STATE_MASK = 15;
     private static final int TRANSITION_ACTION_SHIFT = 4;
@@ -11,7 +16,7 @@ public class TransitionTable {
 
     private final int[] table;
 
-    public TransitionTable() {
+    private TransitionTable() {
         this.table = new int[DEFAULT_TABLE_SIZE];
         generateTable();
     }
