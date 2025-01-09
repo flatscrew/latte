@@ -1,6 +1,7 @@
 package org.flatscrew.latte.cream;
 
 import org.flatscrew.latte.ansi.TextWrapper;
+import org.flatscrew.latte.cream.border.Border;
 import org.flatscrew.latte.cream.color.ColorProfile;
 import org.flatscrew.latte.cream.color.TerminalColor;
 import org.flatscrew.latte.cream.margin.MarginDecorator;
@@ -10,6 +11,7 @@ import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
 
@@ -42,6 +44,24 @@ public class Style {
     private int bottomMargin;
     private int leftMargin;
 
+    private Border borderDecoration;
+    private boolean borderTop;
+    private boolean borderRight;
+    private boolean borderBottom;
+    private boolean borderLeft;
+    private boolean borderTopSet;
+    private boolean borderRightSet;
+    private boolean borderBottomSet;
+    private boolean borderLeftSet;
+    private TerminalColor borderTopForeground;
+    private TerminalColor borderRightForeground;
+    private TerminalColor borderBottomForeground;
+    private TerminalColor borderLeftForeground;
+    private TerminalColor borderTopBackground;
+    private TerminalColor borderRightBackground;
+    private TerminalColor borderBottomBackground;
+    private TerminalColor borderLeftBackground;
+
     public Style(Renderer renderer) {
         this.renderer = renderer;
     }
@@ -56,38 +76,38 @@ public class Style {
         return this;
     }
 
-    public Style bold() {
-        this.bold = true;
+    public Style bold(boolean bold) {
+        this.bold = bold;
         return this;
     }
 
-    public Style italic() {
-        this.italic = true;
+    public Style italic(boolean italic) {
+        this.italic = italic;
         return this;
     }
 
-    public Style underline() {
-        this.underline = true;
+    public Style underline(boolean underline) {
+        this.underline = underline;
         return this;
     }
 
-    public Style reverse() {
-        this.reverse = true;
+    public Style reverse(boolean reverse) {
+        this.reverse = reverse;
         return this;
     }
 
-    public Style blink() {
-        this.blink = true;
+    public Style blink(boolean blink) {
+        this.blink = blink;
         return this;
     }
 
-    public Style faint() {
-        this.faint = true;
+    public Style faint(boolean faint) {
+        this.faint = faint;
         return this;
     }
 
-    public Style inline() {
-        this.inline = true;
+    public Style inline(boolean inline) {
+        this.inline = inline;
         return this;
     }
 
@@ -98,10 +118,10 @@ public class Style {
 
     public Style padding(int... values) {
         int[] boxValues = expandBoxValues(values);
-        this.topPadding = boxValues[0];
-        this.rightPadding = boxValues[1];
-        this.bottomPadding = boxValues[2];
-        this.leftPadding = boxValues[3];
+        this.topPadding = values[boxValues[0]];
+        this.rightPadding = values[boxValues[1]];
+        this.bottomPadding = values[boxValues[2]];
+        this.leftPadding = values[boxValues[3]];
         return this;
     }
 
@@ -127,10 +147,10 @@ public class Style {
 
     public Style margin(int... values) {
         int[] boxValues = expandBoxValues(values);
-        this.topMargin = boxValues[0];
-        this.rightMargin = boxValues[1];
-        this.bottomMargin = boxValues[2];
-        this.leftMargin = boxValues[3];
+        this.topMargin = values[boxValues[0]];
+        this.rightMargin = values[boxValues[1]];
+        this.bottomMargin = values[boxValues[2]];
+        this.leftMargin = values[boxValues[3]];
         return this;
     }
 
@@ -143,6 +163,7 @@ public class Style {
         this.rightMargin = rightMargin;
         return this;
     }
+
     public Style marginBottom(int bottomMargin) {
         this.bottomMargin = bottomMargin;
         return this;
@@ -154,8 +175,115 @@ public class Style {
     }
 
     // TODO
-
     public Style marginBackgroundColor(TerminalColor marginBackgroundColor) {
+        return this;
+    }
+
+    public Style border(Border border, boolean... sides) {
+        borderDecoration(border);
+
+        int[] boxValues = expandBoxValues(
+                IntStream.range(0, sides.length)
+                        .map(i -> Boolean.compare(sides[i], false))
+                        .toArray()
+        );
+
+        return borderTop(sides[boxValues[0]])
+                .borderRight(sides[boxValues[1]])
+                .borderBottom(sides[boxValues[2]])
+                .borderLeft(sides[boxValues[3]]);
+    }
+
+    public Style borderDecoration(Border borderDecoration) {
+        this.borderDecoration = borderDecoration;
+        return this;
+    }
+
+    public Style borderTop(boolean borderTop) {
+        this.borderTop = borderTop;
+        this.borderTopSet = true;
+        return this;
+    }
+
+    public Style borderRight(boolean borderRight) {
+        this.borderRight = borderRight;
+        this.borderRightSet = true;
+        return this;
+    }
+
+    public Style borderBottom(boolean borderBottom) {
+        this.borderBottom = borderBottom;
+        this.borderBottomSet = true;
+        return this;
+    }
+
+    public Style borderLeft(boolean borderLeft) {
+        this.borderLeft = borderLeft;
+        this.borderLeftSet = true;
+        return this;
+    }
+
+    public Style borderBackground(TerminalColor... colors) {
+        int[] boxValues = expandBoxValues(
+                IntStream.range(0, colors.length).toArray()
+        );
+        this.borderTopBackground = colors[boxValues[0]];
+        this.borderRightBackground = colors[boxValues[1]];
+        this.borderBottomBackground = colors[boxValues[2]];
+        this.borderLeftBackground = colors[boxValues[3]];
+
+        return this;
+    }
+
+    public Style borderTopBackground(TerminalColor color) {
+        this.borderTopBackground = color;
+        return this;
+    }
+
+    public Style borderRightBackground(TerminalColor color) {
+        this.borderRightBackground = color;
+        return this;
+    }
+
+    public Style borderBottomBackground(TerminalColor color) {
+        this.borderBottomBackground = color;
+        return this;
+    }
+
+    public Style borderLeftBackground(TerminalColor color) {
+        this.borderLeftBackground = color;
+        return this;
+    }
+
+    public Style borderForeground(TerminalColor... colors) {
+        int[] boxValues = expandBoxValues(
+                IntStream.range(0, colors.length).toArray()
+        );
+        this.borderTopForeground = colors[boxValues[0]];
+        this.borderRightForeground = colors[boxValues[1]];
+        this.borderBottomForeground = colors[boxValues[2]];
+        this.borderLeftForeground = colors[boxValues[3]];
+
+        return this;
+    }
+
+    public Style borderTopForeground(TerminalColor color) {
+        this.borderTopForeground = color;
+        return this;
+    }
+
+    public Style borderRightForeground(TerminalColor color) {
+        this.borderRightForeground = color;
+        return this;
+    }
+
+    public Style borderBottomForeground(TerminalColor color) {
+        this.borderBottomForeground = color;
+        return this;
+    }
+
+    public Style borderLeftForeground(TerminalColor color) {
+        this.borderLeftForeground = color;
         return this;
     }
 
@@ -206,8 +334,46 @@ public class Style {
 
         if (!inline) {
             string = MarginDecorator.applyMargins(string, topMargin, rightMargin, bottomMargin, leftMargin);
+            string = applyBorders(string);
         }
         return string;
+    }
+
+    private String applyBorders(String string) {
+        boolean hasTop = this.borderTopSet;
+        boolean hasRight = this.borderRightSet;
+        boolean hasBottom = this.borderBottomSet;
+        boolean hasLeft = this.borderLeftSet;
+
+        if (implicitBorders()) {
+            hasTop = true;
+            hasRight = true;
+            hasBottom = true;
+            hasLeft = true;
+        }
+
+        if (borderDecoration == null || (!hasTop && !hasRight && !hasBottom && !hasLeft)) {
+            return string;
+        }
+
+        return borderDecoration.applyBorders(string,
+                hasTop,
+                hasRight,
+                hasBottom,
+                hasLeft,
+                borderTopForeground,
+                borderRightForeground,
+                borderBottomForeground,
+                borderLeftForeground,
+                borderTopBackground,
+                borderRightBackground,
+                borderBottomBackground,
+                borderLeftBackground,
+                renderer);
+    }
+
+    private boolean implicitBorders() {
+        return borderDecoration != null && !(borderTopSet || borderRightSet || borderBottomSet || borderLeftSet);
     }
 
     public static int[] expandBoxValues(int... values) {
@@ -218,20 +384,22 @@ public class Style {
                 Arrays.fill(result, values[0]);
                 break;
             case 2:
-                result[0] = values[0];  // top
-                result[1] = values[1];  // right
-                result[2] = values[0];  // bottom
-                result[3] = values[1];  // left
+                result[0] = 0;  // top
+                result[1] = 1;  // right
+                result[2] = 0;  // bottom
+                result[3] = 1;  // left
                 break;
             case 3:
-                result[0] = values[0];  // top
-                result[1] = values[1];  // right
-                result[2] = values[2];  // bottom
-                result[3] = values[1];  // left
+                result[0] = 0;  // top
+                result[1] = 1;  // right
+                result[2] = 2;  // bottom
+                result[3] = 1;  // left
                 break;
             case 4:
-                System.arraycopy(values, 0, result, 0, 4);
-                break;
+                result[0] = 0;  // top
+                result[1] = 1;  // right
+                result[2] = 2;  // bottom
+                result[3] = 3;  // left                break;
             default:
                 throw new IllegalArgumentException("Expected 1-4 values, got " + values.length);
         }

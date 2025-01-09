@@ -37,11 +37,11 @@ class StyleTest {
                 Arguments.of("empty text margin right", "", renderer.newStyle().marginRight(1), " "),
                 Arguments.of("color", "hello", renderer.newStyle().foreground(Color.color("#5A56E0")), "\u001B[38;2;90;86;224mhello\u001B[0m"),
                 Arguments.of("adaptive color", "hello", renderer.newStyle().foreground(new AdaptiveColor("#fffe12", "#5A56E0")), "\u001B[38;2;90;86;224mhello\u001B[0m"),
-                Arguments.of("bold", "hello", renderer.newStyle().bold(), "\u001B[1mhello\u001B[0m"),
-                Arguments.of("italic", "hello", renderer.newStyle().italic(), "\u001B[3mhello\u001B[0m"),
-                Arguments.of("underline", "hello", renderer.newStyle().underline(), "\u001B[4mhello\u001B[0m"),
-                Arguments.of("blink", "hello", renderer.newStyle().blink(), "\u001B[5mhello\u001B[0m"),
-                Arguments.of("faint", "hello", renderer.newStyle().faint(), "\u001B[2mhello\u001B[0m")
+                Arguments.of("bold", "hello", renderer.newStyle().bold(true), "\u001B[1mhello\u001B[0m"),
+                Arguments.of("italic", "hello", renderer.newStyle().italic(true), "\u001B[3mhello\u001B[0m"),
+                Arguments.of("underline", "hello", renderer.newStyle().underline(true), "\u001B[4mhello\u001B[0m"),
+                Arguments.of("blink", "hello", renderer.newStyle().blink(true), "\u001B[5mhello\u001B[0m"),
+                Arguments.of("faint", "hello", renderer.newStyle().faint(true), "\u001B[2mhello\u001B[0m")
         );
     }
 }
