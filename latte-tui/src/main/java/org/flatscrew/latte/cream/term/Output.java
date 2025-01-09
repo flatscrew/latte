@@ -43,7 +43,7 @@ public class Output {
             return ColorProfile.TrueColor;
         }
 
-        String term = getenv("TERM");
+        String term = ofNullable(getenv("TERM")).orElse("");
         String colorTerm = ofNullable(getenv("COLORTERM")).orElse("");
 
         switch (colorTerm.toLowerCase()) {

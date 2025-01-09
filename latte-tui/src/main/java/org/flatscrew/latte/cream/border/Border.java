@@ -92,7 +92,6 @@ public record Border(
             if (right == null || right.isEmpty()) {
                 right = " ";
             }
-            width += StringWidth.measureWidth(right);
         }
 
         if (hasTop && hasLeft && (topLeft == null || topLeft.isEmpty())) {

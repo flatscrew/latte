@@ -3,6 +3,7 @@ package org.flatscrew.latte.cream;
 import org.flatscrew.latte.ansi.TextWrapper;
 import org.flatscrew.latte.cream.border.Border;
 import org.flatscrew.latte.cream.color.ColorProfile;
+import org.flatscrew.latte.cream.color.NoColor;
 import org.flatscrew.latte.cream.color.TerminalColor;
 import org.flatscrew.latte.cream.margin.MarginDecorator;
 import org.flatscrew.latte.cream.padding.PaddingDecorator;
@@ -53,14 +54,14 @@ public class Style {
     private boolean borderRightSet;
     private boolean borderBottomSet;
     private boolean borderLeftSet;
-    private TerminalColor borderTopForeground;
-    private TerminalColor borderRightForeground;
-    private TerminalColor borderBottomForeground;
-    private TerminalColor borderLeftForeground;
-    private TerminalColor borderTopBackground;
-    private TerminalColor borderRightBackground;
-    private TerminalColor borderBottomBackground;
-    private TerminalColor borderLeftBackground;
+    private TerminalColor borderTopForeground = new NoColor();
+    private TerminalColor borderRightForeground = new NoColor();
+    private TerminalColor borderBottomForeground = new NoColor();
+    private TerminalColor borderLeftForeground = new NoColor();
+    private TerminalColor borderTopBackground = new NoColor();
+    private TerminalColor borderRightBackground = new NoColor();
+    private TerminalColor borderBottomBackground = new NoColor();
+    private TerminalColor borderLeftBackground = new NoColor();
 
     public Style(Renderer renderer) {
         this.renderer = renderer;
@@ -340,10 +341,10 @@ public class Style {
     }
 
     private String applyBorders(String string) {
-        boolean hasTop = this.borderTopSet;
-        boolean hasRight = this.borderRightSet;
-        boolean hasBottom = this.borderBottomSet;
-        boolean hasLeft = this.borderLeftSet;
+        boolean hasTop = this.borderTop;
+        boolean hasRight = this.borderRight;
+        boolean hasBottom = this.borderBottom;
+        boolean hasLeft = this.borderLeft;
 
         if (implicitBorders()) {
             hasTop = true;
@@ -399,7 +400,8 @@ public class Style {
                 result[0] = 0;  // top
                 result[1] = 1;  // right
                 result[2] = 2;  // bottom
-                result[3] = 3;  // left                break;
+                result[3] = 3;
+                break;// left                break;
             default:
                 throw new IllegalArgumentException("Expected 1-4 values, got " + values.length);
         }
