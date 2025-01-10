@@ -119,10 +119,10 @@ public class Style {
 
     public Style padding(int... values) {
         int[] boxValues = expandBoxValues(values);
-        this.topPadding = values[boxValues[0]];
-        this.rightPadding = values[boxValues[1]];
-        this.bottomPadding = values[boxValues[2]];
-        this.leftPadding = values[boxValues[3]];
+        this.topPadding = boxValues[0];
+        this.rightPadding = boxValues[1];
+        this.bottomPadding = boxValues[2];
+        this.leftPadding = boxValues[3];
         return this;
     }
 
@@ -148,10 +148,10 @@ public class Style {
 
     public Style margin(int... values) {
         int[] boxValues = expandBoxValues(values);
-        this.topMargin = values[boxValues[0]];
-        this.rightMargin = values[boxValues[1]];
-        this.bottomMargin = values[boxValues[2]];
-        this.leftMargin = values[boxValues[3]];
+        this.topMargin = boxValues[0];
+        this.rightMargin = boxValues[1];
+        this.bottomMargin = boxValues[2];
+        this.leftMargin = boxValues[3];
         return this;
     }
 
@@ -181,11 +181,15 @@ public class Style {
     }
 
     public Style border(Border border, boolean... sides) {
+        if (sides.length == 0) {
+            return border(border, true);
+        }
+
         borderDecoration(border);
 
         int[] boxValues = expandBoxValues(
                 IntStream.range(0, sides.length)
-                        .map(i -> Boolean.compare(sides[i], false))
+                        .map(i -> Boolean.compare(sides[i], true))
                         .toArray()
         );
 
@@ -323,9 +327,22 @@ public class Style {
         }
 
         ColorProfile colorProfile = renderer.colorProfile();
-        if (colorProfile != ColorProfile.Ascii) {
-            string = new AttributedString(string, style).toAnsi(colorProfile.colorsCount(), ForceMode.None);
+        String[] lines = string.split("\n");
+
+        StringBuilder buffer = new StringBuilder();
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (colorProfile != ColorProfile.Ascii) {
+                buffer.append(new AttributedString(line, style).toAnsi(colorProfile.colorsCount(), ForceMode.None));
+            } else {
+                buffer.append(line);
+            }
+            if (i < lines.length - 1) {
+                buffer.append('\n');
+            }
         }
+        string = buffer.toString();
+
 
         if (!inline) {
             string = PaddingDecorator.applyPadding(string, topPadding, rightPadding, bottomPadding, leftPadding);
@@ -406,5 +423,69 @@ public class Style {
                 throw new IllegalArgumentException("Expected 1-4 values, got " + values.length);
         }
         return result;
+    }
+
+    public Dimensions getFrameSize() {
+        return new Dimensions(getHorizontalFrameSize(), getVerticalFrameSize());
+    }
+
+    public int getVerticalFrameSize() {
+        return getVerticalMargins() + getVerticalPadding() + getVerticalBorderSize();
+    }
+
+    public int getVerticalMargins() {
+        return topMargin + bottomMargin;
+    }
+
+    public int getVerticalPadding() {
+        return topPadding + bottomPadding;
+    }
+
+    public int getVerticalBorderSize() {
+        return getBorderTopSize() + getBorderBottomSize();
+    }
+
+    public int getBorderTopSize() {
+        if (!borderTop && !implicitBorders()) {
+            return 0;
+        }
+        return borderDecoration.getTopSize();
+    }
+
+    public int getBorderBottomSize() {
+        if (!borderBottom && !implicitBorders()) {
+            return 0;
+        }
+        return borderDecoration.getBottomSize();
+    }
+
+    public int getHorizontalFrameSize() {
+        return getHorizontalMargins() + getHorizontalPadding() + getHorizontalBorderSize();
+    }
+
+    public int getHorizontalMargins() {
+        return rightMargin + leftMargin;
+    }
+
+    public int getHorizontalPadding() {
+        return rightPadding + leftPadding;
+    }
+
+    public int getHorizontalBorderSize() {
+        return getBorderLeftSize() + getBorderRightSize();
+    }
+
+    public int getBorderLeftSize() {
+        if (!borderLeft && !implicitBorders()) {
+            return 0;
+        }
+        return borderDecoration.getLeftSize();
+    }
+
+    public int getBorderRightSize() {
+        if (!borderRight && !implicitBorders()) {
+            return 0;
+        }
+        return borderDecoration.getRightSize();
     }
 }

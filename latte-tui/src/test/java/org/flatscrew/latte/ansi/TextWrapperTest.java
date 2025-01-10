@@ -137,7 +137,9 @@ class TextWrapperTest {
                         8,
                         "สวัสดีสวัสดี\u001B]8;;https://example.com\u001B\\\nสวัสดีสวัสดี\u001B]8;;\u001B\\"
                 ),
-                Arguments.of("tab", "foo\tbar", 3, "foo\nbar")
+                Arguments.of("tab", "foo\tbar", 3, "foo\nbar"),
+                Arguments.of("red background", "\u001B[41mThis is a test of a frame\u001B[0m", 10,
+                        "\u001B[41mThis is a\ntest of a\nframe\u001B[0m")
         );
     }
 }

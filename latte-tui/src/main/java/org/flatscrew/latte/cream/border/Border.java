@@ -1,11 +1,17 @@
 package org.flatscrew.latte.cream.border;
 
+import org.flatscrew.latte.ansi.Action;
+import org.flatscrew.latte.ansi.GraphemeCluster;
+import org.flatscrew.latte.ansi.State;
 import org.flatscrew.latte.ansi.StringWidth;
+import org.flatscrew.latte.ansi.TransitionTable;
 import org.flatscrew.latte.cream.Renderer;
 import org.flatscrew.latte.cream.TextLines;
 import org.flatscrew.latte.cream.color.TerminalColor;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
+
+import java.nio.charset.StandardCharsets;
 
 public record Border(
         String top,
@@ -16,6 +22,8 @@ public record Border(
         String topRight,
         String bottomLeft,
         String bottomRight,
+
+        // TODO those are used only by Table component in lipgloss...
         String middleLeft,
         String middleRight,
         String middle,
@@ -42,7 +50,7 @@ public record Border(
     private int getBorderEdgeWidth(String... borderParts) {
         int maxWidth = 0;
         for (String piece : borderParts) {
-            int width = StringWidth.measureWidth(piece);
+            int width = maxRuneWidth(piece);
             if (width > maxWidth) {
                 maxWidth = width;
             }
@@ -75,17 +83,13 @@ public record Border(
         String topRight = this.topRight;
         String bottomLeft = this.bottomLeft;
         String bottomRight = this.bottomRight;
-        String middleLeft = this.middleLeft;
-        String middleRight = this.middleRight;
-        String middle = this.middle;
-        String middleTop = this.middleTop;
-        String middleBottom = this.middleBottom;
 
         if (hasLeft) {
             if (left == null || left.isEmpty()) {
                 left = " ";
             }
-            width += StringWidth.measureWidth(left);
+            width += maxRuneWidth(left);
+            //width += StringWidth.measureWidth(left);
         }
 
         if (hasRight) {
@@ -190,8 +194,8 @@ public record Border(
 
     private String styleBorder(String border, TerminalColor foreground, TerminalColor background, Renderer renderer) {
         AttributedStyle attributedStyle = new AttributedStyle();
-        foreground.applyAsBackground(attributedStyle, renderer);
-        background.applyAsBackground(attributedStyle, renderer);
+        attributedStyle = foreground.applyAsBackground(attributedStyle, renderer);
+        attributedStyle = background.applyAsBackground(attributedStyle, renderer);
 
         return new AttributedString(border, attributedStyle).toAnsi();
     }
@@ -229,5 +233,47 @@ public record Border(
             return "";
         }
         return string.substring(0, 1);
+    }
+
+    private int maxRuneWidth(String input) {
+        int maxWidth = 0;
+        TransitionTable table = TransitionTable.get();
+        State pstate = State.GROUND;
+
+        byte[] b = input.getBytes(StandardCharsets.UTF_8);
+
+        for (int i = 0; i < b.length; i++) {
+            byte byteValue = b[i];
+
+            TransitionTable.Transition transition = table.transition(pstate, byteValue);
+            State state = transition.state();
+            Action action = transition.action();
+
+            // Handle UTF-8 grapheme clusters
+            if (state == State.UTF8) {
+                GraphemeCluster.GraphemeResult graphemeResult = GraphemeCluster.getFirstGraphemeCluster(b, i, -1);
+                byte[] cluster = graphemeResult.cluster();
+                int w = graphemeResult.width();
+
+                if (w > maxWidth) {
+                    maxWidth = w;
+                }
+
+
+                i += cluster.length - 1; // Skip processed bytes
+                pstate = State.GROUND;
+                continue;
+            }
+
+            if (action == Action.PRINT) {
+                if (maxWidth < 1) {
+                    maxWidth = 1;
+                }
+            }
+
+            pstate = state;
+        }
+
+        return maxWidth;
     }
 }
