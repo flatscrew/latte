@@ -1,7 +1,9 @@
 package org.flatscrew.latte.cream;
 
 import org.flatscrew.latte.ansi.TextWrapper;
+import org.flatscrew.latte.cream.border.Border;
 import org.flatscrew.latte.cream.color.ColorProfile;
+import org.flatscrew.latte.cream.color.NoColor;
 import org.flatscrew.latte.cream.color.TerminalColor;
 import org.flatscrew.latte.cream.margin.MarginDecorator;
 import org.flatscrew.latte.cream.padding.PaddingDecorator;
@@ -10,6 +12,7 @@ import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 
 import java.util.Arrays;
+import java.util.stream.IntStream;
 
 import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
 
@@ -42,6 +45,24 @@ public class Style {
     private int bottomMargin;
     private int leftMargin;
 
+    private Border borderDecoration;
+    private boolean borderTop;
+    private boolean borderRight;
+    private boolean borderBottom;
+    private boolean borderLeft;
+    private boolean borderTopSet;
+    private boolean borderRightSet;
+    private boolean borderBottomSet;
+    private boolean borderLeftSet;
+    private TerminalColor borderTopForeground = new NoColor();
+    private TerminalColor borderRightForeground = new NoColor();
+    private TerminalColor borderBottomForeground = new NoColor();
+    private TerminalColor borderLeftForeground = new NoColor();
+    private TerminalColor borderTopBackground = new NoColor();
+    private TerminalColor borderRightBackground = new NoColor();
+    private TerminalColor borderBottomBackground = new NoColor();
+    private TerminalColor borderLeftBackground = new NoColor();
+
     public Style(Renderer renderer) {
         this.renderer = renderer;
     }
@@ -56,38 +77,38 @@ public class Style {
         return this;
     }
 
-    public Style bold() {
-        this.bold = true;
+    public Style bold(boolean bold) {
+        this.bold = bold;
         return this;
     }
 
-    public Style italic() {
-        this.italic = true;
+    public Style italic(boolean italic) {
+        this.italic = italic;
         return this;
     }
 
-    public Style underline() {
-        this.underline = true;
+    public Style underline(boolean underline) {
+        this.underline = underline;
         return this;
     }
 
-    public Style reverse() {
-        this.reverse = true;
+    public Style reverse(boolean reverse) {
+        this.reverse = reverse;
         return this;
     }
 
-    public Style blink() {
-        this.blink = true;
+    public Style blink(boolean blink) {
+        this.blink = blink;
         return this;
     }
 
-    public Style faint() {
-        this.faint = true;
+    public Style faint(boolean faint) {
+        this.faint = faint;
         return this;
     }
 
-    public Style inline() {
-        this.inline = true;
+    public Style inline(boolean inline) {
+        this.inline = inline;
         return this;
     }
 
@@ -143,6 +164,7 @@ public class Style {
         this.rightMargin = rightMargin;
         return this;
     }
+
     public Style marginBottom(int bottomMargin) {
         this.bottomMargin = bottomMargin;
         return this;
@@ -154,8 +176,119 @@ public class Style {
     }
 
     // TODO
-
     public Style marginBackgroundColor(TerminalColor marginBackgroundColor) {
+        return this;
+    }
+
+    public Style border(Border border, boolean... sides) {
+        if (sides.length == 0) {
+            return border(border, true);
+        }
+
+        borderDecoration(border);
+
+        int[] boxValues = expandBoxValues(
+                IntStream.range(0, sides.length)
+                        .map(i -> Boolean.compare(sides[i], true))
+                        .toArray()
+        );
+
+        return borderTop(sides[boxValues[0]])
+                .borderRight(sides[boxValues[1]])
+                .borderBottom(sides[boxValues[2]])
+                .borderLeft(sides[boxValues[3]]);
+    }
+
+    public Style borderDecoration(Border borderDecoration) {
+        this.borderDecoration = borderDecoration;
+        return this;
+    }
+
+    public Style borderTop(boolean borderTop) {
+        this.borderTop = borderTop;
+        this.borderTopSet = true;
+        return this;
+    }
+
+    public Style borderRight(boolean borderRight) {
+        this.borderRight = borderRight;
+        this.borderRightSet = true;
+        return this;
+    }
+
+    public Style borderBottom(boolean borderBottom) {
+        this.borderBottom = borderBottom;
+        this.borderBottomSet = true;
+        return this;
+    }
+
+    public Style borderLeft(boolean borderLeft) {
+        this.borderLeft = borderLeft;
+        this.borderLeftSet = true;
+        return this;
+    }
+
+    public Style borderBackground(TerminalColor... colors) {
+        int[] boxValues = expandBoxValues(
+                IntStream.range(0, colors.length).toArray()
+        );
+        this.borderTopBackground = colors[boxValues[0]];
+        this.borderRightBackground = colors[boxValues[1]];
+        this.borderBottomBackground = colors[boxValues[2]];
+        this.borderLeftBackground = colors[boxValues[3]];
+
+        return this;
+    }
+
+    public Style borderTopBackground(TerminalColor color) {
+        this.borderTopBackground = color;
+        return this;
+    }
+
+    public Style borderRightBackground(TerminalColor color) {
+        this.borderRightBackground = color;
+        return this;
+    }
+
+    public Style borderBottomBackground(TerminalColor color) {
+        this.borderBottomBackground = color;
+        return this;
+    }
+
+    public Style borderLeftBackground(TerminalColor color) {
+        this.borderLeftBackground = color;
+        return this;
+    }
+
+    public Style borderForeground(TerminalColor... colors) {
+        int[] boxValues = expandBoxValues(
+                IntStream.range(0, colors.length).toArray()
+        );
+        this.borderTopForeground = colors[boxValues[0]];
+        this.borderRightForeground = colors[boxValues[1]];
+        this.borderBottomForeground = colors[boxValues[2]];
+        this.borderLeftForeground = colors[boxValues[3]];
+
+        return this;
+    }
+
+    public Style borderTopForeground(TerminalColor color) {
+        this.borderTopForeground = color;
+        return this;
+    }
+
+    public Style borderRightForeground(TerminalColor color) {
+        this.borderRightForeground = color;
+        return this;
+    }
+
+    public Style borderBottomForeground(TerminalColor color) {
+        this.borderBottomForeground = color;
+        return this;
+    }
+
+    public Style borderLeftForeground(TerminalColor color) {
+        this.borderLeftForeground = color;
         return this;
     }
 
@@ -194,9 +327,22 @@ public class Style {
         }
 
         ColorProfile colorProfile = renderer.colorProfile();
-        if (colorProfile != ColorProfile.Ascii) {
-            string = new AttributedString(string, style).toAnsi(colorProfile.colorsCount(), ForceMode.None);
+        String[] lines = string.split("\n");
+
+        StringBuilder buffer = new StringBuilder();
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            if (colorProfile != ColorProfile.Ascii) {
+                buffer.append(new AttributedString(line, style).toAnsi(colorProfile.colorsCount(), ForceMode.None));
+            } else {
+                buffer.append(line);
+            }
+            if (i < lines.length - 1) {
+                buffer.append('\n');
+            }
         }
+        string = buffer.toString();
+
 
         if (!inline) {
             string = PaddingDecorator.applyPadding(string, topPadding, rightPadding, bottomPadding, leftPadding);
@@ -206,8 +352,46 @@ public class Style {
 
         if (!inline) {
             string = MarginDecorator.applyMargins(string, topMargin, rightMargin, bottomMargin, leftMargin);
+            string = applyBorders(string);
         }
         return string;
+    }
+
+    private String applyBorders(String string) {
+        boolean hasTop = this.borderTop;
+        boolean hasRight = this.borderRight;
+        boolean hasBottom = this.borderBottom;
+        boolean hasLeft = this.borderLeft;
+
+        if (implicitBorders()) {
+            hasTop = true;
+            hasRight = true;
+            hasBottom = true;
+            hasLeft = true;
+        }
+
+        if (borderDecoration == null || (!hasTop && !hasRight && !hasBottom && !hasLeft)) {
+            return string;
+        }
+
+        return borderDecoration.applyBorders(string,
+                hasTop,
+                hasRight,
+                hasBottom,
+                hasLeft,
+                borderTopForeground,
+                borderRightForeground,
+                borderBottomForeground,
+                borderLeftForeground,
+                borderTopBackground,
+                borderRightBackground,
+                borderBottomBackground,
+                borderLeftBackground,
+                renderer);
+    }
+
+    private boolean implicitBorders() {
+        return borderDecoration != null && !(borderTopSet || borderRightSet || borderBottomSet || borderLeftSet);
     }
 
     public static int[] expandBoxValues(int... values) {
@@ -218,23 +402,90 @@ public class Style {
                 Arrays.fill(result, values[0]);
                 break;
             case 2:
-                result[0] = values[0];  // top
-                result[1] = values[1];  // right
-                result[2] = values[0];  // bottom
-                result[3] = values[1];  // left
+                result[0] = 0;  // top
+                result[1] = 1;  // right
+                result[2] = 0;  // bottom
+                result[3] = 1;  // left
                 break;
             case 3:
-                result[0] = values[0];  // top
-                result[1] = values[1];  // right
-                result[2] = values[2];  // bottom
-                result[3] = values[1];  // left
+                result[0] = 0;  // top
+                result[1] = 1;  // right
+                result[2] = 2;  // bottom
+                result[3] = 1;  // left
                 break;
             case 4:
-                System.arraycopy(values, 0, result, 0, 4);
-                break;
+                result[0] = 0;  // top
+                result[1] = 1;  // right
+                result[2] = 2;  // bottom
+                result[3] = 3;
+                break;// left                break;
             default:
                 throw new IllegalArgumentException("Expected 1-4 values, got " + values.length);
         }
         return result;
+    }
+
+    public Dimensions getFrameSize() {
+        return new Dimensions(getHorizontalFrameSize(), getVerticalFrameSize());
+    }
+
+    public int getVerticalFrameSize() {
+        return getVerticalMargins() + getVerticalPadding() + getVerticalBorderSize();
+    }
+
+    public int getVerticalMargins() {
+        return topMargin + bottomMargin;
+    }
+
+    public int getVerticalPadding() {
+        return topPadding + bottomPadding;
+    }
+
+    public int getVerticalBorderSize() {
+        return getBorderTopSize() + getBorderBottomSize();
+    }
+
+    public int getBorderTopSize() {
+        if (!borderTop && !implicitBorders()) {
+            return 0;
+        }
+        return borderDecoration.getTopSize();
+    }
+
+    public int getBorderBottomSize() {
+        if (!borderBottom && !implicitBorders()) {
+            return 0;
+        }
+        return borderDecoration.getBottomSize();
+    }
+
+    public int getHorizontalFrameSize() {
+        return getHorizontalMargins() + getHorizontalPadding() + getHorizontalBorderSize();
+    }
+
+    public int getHorizontalMargins() {
+        return rightMargin + leftMargin;
+    }
+
+    public int getHorizontalPadding() {
+        return rightPadding + leftPadding;
+    }
+
+    public int getHorizontalBorderSize() {
+        return getBorderLeftSize() + getBorderRightSize();
+    }
+
+    public int getBorderLeftSize() {
+        if (!borderLeft && !implicitBorders()) {
+            return 0;
+        }
+        return borderDecoration.getLeftSize();
+    }
+
+    public int getBorderRightSize() {
+        if (!borderRight && !implicitBorders()) {
+            return 0;
+        }
+        return borderDecoration.getRightSize();
     }
 }

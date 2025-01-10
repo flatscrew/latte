@@ -126,7 +126,7 @@ public class Cursor implements Model {
         if (blink) {
             return textStyle.render(charUnderCursor);
         }
-        return style.reverse().render(charUnderCursor);
+        return style.reverse(true).render(charUnderCursor);
     }
 
     public Command setMode(Mode mode) {
