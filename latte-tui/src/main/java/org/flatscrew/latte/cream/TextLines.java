@@ -16,7 +16,7 @@ public class TextLines {
     }
 
     private void readTextLines(String text) {
-        this.lines = text.split("\n");
+        this.lines = text.split("\n", -1);
 
         for (String line : lines) {
             int width = StringWidth.measureWidth(line);

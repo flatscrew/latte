@@ -15,10 +15,10 @@ public class BorderTest {
         System.out.println(
                 Style.newStyle()
                         .width(10)
-                        .border(StandardBorder.RoundedBorder, true)
+                        .padding(5)
+                        .border(StandardBorder.RoundedBorder)
                         .borderBackground(Color.color("#ff0000"))
                         .background(Color.color("#ff0000"))
-                        .padding(5)
                         .render("This is a test of a frame")
         );
     }
