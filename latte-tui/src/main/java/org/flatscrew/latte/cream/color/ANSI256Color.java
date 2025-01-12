@@ -3,7 +3,7 @@ package org.flatscrew.latte.cream.color;
 import org.flatscrew.latte.cream.Renderer;
 import org.jline.utils.AttributedStyle;
 
-public class ANSI256Color implements TerminalColor, RGBSupplier {
+public final class ANSI256Color implements TerminalColor, RGBSupplier {
 
     private final ColorCodeApplyStrategy applyStrategy;
     private final int colorCode;

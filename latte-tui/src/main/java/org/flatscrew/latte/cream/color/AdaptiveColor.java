@@ -3,7 +3,7 @@ package org.flatscrew.latte.cream.color;
 import org.flatscrew.latte.cream.Renderer;
 import org.jline.utils.AttributedStyle;
 
-public class AdaptiveColor implements TerminalColor {
+public final class AdaptiveColor implements TerminalColor {
 
     private final Color light;
     private final Color dark;

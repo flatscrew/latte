@@ -6,7 +6,7 @@ import org.jline.utils.AttributedStyle;
 /**
  * RGBColor is a hex-encoded color, e.g. "#ff0000"
  */
-public class RGBColor implements TerminalColor, RGBSupplier {
+public final class RGBColor implements TerminalColor, RGBSupplier {
 
     private final ColorApplyStrategy colorApplyStrategy;
     private final RGB rgb;

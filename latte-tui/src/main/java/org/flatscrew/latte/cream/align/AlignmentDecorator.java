@@ -1,16 +1,17 @@
 package org.flatscrew.latte.cream.align;
 
-import org.flatscrew.latte.ansi.StringWidth;
+import org.flatscrew.latte.ansi.TextWidth;
+import org.flatscrew.latte.cream.Position;
 import org.flatscrew.latte.cream.Renderer;
 import org.flatscrew.latte.cream.TextLines;
 import org.flatscrew.latte.cream.color.TerminalColor;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 
-import static org.flatscrew.latte.cream.align.Position.Bottom;
-import static org.flatscrew.latte.cream.align.Position.Center;
-import static org.flatscrew.latte.cream.align.Position.Right;
-import static org.flatscrew.latte.cream.align.Position.Top;
+import static org.flatscrew.latte.cream.Position.Bottom;
+import static org.flatscrew.latte.cream.Position.Center;
+import static org.flatscrew.latte.cream.Position.Right;
+import static org.flatscrew.latte.cream.Position.Top;
 
 public class AlignmentDecorator {
 
@@ -46,7 +47,7 @@ public class AlignmentDecorator {
         String[] lines = textLines.lines();
         for (int i = 0; i < lines.length; i++) {
             String l = lines[i];
-            int lineWidth = StringWidth.measureWidth(l);
+            int lineWidth = TextWidth.measureCellWidth(l);
 
             // difference from the widest line
             int shortAmount = widestLine - lineWidth;

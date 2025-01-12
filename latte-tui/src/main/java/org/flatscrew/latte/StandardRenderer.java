@@ -1,6 +1,7 @@
 package org.flatscrew.latte;
 
 import org.flatscrew.latte.ansi.Code;
+import org.flatscrew.latte.ansi.Truncate;
 import org.flatscrew.latte.message.PrintLineMessage;
 import org.flatscrew.latte.message.SetWindowTitleMessage;
 import org.jline.terminal.Terminal;
@@ -85,9 +86,9 @@ public class StandardRenderer implements Renderer {
 
         renderLock.lock();
         try {
-            if (buffer.isEmpty() || buffer.toString().equals(lastRender)) {
-                return;
-            }
+//            if (buffer.isEmpty() || buffer.toString().equals(lastRender)) {
+//                return;
+//            }
 
             StringBuilder outputBuffer = new StringBuilder();
             String[] newLines = buffer.toString().split("\n");
@@ -130,11 +131,12 @@ public class StandardRenderer implements Renderer {
                     continue;
                 }
 
-                // Truncate lines wider than the width of the window to avoid wrapping
                 String line = newLines[i];
-                if (this.width > 0 && line.length() > width) {
-                    line = line.substring(0, this.width);
-                }
+
+                // Truncate lines wider than the width of the window to avoid wrapping
+//                if (this.width > 0) {
+//                    line = Truncate.truncate(line, this.width, "");
+//                }
 
                 // Clear line and write new content
                 if (width > 0 && line.length() < width) {

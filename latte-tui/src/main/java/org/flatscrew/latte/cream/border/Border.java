@@ -3,7 +3,7 @@ package org.flatscrew.latte.cream.border;
 import org.flatscrew.latte.ansi.Action;
 import org.flatscrew.latte.ansi.GraphemeCluster;
 import org.flatscrew.latte.ansi.State;
-import org.flatscrew.latte.ansi.StringWidth;
+import org.flatscrew.latte.ansi.TextWidth;
 import org.flatscrew.latte.ansi.TransitionTable;
 import org.flatscrew.latte.cream.Renderer;
 import org.flatscrew.latte.cream.TextLines;
@@ -89,7 +89,7 @@ public record Border(
                 left = " ";
             }
             width += maxRuneWidth(left);
-            //width += StringWidth.measureWidth(left);
+            //width += TextWidth.measureWidth(left);
         }
 
         if (hasRight) {
@@ -194,7 +194,7 @@ public record Border(
 
     private String styleBorder(String border, TerminalColor foreground, TerminalColor background, Renderer renderer) {
         AttributedStyle attributedStyle = new AttributedStyle();
-        attributedStyle = foreground.applyAsBackground(attributedStyle, renderer);
+        attributedStyle = foreground.applyAsForeground(attributedStyle, renderer);
         attributedStyle = background.applyAsBackground(attributedStyle, renderer);
 
         return new AttributedString(border, attributedStyle).toAnsi();
@@ -205,8 +205,8 @@ public record Border(
             middle = " ";
         }
 
-        int leftWidth = StringWidth.measureWidth(left);
-        int rightWidth = StringWidth.measureWidth(right);
+        int leftWidth = TextWidth.measureCellWidth(left);
+        int rightWidth = TextWidth.measureCellWidth(right);
 
         char[] runes = middle.toCharArray();
         int j = 0;
@@ -220,7 +220,7 @@ public record Border(
             if (j >= runes.length) {
                 j = 0;
             }
-            i += StringWidth.measureWidth(String.valueOf(runes[j]));
+            i += TextWidth.measureCellWidth(String.valueOf(runes[j]));
         }
         out.append(right);
 

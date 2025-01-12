@@ -3,6 +3,7 @@ package org.flatscrew.latte;
 import org.flatscrew.latte.input.InputHandler;
 import org.flatscrew.latte.message.BatchMessage;
 import org.flatscrew.latte.message.CheckWindowSizeMessage;
+import org.flatscrew.latte.message.ClearScreenMessage;
 import org.flatscrew.latte.message.EnterAltScreen;
 import org.flatscrew.latte.message.ErrorMessage;
 import org.flatscrew.latte.message.ExitAltScreen;
@@ -81,6 +82,7 @@ public class Program {
         }
 
         handleTerminationSignals();
+        handleTerminalResize();
 
         // start reading keyboard input
         inputHandler.start();
@@ -135,9 +137,13 @@ public class Program {
     }
 
     private void handleTerminationSignals() {
-        Signals.register("INT", () -> send(new QuitMessage()));
-        Signals.register("TERM", () -> send(new QuitMessage()));
-        Signals.register("WINCH", () -> send(new CheckWindowSizeMessage()));
+        Signals.register("INT", () -> commandExecutor.executeIfPresent(QuitMessage::new, this::send, this::sendError));
+        Signals.register("TERM", () -> commandExecutor.executeIfPresent(QuitMessage::new, this::send, this::sendError));
+    }
+
+    private void handleTerminalResize() {
+        Signals.register("WINCH", () -> commandExecutor.executeIfPresent(CheckWindowSizeMessage::new, this::send, this::sendError));
+        commandExecutor.executeIfPresent(CheckWindowSizeMessage::new, this::send, this::sendError);
     }
 
     private Model eventLoop() {
@@ -151,7 +157,10 @@ public class Program {
             }
 
             if (msg != null) {
-                if (msg instanceof QuitMessage) {
+                if (msg instanceof ClearScreenMessage) {
+                    renderer.clearScreen();
+                    continue;
+                } else if (msg instanceof QuitMessage) {
                     return currentModel;
                 } else if (msg instanceof EnterAltScreen) {
                     renderer.enterAltScreen();

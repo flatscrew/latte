@@ -1,17 +1,18 @@
 package org.flatscrew.latte.cream.join;
 
-import org.flatscrew.latte.ansi.StringWidth;
+import org.flatscrew.latte.ansi.TextWidth;
+import org.flatscrew.latte.cream.Position;
 import org.flatscrew.latte.cream.TextLines;
-import org.flatscrew.latte.cream.align.Position;
 
 import java.util.Arrays;
 
-import static org.flatscrew.latte.cream.align.Position.Bottom;
-import static org.flatscrew.latte.cream.align.Position.Top;
+import static org.flatscrew.latte.cream.Position.Bottom;
+import static org.flatscrew.latte.cream.Position.Top;
 
 public class HorizontalJoinDecorator {
 
     public static String joinHorizontal(Position position, String... strings) {
+
         if (strings.length == 0) {
             return "";
         }
@@ -71,10 +72,10 @@ public class HorizontalJoinDecorator {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < blocks[0].length; i++) {
             for (int j = 0; j < blocks.length; j++) {
-                builder.append(blocks[j][i]);
+                String[] block = blocks[j];
 
-                int padding = maxWidths[j] - StringWidth.measureWidth(blocks[j][i]);
-                builder.append(" ".repeat(padding));
+                builder.append(block[i]);
+                builder.append(" ".repeat(maxWidths[j] - TextWidth.measureCellWidth(block[i])));
             }
             if (i < blocks[0].length - 1) {
                 builder.append('\n');

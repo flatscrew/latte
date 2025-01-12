@@ -1,6 +1,7 @@
 package org.flatscrew.latte;
 
 import org.flatscrew.latte.message.BatchMessage;
+import org.flatscrew.latte.message.ClearScreenMessage;
 import org.flatscrew.latte.message.PrintLineMessage;
 import org.flatscrew.latte.message.SequenceMessage;
 import org.flatscrew.latte.message.SetWindowTitleMessage;
@@ -58,7 +59,12 @@ public interface Command {
     static Command printf(String template, Object... arguments) {
         return () -> new PrintLineMessage(template.formatted(arguments));
     }
+
     static Command setWidowTitle(String title) {
         return () -> new SetWindowTitleMessage(title);
+    }
+
+    static Command clearScreen() {
+        return ClearScreenMessage::new;
     }
 }

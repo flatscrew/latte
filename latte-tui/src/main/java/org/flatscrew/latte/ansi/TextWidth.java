@@ -2,9 +2,9 @@ package org.flatscrew.latte.ansi;
 
 import java.nio.charset.StandardCharsets;
 
-public class StringWidth {
+public class TextWidth {
 
-    public static int measureWidth(String input) {
+    public static int measureCellWidth(String input) {
         if (input.isEmpty()) {
             return 0;
         }
