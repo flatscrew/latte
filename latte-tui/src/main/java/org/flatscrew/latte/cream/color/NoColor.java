@@ -3,7 +3,7 @@ package org.flatscrew.latte.cream.color;
 import org.flatscrew.latte.cream.Renderer;
 import org.jline.utils.AttributedStyle;
 
-public class NoColor implements TerminalColor{
+public final class NoColor implements TerminalColor{
 
     @Override
     public AttributedStyle applyAsBackground(AttributedStyle style, Renderer renderer) {

@@ -1,8 +1,8 @@
 package org.flatscrew.latte.cream.join;
 
-import org.flatscrew.latte.ansi.StringWidth;
+import org.flatscrew.latte.ansi.TextWidth;
 import org.flatscrew.latte.cream.TextLines;
-import org.flatscrew.latte.cream.align.Position;
+import org.flatscrew.latte.cream.Position;
 
 public class VerticalJoinDecorator {
 
@@ -32,7 +32,7 @@ public class VerticalJoinDecorator {
 
             for (int j = 0; j < block.length; j++) {
                 String line = block[j];
-                int width = maxWidth - StringWidth.measureWidth(line);
+                int width = maxWidth - TextWidth.measureCellWidth(line);
 
                 if (position.equals(Position.Left)) {
                     builder.append(line);

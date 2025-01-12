@@ -2,7 +2,6 @@ package org.flatscrew.latte.cream;
 
 import org.flatscrew.latte.ansi.TextWrapper;
 import org.flatscrew.latte.cream.align.AlignmentDecorator;
-import org.flatscrew.latte.cream.align.Position;
 import org.flatscrew.latte.cream.border.Border;
 import org.flatscrew.latte.cream.color.ColorProfile;
 import org.flatscrew.latte.cream.color.NoColor;
@@ -18,7 +17,7 @@ import java.util.stream.IntStream;
 
 import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
 
-public class Style {
+public class Style implements Cloneable {
 
     public static Style newStyle() {
         return defaultRenderer.newStyle();
@@ -526,5 +525,18 @@ public class Style {
             return 0;
         }
         return borderDecoration.getRightSize();
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    public Style copy() {
+        try {
+            return (Style) clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

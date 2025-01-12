@@ -1,6 +1,6 @@
 package org.flatscrew.latte.cream;
 
-import org.flatscrew.latte.ansi.StringWidth;
+import org.flatscrew.latte.ansi.TextWidth;
 
 public class TextLines {
 
@@ -19,7 +19,7 @@ public class TextLines {
         this.lines = text.split("\n", -1);
 
         for (String line : lines) {
-            int width = StringWidth.measureWidth(line);
+            int width = TextWidth.measureCellWidth(line);
             if (widestLineLength < width) {
                 widestLineLength = width;
             }

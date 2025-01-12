@@ -1,6 +1,6 @@
 package org.flatscrew.latte.cream.join;
 
-import org.flatscrew.latte.cream.align.Position;
+import org.flatscrew.latte.cream.Position;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;

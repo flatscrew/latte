@@ -7,12 +7,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
-class StringWidthTest {
+class TextWidthTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("inputData")
     void test_ShouldHaveExpectedLength(String caseName, String input, int expectedWith) {
-        Assertions.assertThat(StringWidth.measureWidth(input)).isEqualTo(expectedWith);
+        Assertions.assertThat(TextWidth.measureCellWidth(input)).isEqualTo(expectedWith);
     }
 
     private static Stream<Arguments> inputData() {
