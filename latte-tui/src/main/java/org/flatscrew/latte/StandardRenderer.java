@@ -86,9 +86,9 @@ public class StandardRenderer implements Renderer {
 
         renderLock.lock();
         try {
-//            if (buffer.isEmpty() || buffer.toString().equals(lastRender)) {
-//                return;
-//            }
+            if (buffer.isEmpty() || buffer.toString().equals(lastRender)) {
+                return;
+            }
 
             StringBuilder outputBuffer = new StringBuilder();
             String[] newLines = buffer.toString().split("\n");
@@ -134,9 +134,9 @@ public class StandardRenderer implements Renderer {
                 String line = newLines[i];
 
                 // Truncate lines wider than the width of the window to avoid wrapping
-//                if (this.width > 0) {
-//                    line = Truncate.truncate(line, this.width, "");
-//                }
+                if (this.width > 0) {
+                    line = Truncate.truncate(line, this.width, "");
+                }
 
                 // Clear line and write new content
                 if (width > 0 && line.length() < width) {
