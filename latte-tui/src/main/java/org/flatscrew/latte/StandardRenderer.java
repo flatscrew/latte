@@ -4,6 +4,7 @@ import org.flatscrew.latte.ansi.Code;
 import org.flatscrew.latte.ansi.Truncate;
 import org.flatscrew.latte.message.PrintLineMessage;
 import org.flatscrew.latte.message.SetWindowTitleMessage;
+import org.flatscrew.latte.message.WindowSizeMessage;
 import org.jline.terminal.Terminal;
 import org.jline.utils.InfoCmp;
 
@@ -382,6 +383,9 @@ public class StandardRenderer implements Renderer {
             }
         } else if (msg instanceof SetWindowTitleMessage windowTitleMessage) {
             setWindowTitle(windowTitleMessage.title());
+        } else if (msg instanceof WindowSizeMessage windowSizeMessage) {
+            this.width = windowSizeMessage.width();
+            this.height = windowSizeMessage.height();
         }
     }
 
