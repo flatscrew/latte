@@ -35,32 +35,30 @@ public class Truncate {
                 byte[] cluster = graphemeResult.cluster();
                 int width = graphemeResult.width();
 
-                i += cluster.length;
-
-                if (ignoring) {
-                    continue;
-                }
-
-                if (curWidth + width > length && !ignoring) {
+                if (curWidth + width > len && !ignoring) {
                     ignoring = true;
                     buf.append(tail);
+                    i += cluster.length;
                     continue;
                 }
 
-                if (curWidth + width > length) {
+                if (ignoring) {
+                    i += cluster.length;
                     continue;
                 }
 
                 curWidth += width;
                 buf.append(new String(cluster, StandardCharsets.UTF_8));
+                i += cluster.length;
                 pstate = State.GROUND;
                 continue;
             }
 
             if (action == Action.PRINT) {
-                if (curWidth >= length && !ignoring) {
+                if (curWidth + 1 > len && !ignoring) {  // Check if next char would exceed limit
                     ignoring = true;
                     buf.append(tail);
+                    i++;
                     continue;
                 }
 
@@ -70,18 +68,13 @@ public class Truncate {
                 }
 
                 curWidth++;
+                buf.append((char) b[i]);
+            } else {
+                buf.append((char) b[i]);
             }
 
-            // Convert single byte to char before appending
-            buf.append((char) b[i]);
             i++;
-
             pstate = state;
-
-            if (curWidth > length && !ignoring) {
-                ignoring = true;
-                buf.append(tail);
-            }
         }
         return buf.toString();
     }

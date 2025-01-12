@@ -13,11 +13,7 @@ import org.flatscrew.latte.cream.join.HorizontalJoinDecorator;
 import org.flatscrew.latte.cream.join.VerticalJoinDecorator;
 import org.flatscrew.latte.cream.placement.PlacementDecorator;
 import org.flatscrew.latte.message.CheckWindowSizeMessage;
-import org.flatscrew.latte.message.ClearScreenMessage;
 import org.flatscrew.latte.message.WindowSizeMessage;
-
-import static org.flatscrew.latte.Command.clearScreen;
-import static org.flatscrew.latte.Command.sequence;
 
 public class TetrisGame implements Model {
 
@@ -83,12 +79,11 @@ public class TetrisGame implements Model {
         String rightPanel = VerticalJoinDecorator.joinVertical(
                 Position.Left,
                 scorePanel,
-//                "\n".repeat(1),
                 nextBlockPanel
         );
 
         String gameView = HorizontalJoinDecorator.joinHorizontal(
-                Position.Bottom,
+                Position.Top,
                 grid,
                 rightPanelStyle.render(rightPanel)
         );
