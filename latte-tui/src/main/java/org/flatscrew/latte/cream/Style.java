@@ -1,6 +1,8 @@
 package org.flatscrew.latte.cream;
 
 import org.flatscrew.latte.ansi.TextWrapper;
+import org.flatscrew.latte.cream.align.AlignmentDecorator;
+import org.flatscrew.latte.cream.align.Position;
 import org.flatscrew.latte.cream.border.Border;
 import org.flatscrew.latte.cream.color.ColorProfile;
 import org.flatscrew.latte.cream.color.NoColor;
@@ -18,9 +20,11 @@ import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
 
 public class Style {
 
+
     public static Style newStyle() {
         return defaultRenderer.newStyle();
     }
+
 
     private final Renderer renderer;
 
@@ -34,12 +38,16 @@ public class Style {
     private boolean reverse;
     private boolean inline;
     private int width;
+    private int height;
+    private Position horizontalAlign = Position.Left;
+    private Position verticalAlign = Position.Top;
 
     private int topPadding;
     private int rightPadding;
     private int bottomPadding;
     private int leftPadding;
 
+    private TerminalColor marginBackgroundColor = new NoColor();
     private int topMargin;
     private int rightMargin;
     private int bottomMargin;
@@ -117,6 +125,31 @@ public class Style {
         return this;
     }
 
+    public Style height(int height) {
+        this.height = height;
+        return this;
+    }
+
+    public Style align(Position... positions) {
+        if (positions.length > 0) {
+            this.horizontalAlign = positions[0];
+        }
+        if (positions.length > 1) {
+            this.verticalAlign = positions[1];
+        }
+        return this;
+    }
+
+    public Style alignHorizontal(Position position) {
+        this.horizontalAlign = position;
+        return this;
+    }
+
+    public Style alignVertical(Position position) {
+        this.verticalAlign = position;
+        return this;
+    }
+
     public Style padding(int... values) {
         int[] boxValues = expandBoxValues(values);
         this.topPadding = boxValues[0];
@@ -175,8 +208,8 @@ public class Style {
         return this;
     }
 
-    // TODO
     public Style marginBackgroundColor(TerminalColor marginBackgroundColor) {
+        this.marginBackgroundColor = marginBackgroundColor;
         return this;
     }
 
@@ -320,12 +353,18 @@ public class Style {
         }
 
         String string = String.join(" ", strings);
+        string = string.replaceAll("\r\n", "\n");
+
+        if (inline) {
+            string = string.replaceAll("\n", "");
+        }
 
         if (!inline && width > 0) {
             int wrapAt = width - leftPadding - rightPadding;
             string = new TextWrapper().wrap(string, wrapAt);
         }
 
+        // core rendering
         ColorProfile colorProfile = renderer.colorProfile();
         String[] lines = string.split("\n");
 
@@ -343,16 +382,18 @@ public class Style {
         }
         string = buffer.toString();
 
-
         if (!inline) {
-            string = PaddingDecorator.applyPadding(string, topPadding, rightPadding, bottomPadding, leftPadding);
+            string = PaddingDecorator.applyPadding(string, topPadding, rightPadding, bottomPadding, leftPadding, background, renderer);
         }
-
-        // TODO apply alignment
-
+        if (height > 0) {
+            string = AlignmentDecorator.alignTextVertical(string, verticalAlign, height);
+        }
+        if (width > 0) {
+            string = AlignmentDecorator.alignTextHorizontal(string, horizontalAlign, width, background, renderer);
+        }
         if (!inline) {
-            string = MarginDecorator.applyMargins(string, topMargin, rightMargin, bottomMargin, leftMargin);
             string = applyBorders(string);
+            string = MarginDecorator.applyMargins(string, topMargin, rightMargin, bottomMargin, leftMargin, marginBackgroundColor, renderer);
         }
         return string;
     }
