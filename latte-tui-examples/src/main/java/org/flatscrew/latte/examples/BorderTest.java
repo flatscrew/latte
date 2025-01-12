@@ -11,11 +11,11 @@ public class BorderTest {
     public static void main(String[] args) {
         TerminalInfo.provide(() -> new TerminalInfo(true, new NoColor()));
 
-        System.out.println();
         System.out.println(
                 Style.newStyle()
                         .width(10)
                         .padding(5)
+                        .margin(3)
                         .border(StandardBorder.RoundedBorder)
                         .borderBackground(Color.color("#ff0000"))
                         .background(Color.color("#ff0000"))

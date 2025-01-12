@@ -9,7 +9,13 @@ import static org.flatscrew.latte.cream.padding.PaddingDecorator.padRight;
 
 public class MarginDecorator {
 
-    public static String applyMargins(String input, int topMargin, int rightMargin, int bottomMargin, int leftMargin, TerminalColor marginBackgroundColor, Renderer renderer) {
+    public static String applyMargins(String input,
+                                      int topMargin,
+                                      int rightMargin,
+                                      int bottomMargin,
+                                      int leftMargin,
+                                      TerminalColor marginBackgroundColor,
+                                      Renderer renderer) {
         String padded = input;
         if (leftMargin > 0) {
             padded = padLeft(padded, leftMargin, marginBackgroundColor, renderer);

@@ -208,7 +208,6 @@ public class Style {
         return this;
     }
 
-    // TODO
     public Style marginBackgroundColor(TerminalColor marginBackgroundColor) {
         this.marginBackgroundColor = marginBackgroundColor;
         return this;
@@ -354,6 +353,11 @@ public class Style {
         }
 
         String string = String.join(" ", strings);
+        string = string.replaceAll("\r\n", "\n");
+
+        if (inline) {
+            string = string.replaceAll("\n", "");
+        }
 
         if (!inline && width > 0) {
             int wrapAt = width - leftPadding - rightPadding;
@@ -378,7 +382,6 @@ public class Style {
         }
         string = buffer.toString();
 
-
         if (!inline) {
             string = PaddingDecorator.applyPadding(string, topPadding, rightPadding, bottomPadding, leftPadding, background, renderer);
         }
@@ -389,8 +392,8 @@ public class Style {
             string = AlignmentDecorator.alignTextHorizontal(string, horizontalAlign, width, background, renderer);
         }
         if (!inline) {
-            string = MarginDecorator.applyMargins(string, topMargin, rightMargin, bottomMargin, leftMargin, marginBackgroundColor, renderer);
             string = applyBorders(string);
+            string = MarginDecorator.applyMargins(string, topMargin, rightMargin, bottomMargin, leftMargin, marginBackgroundColor, renderer);
         }
         return string;
     }
