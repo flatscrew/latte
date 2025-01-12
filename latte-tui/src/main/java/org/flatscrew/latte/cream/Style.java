@@ -20,11 +20,9 @@ import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
 
 public class Style {
 
-
     public static Style newStyle() {
         return defaultRenderer.newStyle();
     }
-
 
     private final Renderer renderer;
 
