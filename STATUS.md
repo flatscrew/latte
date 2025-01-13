@@ -20,8 +20,6 @@ conform it
 `🔴 Won't do` It won't be done because of some technical limitations or was done some other way with explanation in *
 *Notes**.
 
-I'll rewrite the table to match your legend formatting. Here's the table with the new emoji-based status indicators:
-
 | Example           | Status           | Notes                                                                                                            |
 |-------------------|------------------|------------------------------------------------------------------------------------------------------------------|
 | altscreen-toggle  | `🟢 Done`        |                                                                                                                  |
