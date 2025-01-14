@@ -44,9 +44,11 @@ public class PaddingDecorator {
         }
         String padding = " ".repeat(Math.abs(n));
 
-        AttributedStyle attributedStyle = new AttributedStyle();
-        attributedStyle = backgroundColor.applyAsBackground(attributedStyle, renderer);
-        padding = new AttributedString(padding, attributedStyle).toAnsi();
+        if (backgroundColor != null) {
+            AttributedStyle attributedStyle = new AttributedStyle();
+            attributedStyle = backgroundColor.applyAsBackground(attributedStyle, renderer);
+            padding = new AttributedString(padding, attributedStyle).toAnsi();
+        }
 
         StringBuilder b = new StringBuilder();
         String[] lines = str.split("\n");

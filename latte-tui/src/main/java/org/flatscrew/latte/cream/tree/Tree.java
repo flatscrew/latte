@@ -63,11 +63,8 @@ public class Tree implements Node {
                 case null -> {
                 }
                 case Tree tree -> {
-                    EnsureParentResult ensureParentResult = ensureParent(this.children, tree);
-                    if (ensureParentResult.whatever() >= 0) {
-                        this.children = this.children.remove(ensureParentResult.whatever());
-                    }
-                    this.children = this.children.append(ensureParentResult.tree());
+                    // Simply append the tree as is
+                    this.children = this.children.append(tree);
                 }
                 case Children nestedChildren -> {
                     for (int i = 0; i < nestedChildren.length(); i++) {
@@ -84,26 +81,6 @@ public class Tree implements Node {
         }
         return this;
     }
-
-    private EnsureParentResult ensureParent(Children nodes, Tree item) {
-        int nodesLength = nodes.length();
-        if (item.value() == null || item.value.isEmpty() || nodesLength == 0) {
-            return new EnsureParentResult(item, -1);
-        }
-
-        int j = nodesLength - 1;
-        Node parent = nodes.at(j);
-        if (parent instanceof Tree tree) {
-            for (int i = 0; i < item.children().length(); i++) {
-                tree.child(item.children().at(i));
-            }
-        } else if (parent instanceof Leaf leaf) {
-            item.setValue(parent.value());
-            return new EnsureParentResult(item, j);
-        }
-        return new EnsureParentResult(item, -1);
-    }
-
 
     private Renderer ensureRenderer() {
         rendererLock.lock();
@@ -147,7 +124,7 @@ public class Tree implements Node {
         if (fn == null) {
             fn = (children, index) -> Style.newStyle();
         }
-        ensureRenderer().style().setItemFunction(function);
+        ensureRenderer().style().setItemFunction(fn);
         return this;
     }
 
@@ -195,9 +172,6 @@ public class Tree implements Node {
 
     @Override
     public String toString() {
-        return this.value;
-    }
-
-    private record EnsureParentResult(Tree tree, int whatever) {
+        return ensureRenderer().render(this, true, "");
     }
 }

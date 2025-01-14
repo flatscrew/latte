@@ -11,6 +11,7 @@ public class TreeStyle {
     public TreeStyle() {
         this.enumeratorFunction = (children, index) -> Style.newStyle().paddingRight(1);
         this.itemFunction = (children, index) -> Style.newStyle();
+        this.rootStyle = Style.newStyle();
     }
 
     public Style rootStyle() {

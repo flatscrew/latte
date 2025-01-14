@@ -11,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Renderer {
-
     private TreeStyle style;
     private TreeEnumerator enumerator;
     private TreeIndenter indenter;
@@ -27,23 +26,25 @@ public class Renderer {
             return "";
         }
 
-        String currentPrefix = prefix;
-
         List<String> strings = new LinkedList<>();
         int maxLength = 0;
 
         Children children = node.children();
         String name = node.value();
-        if (!"".equals(name) && root) {
+
+        // Print root node name if not empty
+        if (name != null && !name.isEmpty() && root) {
             strings.add(style.rootStyle().render(name));
         }
 
+        // First pass: calculate max prefix length
         for (int i = 0; i < children.length(); i++) {
-            currentPrefix = enumerator.enumerate(children, i);
+            String currentPrefix = enumerator.enumerate(children, i);
             currentPrefix = style.enumeratorFunction().apply(children, i).render(currentPrefix);
-            maxLength = Math.max(TextWidth.measureCellWidth(prefix), maxLength);
+            maxLength = Math.max(TextWidth.measureCellWidth(currentPrefix), maxLength);
         }
 
+        // Second pass: render nodes
         for (int i = 0; i < children.length(); i++) {
             Node child = children.at(i);
             if (child.isHidden()) {
@@ -55,16 +56,18 @@ public class Renderer {
             Style enumStyle = style.enumeratorFunction().apply(children, i);
             Style itemStyle = style.itemFunction().apply(children, i);
 
+            // Apply style to prefix
             nodePrefix = enumStyle.render(nodePrefix);
 
-            int l = maxLength - Size.width(nodePrefix);
-            if (l > 0) {
-                nodePrefix = " ".repeat(l) + nodePrefix;
+            // Pad prefix to max length
+            if (maxLength - TextWidth.measureCellWidth(nodePrefix) > 0) {
+                nodePrefix = " ".repeat(maxLength - TextWidth.measureCellWidth(nodePrefix)) + nodePrefix;
             }
 
             String item = itemStyle.render(child.value());
-            String multiLinePrefix = currentPrefix;
+            String multiLinePrefix = prefix;
 
+            // Handle multiline items
             while (Size.height(item) > Size.height(nodePrefix)) {
                 nodePrefix = VerticalJoinDecorator.joinVertical(
                         Position.Left,
@@ -73,6 +76,7 @@ public class Renderer {
                 );
             }
 
+            // Ensure prefix heights match
             while (Size.height(nodePrefix) > Size.height(multiLinePrefix)) {
                 multiLinePrefix = VerticalJoinDecorator.joinVertical(
                         Position.Left,
@@ -81,6 +85,7 @@ public class Renderer {
                 );
             }
 
+            // Join all parts horizontally
             strings.add(HorizontalJoinDecorator.joinHorizontal(
                     Position.Top,
                     multiLinePrefix,
@@ -88,21 +93,23 @@ public class Renderer {
                     item
             ));
 
+            // Render children
             if (children.length() > 0) {
                 Renderer newRenderer = this;
-
-                if (child instanceof Tree tree) {
-                    if (tree.renderer() != null) {
-                        newRenderer = tree.renderer();
-                    }
+                if (child instanceof Tree tree && tree.renderer() != null) {
+                    newRenderer = tree.renderer();
                 }
 
-                String rendered = newRenderer.render(child, false, prefix + enumStyle.render(indent));
-                if (!"".equals(rendered)) {
+                String rendered = newRenderer.render(
+                        child,
+                        false,
+                        prefix + enumStyle.render(indent)
+                );
+
+                if (!rendered.isEmpty()) {
                     strings.add(rendered);
                 }
             }
-
         }
         return String.join("\n", strings);
     }

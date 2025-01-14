@@ -7,8 +7,19 @@ public interface TreeEnumerator {
 
         @Override
         public String enumerate(Children children, int index) {
-            if (children.length() -1 == index) {
+            if (children.length() - 1 == index) {
                 return "└──";
+            }
+            return "├──";
+        }
+    }
+
+    class RounderEnumerator implements TreeEnumerator {
+
+        @Override
+        public String enumerate(Children children, int index) {
+            if (children.length() - 1 == index) {
+                return "╰──";
             }
             return "├──";
         }
