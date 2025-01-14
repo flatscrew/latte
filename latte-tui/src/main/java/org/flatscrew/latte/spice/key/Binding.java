@@ -26,6 +26,15 @@ public class Binding {
         this.help = null;
     }
 
+    public boolean matches(KeyPressMessage keyPressMessage) {
+        for (int bindingKey : keys) {
+            if (keyPressMessage.key() == bindingKey) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static Consumer<Binding> withKeys(int... keys) {
         return binding -> binding.keys = keys;
     }
@@ -39,10 +48,8 @@ public class Binding {
             if (!binding.isEnabled()) {
                 continue;
             }
-            for (int bindingKey : binding.keys) {
-                if (keyPressMessage.key() == bindingKey) {
-                    return true;
-                }
+            if (binding.matches(keyPressMessage)) {
+                return true;
             }
         }
         return false;
