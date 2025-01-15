@@ -17,6 +17,6 @@ public class Size {
     }
 
     public static int height(String input) {
-        return input.split("\n").length + 1;
+        return (int) (input.chars().filter(ch -> ch == '\n').count() + 1);
     }
 }

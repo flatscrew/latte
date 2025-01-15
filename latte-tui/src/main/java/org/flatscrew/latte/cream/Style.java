@@ -12,7 +12,9 @@ import org.jline.utils.AttributedCharSequence.ForceMode;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
@@ -25,6 +27,7 @@ public class Style implements Cloneable {
 
     private final Renderer renderer;
 
+    private String value;
     private TerminalColor background;
     private TerminalColor foreground;
     private boolean bold;
@@ -70,6 +73,11 @@ public class Style implements Cloneable {
 
     public Style(Renderer renderer) {
         this.renderer = renderer;
+    }
+
+    public Style setString(String... strings) {
+        this.value = String.join(" ", strings);
+        return this;
     }
 
     public Style foreground(TerminalColor color) {
@@ -349,7 +357,11 @@ public class Style implements Cloneable {
             style = style.inverse();
         }
 
-        String string = String.join(" ", strings);
+        List<String> strs = new ArrayList<>(List.of(strings));
+        if (value != null && !value.isEmpty()) {
+            strs.add(0, value);
+        }
+        String string = String.join(" ", strs);
         string = string.replaceAll("\r\n", "\n");
 
         if (inline) {
@@ -363,6 +375,7 @@ public class Style implements Cloneable {
 
         // core rendering
         ColorProfile colorProfile = renderer.colorProfile();
+        renderer.newStyle();
         String[] lines = string.split("\n");
 
         StringBuilder buffer = new StringBuilder();
@@ -380,17 +393,25 @@ public class Style implements Cloneable {
         string = buffer.toString();
 
         if (!inline) {
-            string = PaddingDecorator.applyPadding(string, topPadding, rightPadding, bottomPadding, leftPadding, background, renderer);
+            AttributedStyle st = new AttributedStyle();
+            string = PaddingDecorator.applyPadding(string, topPadding, rightPadding, bottomPadding, leftPadding, st, renderer);
         }
         if (height > 0) {
             string = AlignmentDecorator.alignTextVertical(string, verticalAlign, height);
         }
-        if (width > 0) {
-            string = AlignmentDecorator.alignTextHorizontal(string, horizontalAlign, width, background, renderer);
+
+        int numLines = string.split("\n", 0).length;
+        if (!(numLines == 0 && width == 0)) {
+            AttributedStyle st = new AttributedStyle();
+            string = AlignmentDecorator.alignTextHorizontal(string, horizontalAlign, width, st, renderer);
         }
         if (!inline) {
             string = applyBorders(string);
-            string = MarginDecorator.applyMargins(string, topMargin, rightMargin, bottomMargin, leftMargin, marginBackgroundColor, renderer);
+
+            AttributedStyle st = new AttributedStyle();
+            marginBackgroundColor.applyAsBackground(st, renderer);
+
+            string = MarginDecorator.applyMargins(string, topMargin, rightMargin, bottomMargin, leftMargin, st, renderer);
         }
         return string;
     }

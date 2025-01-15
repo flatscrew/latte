@@ -1,7 +1,9 @@
 package org.flatscrew.latte.cream.tree;
 
+import org.flatscrew.latte.cream.Renderer;
 import org.flatscrew.latte.cream.Style;
 import org.flatscrew.latte.cream.color.Color;
+import org.flatscrew.latte.cream.color.ColorProfile;
 import org.flatscrew.latte.cream.color.NoColor;
 import org.flatscrew.latte.term.TerminalInfo;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
 
 class TreeTest {
 
@@ -39,7 +42,7 @@ class TreeTest {
         );
 
         // when
-        String treeString = tree.toString();
+        String treeString = tree.render();
 
         // then
 
@@ -56,7 +59,7 @@ class TreeTest {
 
         // when
         tree.enumerator(new TreeEnumerator.RounderEnumerator());
-        treeString = tree.toString();
+        treeString = tree.render();
 
         // then
         assertThat(treeString).isEqualTo(
@@ -87,7 +90,7 @@ class TreeTest {
         );
 
         // then
-        assertThat(tree.toString()).isEqualTo("""
+        assertThat(tree.render()).isEqualTo("""
                 ├── Foo
                 ├── Bar
                 │   ├── Qux
@@ -110,7 +113,7 @@ class TreeTest {
                 ).hide();
 
         // then
-        assertThat(tree.toString()).isEqualTo("");
+        assertThat(tree.render()).isEqualTo("");
     }
 
     @Test
@@ -125,7 +128,7 @@ class TreeTest {
                 );
 
         // then
-        assertThat(tree.toString()).isEqualTo("""
+        assertThat(tree.render()).isEqualTo("""
                 Root
                 ├── Foo
                 ├── Bar
@@ -143,7 +146,7 @@ class TreeTest {
         );
 
         // then
-        assertThat(tree.toString()).isEqualTo("""
+        assertThat(tree.render()).isEqualTo("""
                 ├── Bar
                 │   ├── Qux
                 │   └── Quuux
@@ -162,7 +165,7 @@ class TreeTest {
         );
 
         // then
-        assertThat(tree.toString()).isEqualTo("""
+        assertThat(tree.render()).isEqualTo("""
                 ├── Bar
                 ├── Foo
                 │   ├── Qux
@@ -191,7 +194,7 @@ class TreeTest {
         );
 
         // then
-        assertThat(tree.toString()).isEqualTo("""
+        assertThat(tree.render()).isEqualTo("""
                 ├── Foo
                 └── Bar
                     ├── Qux
@@ -215,7 +218,7 @@ class TreeTest {
         );
 
         // then
-        assertThat(tree.toString()).isEqualTo("""
+        assertThat(tree.render()).isEqualTo("""
                 ├── Bar
                 │   ├── Qux
                 │   ├── Quux
@@ -224,91 +227,91 @@ class TreeTest {
                 └── Baz""");
     }
 
-//    @Test
-//    void test_TreeCustom() {
-//        // given
-//        Tree tree = new Tree()
-//                .child(
-//                        "Foo",
-//                        Tree.withRoot("Bar").child(
-//                                "Qux",
-//                                Tree.withRoot("Quux").child("Foo", "Bar"),
-//                                "Quuux"
-//                        ),
-//                        "Baz"
-//                )
-//                .itemStyle(Style.newStyle().foreground(Color.color("9")))
-//                .enumeratorStyle(Style.newStyle().foreground(Color.color("12")).paddingRight(1))
-//                .enumerator((children, i) -> "->")
-//                .indenter((children, i) -> "->");
-//
-//        // then
-//        assertThat(tree.toString()).isEqualTo("""
-//                -> Foo
-//                -> Bar
-//                -> -> Qux
-//                -> -> Quux
-//                -> -> -> Foo
-//                -> -> -> Bar
-//                -> -> Quuux
-//                -> Baz""");
-//    }
+    @Test
+    void test_TreeCustom() {
+        // given
+        Tree tree = new Tree()
+                .child(
+                        "Foo",
+                        Tree.withRoot("Bar").child(
+                                "Qux",
+                                Tree.withRoot("Quux").child("Foo", "Bar"),
+                                "Quuux"
+                        ),
+                        "Baz"
+                )
+                .itemStyle(Style.newStyle().foreground(Color.color("9")))
+                .enumeratorStyle(Style.newStyle().foreground(Color.color("12")).paddingRight(1))
+                .enumerator((children, i) -> "->")
+                .indenter((children, i) -> "->");
 
-//    @Test
-//    void test_TreeMultilineNode() {
-//        // given
-//        Tree tree = new Tree()
-//                .root("Big\nRoot\nNode")
-//                .child(
-//                        "Foo",
-//                        Tree.withRoot("Bar").child(
-//                                "Line 1\nLine 2\nLine 3\nLine 4",
-//                                Tree.withRoot("Quux").child("Foo", "Bar"),
-//                                "Quuux"
-//                        ),
-//                        "Baz\nLine 2"
-//                );
-//
-//        // then
-//        assertThat(tree.toString()).isEqualTo("""
-//                Big
-//                Root
-//                Node
-//                ├── Foo
-//                ├── Bar
-//                │   ├── Line 1
-//                │   │   Line 2
-//                │   │   Line 3
-//                │   │   Line 4
-//                │   ├── Quux
-//                │   │   ├── Foo
-//                │   │   └── Bar
-//                │   └── Quuux
-//                └── Baz
-//                    Line 2""");
-//    }
+        // then
+        assertThat(tree.render()).isEqualTo("""
+                -> Foo
+                -> Bar
+                -> -> Qux
+                -> -> Quux
+                -> -> -> Foo
+                -> -> -> Bar
+                -> -> Quuux
+                -> Baz""");
+    }
 
-//    @Test
-//    void test_TreeSubTreeWithCustomEnumerator() {
-//        // given
-//        Tree tree = new Tree()
-//                .root("The Root Node™")
-//                .child(
-//                        Tree.withRoot("Parent")
-//                                .child("child 1", "child 2")
-//                                .itemStyleFunc((children, i) -> Style.newStyle().setString("*"))
-//                                .enumeratorStyleFunc((children, i) -> Style.newStyle().setString("+").paddingRight(1)),
-//                        "Baz"
-//                );
-//
-//        // then
-//        assertThat(tree.toString()).isEqualTo("""
-//                The Root Node™
-//                ├── Parent
-//                │   + ├── * child 1
-//                │   + └── * child 2
-//                └── Baz""");
-//    }
+    @Test
+    void test_TreeMultilineNode() {
+        // given
+        Tree tree = new Tree()
+                .root("Big\nRoot\nNode")
+                .child(
+                        "Foo",
+                        Tree.withRoot("Bar").child(
+                                "Line 1\nLine 2\nLine 3\nLine 4",
+                                Tree.withRoot("Quux").child("Foo", "Bar"),
+                                "Quuux"
+                        ),
+                        "Baz\nLine 2"
+                );
+
+        // then
+        assertThat(tree.render()).isEqualTo("""
+                Big
+                Root
+                Node
+                ├── Foo
+                ├── Bar
+                │   ├── Line 1
+                │   │   Line 2
+                │   │   Line 3
+                │   │   Line 4
+                │   ├── Quux
+                │   │   ├── Foo
+                │   │   └── Bar
+                │   └── Quuux
+                └── Baz
+                    Line 2""");
+    }
+
+    @Test
+    void test_TreeSubTreeWithCustomEnumerator() {
+        // given
+        Tree tree = new Tree()
+                .root("The Root Node™")
+                .child(
+                        Tree.withRoot("Parent")
+                                .child("child 1", "child 2")
+                                .itemStyleFunc((children, i) -> Style.newStyle().setString("*"))
+                                .enumeratorStyleFunc((children, i) -> Style.newStyle().setString("+").paddingRight(1)),
+                        "Baz"
+                );
+
+        // then
+        assertThat(tree.render()).isEqualTo("""
+                The Root Node™
+                ├── Parent
+                │   + ├── * child 1
+                │   + └── * child 2
+                └── Baz""");
+    }
 
     @Test
     void test_TreeMixedEnumeratorSize() {
@@ -325,12 +328,10 @@ class TreeTest {
         Tree tree = new Tree()
                 .root("The Root Node™")
                 .child("Foo", "Foo", "Foo", "Foo", "Foo")
-                .enumerator((children, i) -> {
-                    return romans.get(i + 1);
-                });
+                .enumerator((children, i) -> romans.get(i + 1));
 
         // then
-        assertThat(tree.toString()).isEqualTo("""
+        assertThat(tree.render()).isEqualTo("""
                 The Root Node™
                   I Foo
                  II Foo
@@ -349,7 +350,7 @@ class TreeTest {
                 .enumeratorStyleFunc(null);
 
         // then
-        assertThat(tree.toString()).isEqualTo("""
+        assertThat(tree.render()).isEqualTo("""
                 Silly
                 ├──Willy\s
                 └──Nilly""");
@@ -365,9 +366,244 @@ class TreeTest {
                         children.at(i).value().equals("Foo") ? ">" : "-");
 
         // then
-        assertThat(tree.toString()).isEqualTo("""
+        assertThat(tree.render()).isEqualTo("""
                 Root
                 > Foo
                 - Baz""");
     }
+
+    @Test
+    void test_RootStyle() {
+        // given
+        Renderer renderer = defaultRenderer();
+        renderer.setColorProfile(ColorProfile.TrueColor);
+        renderer.setHasDarkBackground(true);
+
+        Tree tree = new Tree()
+                .root("Root")
+                .child("Foo", "Baz")
+                .rootStyle(Style.newStyle().background(Color.color("#5A56E0")))
+                .itemStyle(Style.newStyle().background(Color.color("#04B575")));
+
+        // when
+        String treeString = tree.render();
+
+        // then
+        assertThat(treeString).isEqualTo("""
+                [48;2;90;86;224mRoot[0m
+                ├── [48;2;4;181;117mFoo[0m
+                └── [48;2;4;181;117mBaz[0m""");
+    }
+
+    @Test
+    void test_At() {
+        // given
+        Children data = Children.newStringData("Foo", "Bar");
+
+        // then
+        assertThat(data.at(0).value()).isEqualTo("Foo");
+        assertThat(data.at(10)).isNull();
+        assertThat(data.at(-1)).isNull();
+    }
+
+    @Test
+    void test_Filter() {
+        // given
+        Filter data = new Filter(Children.newStringData("Foo", "Bar", "Baz", "Nope"))
+                .filter(index -> index != 3);
+        Tree tree = new Tree().root("Root").child(data);
+
+        // when
+        String treeString = tree.render();
+
+        // then
+        assertThat(treeString).isEqualTo("""
+                Root
+                ├── Foo
+                ├── Bar
+                └── Baz""");
+    }
+
+    @Test
+    void test_NodeDataRemoveOutOfBounds() {
+        // given
+        Children data = Children.newStringData("a");
+
+        // then
+        assertThat(data.length()).isEqualTo(1);
+    }
+
+    // TODO
+    // void test_TreeTable()
+
+    @Test
+    void test_AddItemWithAndWithoutRoot() {
+        // given
+        Tree t1 = new Tree().child(
+                "Foo",
+                "Bar",
+                new Tree().child("Baz"),
+                "Qux"
+        );
+
+        Tree t2 = new Tree().child(
+                "Foo",
+                new Tree().root("Bar").child("Baz"),
+                "Qux"
+        );
+
+        // expected
+        String expected = """
+                ├── Foo
+                ├── Bar
+                │   └── Baz
+                └── Qux""";
+
+        // then
+        assertThat(t1.render()).isEqualTo(expected);
+        assertThat(t2.render()).isEqualTo(expected);
+    }
+
+    // TODO
+    // void test_EmbedListWithinTree()
+
+    @Test
+    void test_MultilinePrefix() {
+        // given
+        Style paddingStyle = Style.newStyle().paddingLeft(1).paddingBottom(1);
+        Tree tree = new Tree()
+                .enumerator((children, index) -> {
+                    if (index == 1) {
+                        return "|\n|";
+                    }
+                    return " ";
+                })
+                .indenter((children, index) -> " ")
+                .itemStyle(paddingStyle)
+                .child("Foo Document\nThe Foo Files")
+                .child("Bar Document\nThe Bar Files")
+                .child("Baz Document\nThe Baz Files");
+
+        // then
+        assertThat(tree.render()).isEqualTo("""
+                   Foo Document
+                   The Foo Files
+
+                │  Bar Document
+                │  The Bar Files
+
+                   Baz Document
+                   The Baz Files""");
+    }
+
+    @Test
+    void test_MultilinePrefixSubtree() {
+        // given
+        Style paddingStyle = Style.newStyle().padding(0, 0, 1, 1);
+        Tree tree = new Tree()
+                .child("Foo")
+                .child("Bar")
+                .child(new Tree()
+                        .root("Baz")
+                        .enumerator((children, index) -> {
+                            if (index == 1) {
+                                return "|\n|";
+                            }
+                            return " ";
+                        })
+                        .indenter((children, index) -> " ")
+                        .itemStyle(paddingStyle)
+                        .child("Foo Document\nThe Foo Files")
+                        .child("Bar Document\nThe Bar Files")
+                        .child("Baz Document\nThe Baz Files")
+                )
+                .child("Qux");
+
+        // then
+        assertThat(tree.render()).isEqualTo(
+                """
+                        ├── Foo
+                        ├── Bar
+                        ├── Baz
+                        │      Foo Document
+                        │      The Foo Files
+
+                        │
+                        │   │  Bar Document
+                        │   │  The Bar Files
+                        │
+                        │      Baz Document
+                        │      The Baz Files
+                        │
+                        └── Qux""");
+
+    }
+
+    @Test
+    void test_MultilinePrefixInception() {
+        TreeEnumerator glowEnum = (children, index) -> {
+            if (index == 1) {
+                return "|\n|";
+            }
+            return " ";
+        };
+        TreeIndenter glowIndenter = (children, index) -> " ";
+        Style paddingStyle = Style.newStyle().padding(0, 0, 1, 1);
+        Tree tree = new Tree()
+                .enumerator(glowEnum)
+                .indenter(glowIndenter)
+                .itemStyle(paddingStyle)
+                .child("Foo Document\nThe Foo Files")
+                .child("Bar Document\nThe Bar Files")
+                .child(
+                        new Tree()
+                                .enumerator(glowEnum)
+                                .indenter(glowIndenter)
+                                .itemStyle(paddingStyle)
+                                .child("Qux Document\nThe Qux Files")
+                                .child("Quux Document\nThe Quux Files")
+                                .child("Quuux Document\nThe Quuux Files"))
+                .child("Baz Document\nThe Baz Files");
+
+        // then
+        assertThat(tree.render()).isEqualTo("""
+                    Foo Document
+                    The Foo Files
+
+                │   Bar Document
+                │   The Bar Files
+
+                       Qux Document
+                       The Qux Files
+
+                   │   Quux Document
+                   │   The Quux Files
+
+                       Quuux Document
+                       The Quuux Files
+
+                    Baz Document
+                    The Baz Files""");
+    }
+
+    @Test
+    void test_Types() {
+        // given
+        Tree tree = new Tree()
+                .child(0)
+                .child(true)
+                .child("Foo", "Bar")
+                .child((Object) new String[]{"Qux", "Quux", "Quuux"});
+
+        // then
+        assertThat(tree.render()).isEqualTo("""
+                ├── 0
+                ├── true
+                ├── Foo
+                ├── Bar
+                ├── Qux
+                ├── Quux
+                └── Quuux""");
+    }
+
 }

@@ -1,6 +1,5 @@
 package org.flatscrew.latte.cream.tree;
 
-import org.flatscrew.latte.ansi.TextWidth;
 import org.flatscrew.latte.cream.Position;
 import org.flatscrew.latte.cream.Size;
 import org.flatscrew.latte.cream.Style;
@@ -41,7 +40,7 @@ public class Renderer {
         for (int i = 0; i < children.length(); i++) {
             String currentPrefix = enumerator.enumerate(children, i);
             currentPrefix = style.enumeratorFunction().apply(children, i).render(currentPrefix);
-            maxLength = Math.max(TextWidth.measureCellWidth(currentPrefix), maxLength);
+            maxLength = Math.max(Size.width(currentPrefix), maxLength);
         }
 
         // Second pass: render nodes
@@ -56,12 +55,10 @@ public class Renderer {
             Style enumStyle = style.enumeratorFunction().apply(children, i);
             Style itemStyle = style.itemFunction().apply(children, i);
 
-            // Apply style to prefix
             nodePrefix = enumStyle.render(nodePrefix);
-
-            // Pad prefix to max length
-            if (maxLength - TextWidth.measureCellWidth(nodePrefix) > 0) {
-                nodePrefix = " ".repeat(maxLength - TextWidth.measureCellWidth(nodePrefix)) + nodePrefix;
+            int l = maxLength - Size.width(nodePrefix);
+            if (l > 0) {
+                nodePrefix = " ".repeat(l) + nodePrefix;
             }
 
             String item = itemStyle.render(child.value());

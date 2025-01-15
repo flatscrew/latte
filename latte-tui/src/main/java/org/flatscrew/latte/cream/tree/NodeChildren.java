@@ -16,7 +16,10 @@ public class NodeChildren implements Children {
 
     @Override
     public Node at(int index) {
-        return children.get(index);
+        if (index >= 0 && index < children.size()) {
+            return children.get(index);
+        }
+        return null;
     }
 
     @Override

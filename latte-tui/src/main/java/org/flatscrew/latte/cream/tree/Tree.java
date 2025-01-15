@@ -63,8 +63,11 @@ public class Tree implements Node {
                 case null -> {
                 }
                 case Tree tree -> {
-                    // Simply append the tree as is
-                    this.children = this.children.append(tree);
+                    EnsureParentResult ensureParentResult = ensureParent(this.children, tree);
+                    if (ensureParentResult.whatever() >= 0) {
+                        this.children.remove(ensureParentResult.whatever());
+                    }
+                    this.children.append(ensureParentResult.tree());
                 }
                 case Children nestedChildren -> {
                     for (int i = 0; i < nestedChildren.length(); i++) {
@@ -80,6 +83,26 @@ public class Tree implements Node {
             }
         }
         return this;
+    }
+
+    private EnsureParentResult ensureParent(Children nodes, Tree item) {
+        int nodesLength = nodes.length();
+        if ((item.value() != null && !item.value().isEmpty()) || nodesLength == 0) {
+            return new EnsureParentResult(item, -1);
+        }
+
+        int j = nodesLength - 1;
+        Node parent = nodes.at(j);
+        if (parent instanceof Tree tree) {
+            for (int i = 0; i < item.children().length(); i++) {
+                tree.child(item.children().at(i));
+            }
+            return new EnsureParentResult(tree, j);  // Return parent tree instead of null
+        } else if (parent instanceof Leaf leaf) {
+            item.setValue(leaf.value());
+            return new EnsureParentResult(item, j);
+        }
+        return new EnsureParentResult(item, -1);
     }
 
     private Renderer ensureRenderer() {
@@ -170,8 +193,10 @@ public class Tree implements Node {
         return renderer;
     }
 
-    @Override
-    public String toString() {
+    public String render() {
         return ensureRenderer().render(this, true, "");
+    }
+
+    private record EnsureParentResult(Tree tree, int whatever) {
     }
 }
