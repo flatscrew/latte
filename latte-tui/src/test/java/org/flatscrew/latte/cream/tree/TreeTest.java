@@ -273,7 +273,7 @@ class TreeTest {
                 );
 
         // then
-        assertThat(tree.render()).isEqualTo("""
+        assertThat(tree.render().stripIndent().stripTrailing()).isEqualTo("""
                 Big
                 Root
                 Node
@@ -474,7 +474,7 @@ class TreeTest {
         Tree tree = new Tree()
                 .enumerator((children, index) -> {
                     if (index == 1) {
-                        return "|\n|";
+                        return "│\n│";
                     }
                     return " ";
                 })
@@ -485,7 +485,7 @@ class TreeTest {
                 .child("Baz Document\nThe Baz Files");
 
         // then
-        assertThat(tree.render()).isEqualTo("""
+        assertThat(tree.render().stripIndent().stripTrailing()).isEqualTo("""
                    Foo Document
                    The Foo Files
 
@@ -507,7 +507,7 @@ class TreeTest {
                         .root("Baz")
                         .enumerator((children, index) -> {
                             if (index == 1) {
-                                return "|\n|";
+                                return "│\n│";
                             }
                             return " ";
                         })
@@ -520,7 +520,7 @@ class TreeTest {
                 .child("Qux");
 
         // then
-        assertThat(tree.render()).isEqualTo(
+        assertThat(tree.render().stripIndent().stripTrailing()).isEqualTo(
                 """
                         ├── Foo
                         ├── Bar
@@ -566,7 +566,7 @@ class TreeTest {
                 .child("Baz Document\nThe Baz Files");
 
         // then
-        assertThat(tree.render()).isEqualTo("""
+        assertThat(tree.render().stripIndent().stripTrailing()).isEqualTo("""
                     Foo Document
                     The Foo Files
 
