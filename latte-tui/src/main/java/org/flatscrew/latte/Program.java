@@ -169,11 +169,8 @@ public class Program {
                     renderer.exitAltScreen();
                     continue;
                 } else if (msg instanceof BatchMessage batchMessage) {
-                    CompletableFuture.allOf(
-                            Arrays.stream(batchMessage.commands())
-                                    .map(command -> commandExecutor.executeIfPresent(command, this::send, this::sendError))
-                                    .toArray(CompletableFuture[]::new)
-                    ).join();
+                    Arrays.stream(batchMessage.commands())
+                            .forEach(command -> commandExecutor.executeIfPresent(command, this::send, this::sendError));
                 } else if (msg instanceof SequenceMessage sequenceMessage) {
                     Arrays.stream(sequenceMessage.commands())
                             .reduce(

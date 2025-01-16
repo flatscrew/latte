@@ -107,5 +107,5 @@ This table represents porting status of each part of Lipgloss that can be anyway
 | Max width and max height     | `⚪ TODO`  |                                                                                                      |
 | Horizontal and vertical join | `🟢 Done` |                                                                                                      |
 | List component               | `⚪ TODO`  |                                                                                                      |
-| Tree component               | `⚪ TODO`  |                                                                                                      |
+| Tree component               | `🟢 Done` |                                                                                                      |
 | Table component              | `⚪ TODO`  |                                                                                                      |

@@ -12,7 +12,9 @@ import org.jline.utils.AttributedCharSequence.ForceMode;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
@@ -25,8 +27,9 @@ public class Style implements Cloneable {
 
     private final Renderer renderer;
 
-    private TerminalColor background;
-    private TerminalColor foreground;
+    private String value;
+    private TerminalColor background = new NoColor();
+    private TerminalColor foreground = new NoColor();
     private boolean bold;
     private boolean italic;
     private boolean underline;
@@ -70,6 +73,11 @@ public class Style implements Cloneable {
 
     public Style(Renderer renderer) {
         this.renderer = renderer;
+    }
+
+    public Style setString(String... strings) {
+        this.value = String.join(" ", strings);
+        return this;
     }
 
     public Style foreground(TerminalColor color) {
@@ -148,11 +156,11 @@ public class Style implements Cloneable {
     }
 
     public Style padding(int... values) {
-        int[] boxValues = expandBoxValues(values);
-        this.topPadding = boxValues[0];
-        this.rightPadding = boxValues[1];
-        this.bottomPadding = boxValues[2];
-        this.leftPadding = boxValues[3];
+        int[] boxValues = expandBoxValues(IntStream.range(0, values.length).toArray());
+        this.topPadding = values[boxValues[0]];
+        this.rightPadding = values[boxValues[1]];
+        this.bottomPadding = values[boxValues[2]];
+        this.leftPadding = values[boxValues[3]];
         return this;
     }
 
@@ -177,11 +185,11 @@ public class Style implements Cloneable {
     }
 
     public Style margin(int... values) {
-        int[] boxValues = expandBoxValues(values);
-        this.topMargin = boxValues[0];
-        this.rightMargin = boxValues[1];
-        this.bottomMargin = boxValues[2];
-        this.leftMargin = boxValues[3];
+        int[] boxValues = expandBoxValues(IntStream.range(0, values.length).toArray());
+        this.topMargin = values[boxValues[0]];
+        this.rightMargin = values[boxValues[1]];
+        this.bottomMargin = values[boxValues[2]];
+        this.leftMargin = values[boxValues[3]];
         return this;
     }
 
@@ -349,7 +357,12 @@ public class Style implements Cloneable {
             style = style.inverse();
         }
 
-        String string = String.join(" ", strings);
+
+        List<String> strs = new ArrayList<>(List.of(strings));
+        if (value != null && !value.isEmpty()) {
+            strs.add(0, value);
+        }
+        String string = String.join(" ", strs);
         string = string.replaceAll("\r\n", "\n");
 
         if (inline) {
@@ -363,6 +376,7 @@ public class Style implements Cloneable {
 
         // core rendering
         ColorProfile colorProfile = renderer.colorProfile();
+        renderer.newStyle();
         String[] lines = string.split("\n");
 
         StringBuilder buffer = new StringBuilder();
@@ -380,17 +394,31 @@ public class Style implements Cloneable {
         string = buffer.toString();
 
         if (!inline) {
-            string = PaddingDecorator.applyPadding(string, topPadding, rightPadding, bottomPadding, leftPadding, background, renderer);
+            AttributedStyle st = new AttributedStyle();
+            if (background != null) {
+                st = background.applyAsBackground(st, renderer);
+            }
+            string = PaddingDecorator.applyPadding(string, topPadding, rightPadding, bottomPadding, leftPadding, st, renderer);
         }
         if (height > 0) {
             string = AlignmentDecorator.alignTextVertical(string, verticalAlign, height);
         }
-        if (width > 0) {
-            string = AlignmentDecorator.alignTextHorizontal(string, horizontalAlign, width, background, renderer);
+
+        int numLines = string.split("\n", 0).length;
+        if (!(numLines == 0 && width == 0)) {
+            AttributedStyle st = new AttributedStyle();
+            if (background != null) {
+                st = background.applyAsBackground(st, renderer);
+            }
+            string = AlignmentDecorator.alignTextHorizontal(string, horizontalAlign, width, st, renderer);
         }
         if (!inline) {
             string = applyBorders(string);
-            string = MarginDecorator.applyMargins(string, topMargin, rightMargin, bottomMargin, leftMargin, marginBackgroundColor, renderer);
+
+            AttributedStyle st = new AttributedStyle();
+            st = marginBackgroundColor.applyAsBackground(st, renderer);
+
+            string = MarginDecorator.applyMargins(string, topMargin, rightMargin, bottomMargin, leftMargin, st, renderer);
         }
         return string;
     }

@@ -4,7 +4,6 @@ import org.flatscrew.latte.ansi.TextWidth;
 import org.flatscrew.latte.cream.Position;
 import org.flatscrew.latte.cream.Renderer;
 import org.flatscrew.latte.cream.TextLines;
-import org.flatscrew.latte.cream.color.TerminalColor;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 
@@ -39,7 +38,7 @@ public class AlignmentDecorator {
         return input;
     }
 
-    public static String alignTextHorizontal(String input, Position position, int width, TerminalColor backgroundColor, Renderer renderer) {
+    public static String alignTextHorizontal(String input, Position position, int width, AttributedStyle attributedStyle, Renderer renderer) {
         TextLines textLines = TextLines.fromText(input);
         int widestLine = textLines.widestLineLength();
 
@@ -66,8 +65,8 @@ public class AlignmentDecorator {
 
                     l = leftSpaces + l + rightSpaces;
                 } else {
-                    AttributedStyle attributedStyle = new AttributedStyle();
-                    attributedStyle = backgroundColor.applyAsBackground(attributedStyle, renderer);
+//                    AttributedStyle attributedStyle = new AttributedStyle();
+//                    attributedStyle = backgroundColor.applyAsBackground(attributedStyle, renderer);
 
                     l += new AttributedString(" ".repeat(shortAmount), attributedStyle).toAnsi();
                 }
