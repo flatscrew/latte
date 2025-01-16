@@ -527,7 +527,6 @@ class TreeTest {
                         ├── Baz
                         │      Foo Document
                         │      The Foo Files
-
                         │
                         │   │  Bar Document
                         │   │  The Bar Files
@@ -543,12 +542,12 @@ class TreeTest {
     void test_MultilinePrefixInception() {
         TreeEnumerator glowEnum = (children, index) -> {
             if (index == 1) {
-                return "|\n|";
+                return "│\n│";
             }
             return " ";
         };
-        TreeIndenter glowIndenter = (children, index) -> " ";
-        Style paddingStyle = Style.newStyle().padding(0, 0, 1, 1);
+        TreeIndenter glowIndenter = (children, index) -> "  ";
+        Style paddingStyle = Style.newStyle().paddingLeft(1).paddingBottom(1);
         Tree tree = new Tree()
                 .enumerator(glowEnum)
                 .indenter(glowIndenter)
@@ -566,24 +565,25 @@ class TreeTest {
                 .child("Baz Document\nThe Baz Files");
 
         // then
-        assertThat(tree.render().stripIndent().stripTrailing()).isEqualTo("""
-                    Foo Document
-                    The Foo Files
+        assertThat(tree.render().stripIndent().stripTrailing()).isEqualTo(
+                """
+                            Foo Document
+                            The Foo Files
 
-                │   Bar Document
-                │   The Bar Files
+                        │   Bar Document
+                        │   The Bar Files
 
-                       Qux Document
-                       The Qux Files
+                               Qux Document
+                               The Qux Files
 
-                   │   Quux Document
-                   │   The Quux Files
+                           │   Quux Document
+                           │   The Quux Files
 
-                       Quuux Document
-                       The Quuux Files
+                               Quuux Document
+                               The Quuux Files
 
-                    Baz Document
-                    The Baz Files""");
+                            Baz Document
+                            The Baz Files""");
     }
 
     @Test
