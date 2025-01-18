@@ -5,6 +5,7 @@ import org.flatscrew.latte.cream.Style;
 import org.flatscrew.latte.cream.color.Color;
 import org.flatscrew.latte.cream.color.ColorProfile;
 import org.flatscrew.latte.cream.color.NoColor;
+import org.flatscrew.latte.cream.list.List;
 import org.flatscrew.latte.term.TerminalInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
+import static org.flatscrew.latte.cream.list.ListEnumerator.alphabet;
+import static org.flatscrew.latte.cream.list.ListEnumerator.arabic;
 
 class TreeTest {
 
@@ -464,8 +467,25 @@ class TreeTest {
         assertThat(t2.render()).isEqualTo(expected);
     }
 
-    // TODO
-    // void test_EmbedListWithinTree()
+    @Test
+    void test_EmbedListWithinTree() {
+        // given
+        Tree t1 = new Tree()
+                .child(new List("A", "B", "C").enumerator(arabic()))
+                .child(new List("1", "2", "3").enumerator(alphabet()));
+
+        // expected
+        String expected = """
+                ├── 1. A
+                │   2. B
+                │   3. C
+                └── A. 1
+                    B. 2
+                    C. 3""";
+
+        // then
+        assertThat(t1.render()).isEqualTo(expected);
+    }
 
     @Test
     void test_MultilinePrefix() {

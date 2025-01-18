@@ -15,6 +15,7 @@ import org.jline.utils.AttributedStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import static org.flatscrew.latte.cream.Renderer.defaultRenderer;
@@ -25,9 +26,11 @@ public class Style implements Cloneable {
         return defaultRenderer.newStyle();
     }
 
+
     private final Renderer renderer;
 
     private String value;
+    private Function<String, String> transformFunction;
     private TerminalColor background = new NoColor();
     private TerminalColor foreground = new NoColor();
     private boolean bold;
@@ -330,6 +333,11 @@ public class Style implements Cloneable {
         return this;
     }
 
+    public Style transform(Function<String, String> transformFunction) {
+        this.transformFunction = transformFunction;
+        return this;
+    }
+
     public String render(String... strings) {
         AttributedStyle style = new AttributedStyle();
         if (foreground != null) {
@@ -360,9 +368,14 @@ public class Style implements Cloneable {
 
         List<String> strs = new ArrayList<>(List.of(strings));
         if (value != null && !value.isEmpty()) {
-            strs.add(0, value);
+            strs.addFirst(value);
         }
         String string = String.join(" ", strs);
+
+        if (this.transformFunction != null) {
+            string = transformFunction.apply(string);
+        }
+
         string = string.replaceAll("\r\n", "\n");
 
         if (inline) {

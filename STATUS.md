@@ -74,24 +74,24 @@ conform it
 
 This table covers all the Bubble's ported so far. The same status labels apply.
 
-| Bubble     | Status    | Notes                          |
-|------------|-----------|--------------------------------|
-| cursor     | `🟢 Done` |                                |
-| filepicker | `⚪ TODO`  |                                |
-| filepicker | `⚪ TODO`  |                                |
-| help       | `⚪ TODO`  |                                |
-| key        | `🟢 Done` |                                |
-| list       | `⚪ TODO`  | Needs **list** from lipgloss.  |
-| paginator  | `⚪ TODO`  |                                |
-| progress   | `⚪ TODO`  |                                |
-| runeutil   | `⚪ TODO`  |                                |
-| spinner    | `🟢 Done` |                                |
-| stopwatch  | `⚪ TODO`  |                                |
-| table      | `⚪ TODO`  | Needs **table** from lipgloss. |
-| textarea   | `⚪ TODO`  |                                |
-| textinput  | `⚪ TODO`  |                                |
-| timer      | `⚪ TODO`  |                                |
-| viewport   | `⚪ TODO`  |                                |
+| Bubble     | Status    | Notes                                                                               |
+|------------|-----------|-------------------------------------------------------------------------------------|
+| cursor     | `🟢 Done` |                                                                                     |
+| filepicker | `⚪ TODO`  |                                                                                     |
+| filepicker | `⚪ TODO`  |                                                                                     |
+| help       | `⚪ TODO`  |                                                                                     |
+| key        | `🟢 Done` |                                                                                     |
+| list       | `⚪ TODO`  | Needs **help**, **paginator** and **textinput** bubbles and **list** from lipgloss. |
+| paginator  | `⚪ TODO`  |                                                                                     |
+| progress   | `⚪ TODO`  |                                                                                     |
+| runeutil   | `⚪ TODO`  |                                                                                     |
+| spinner    | `🟢 Done` |                                                                                     |
+| stopwatch  | `⚪ TODO`  |                                                                                     |
+| table      | `⚪ TODO`  | Needs **table** from lipgloss.                                                      |
+| textarea   | `⚪ TODO`  |                                                                                     |
+| textinput  | `⚪ TODO`  |                                                                                     |
+| timer      | `⚪ TODO`  |                                                                                     |
+| viewport   | `⚪ TODO`  |                                                                                     |
 
 ## Lipgloss
 
@@ -106,6 +106,6 @@ This table represents porting status of each part of Lipgloss that can be anyway
 | Alignment                    | `🟢 Done` |                                                                                                      |
 | Max width and max height     | `⚪ TODO`  |                                                                                                      |
 | Horizontal and vertical join | `🟢 Done` |                                                                                                      |
-| List component               | `⚪ TODO`  |                                                                                                      |
+| List component               | `🟢 Done` |                                                                                                      |
 | Tree component               | `🟢 Done` |                                                                                                      |
 | Table component              | `⚪ TODO`  |                                                                                                      |

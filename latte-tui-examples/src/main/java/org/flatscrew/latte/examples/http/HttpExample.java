@@ -8,6 +8,7 @@ import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
 import org.flatscrew.latte.Program;
 import org.flatscrew.latte.UpdateResult;
+import org.flatscrew.latte.message.ErrorMessage;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
 
@@ -17,9 +18,6 @@ record StatusMessage(int statusCode, String message) implements Message {
 
 }
 
-record ErrorMessage(Throwable throwable) implements Message {
-
-}
 
 public class HttpExample implements Model {
 
@@ -60,7 +58,7 @@ public class HttpExample implements Model {
             this.statusMessage = statusMsg;
             return UpdateResult.from(this, QuitMessage::new);
         } else if (msg instanceof ErrorMessage errorMessage) {
-            this.error = errorMessage.throwable();
+            this.error = errorMessage.error();
             return UpdateResult.from(this);
         }
         return UpdateResult.from(this);
