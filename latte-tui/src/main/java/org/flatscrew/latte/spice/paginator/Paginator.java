@@ -6,7 +6,7 @@ import org.flatscrew.latte.spice.key.Binding;
 
 public class Paginator {
 
-    interface Option {
+    public interface Option {
 
         static Option withTotalPages(int totalPages) {
             return paginator -> paginator.totalPages = totalPages;
@@ -42,19 +42,6 @@ public class Paginator {
         for (Option option : options) {
             option.apply(this);
         }
-    }
-
-    public int setTotalPages(int items) {
-        if (items < 1) {
-            return totalPages;
-        }
-        int n = items / perPage;
-
-        if (items % perPage > 0) {
-            n++;
-        }
-        this.totalPages = n;
-        return n;
     }
 
     public int itemsOnPage(int totalItems) {
@@ -139,5 +126,34 @@ public class Paginator {
 
     public int page() {
         return page;
+    }
+
+    public int setTotalPages(int items) {
+        if (items < 1) {
+            return totalPages;
+        }
+        int n = items / perPage;
+
+        if (items % perPage > 0) {
+            n++;
+        }
+        this.totalPages = n;
+        return n;
+    }
+
+    public void setActiveDot(String activeDot) {
+        this.activeDot = activeDot;
+    }
+
+    public void setInactiveDot(String inactiveDot) {
+        this.inactiveDot = inactiveDot;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public void setPerPage(int perPage) {
+        this.perPage = perPage;
     }
 }

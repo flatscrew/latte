@@ -6,8 +6,8 @@ public class KeyMap {
 
     public static KeyMap defaultKeyMap() {
         return new KeyMap(
-                new Binding(Binding.withKeys()),
-                new Binding(Binding.withKeys())
+                new Binding(Binding.withKeys(68, 53, 'h')),
+                new Binding(Binding.withKeys(67, 54, 'l'))
         );
     }
 
