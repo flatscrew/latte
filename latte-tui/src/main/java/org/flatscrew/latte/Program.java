@@ -35,6 +35,7 @@ public class Program {
     private final CommandExecutor commandExecutor;
     private final InputHandler inputHandler;
 
+    private Throwable lastError;
     private volatile Model currentModel;
     private final Renderer renderer;
     private final Terminal terminal;
@@ -134,6 +135,10 @@ public class Program {
         } catch (IOException e) {
             throw new ProgramException(e);
         }
+
+        if (lastError != null) {
+            throw new ProgramException(lastError);
+        }
     }
 
     private void handleTerminationSignals() {
@@ -182,7 +187,8 @@ public class Program {
                                     (f1, f2) -> f1.thenCompose(__ -> f2)
                             ).join();
                 } else if (msg instanceof ErrorMessage errorMessage) {
-                    throw new ProgramException(errorMessage.error());
+                    this.lastError = errorMessage.error();
+                    return currentModel;
                 } else if (msg instanceof CheckWindowSizeMessage) {
                     commandExecutor.executeIfPresent(this::checkSize, this::send, this::sendError);
                 }

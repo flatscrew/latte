@@ -9,6 +9,7 @@ import org.flatscrew.latte.spice.timer.StartStopMessage;
 import org.flatscrew.latte.spice.timer.TickMessage;
 import org.flatscrew.latte.spice.timer.Timer;
 
+// FIXME THIS IS NOT FUNCTIONAL!
 public class TimerExample implements Model {
 
     private Model timer;
@@ -32,7 +33,7 @@ public class TimerExample implements Model {
             UpdateResult<? extends Model> updateResult = timer.update(msg);
             this.timer = updateResult.model();
         }
-        return null;
+        return UpdateResult.from(this);
     }
 
     @Override
