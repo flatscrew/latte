@@ -26,7 +26,6 @@ public class Style implements Cloneable {
         return defaultRenderer.newStyle();
     }
 
-
     private final Renderer renderer;
 
     private String value;
