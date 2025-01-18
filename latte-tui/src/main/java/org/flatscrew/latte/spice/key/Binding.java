@@ -2,17 +2,19 @@ package org.flatscrew.latte.spice.key;
 
 import org.flatscrew.latte.message.KeyPressMessage;
 
-import java.util.function.Consumer;
-
 public class Binding {
+
+    public interface BindingOption {
+        void apply(Binding binding);
+    }
 
     private int[] keys;
     private Help help;
     private boolean enabled;
 
-    public Binding(Consumer<Binding>... opts) {
-        for (Consumer<Binding> option : opts) {
-            option.accept(this);
+    public Binding(BindingOption... opts) {
+        for (BindingOption option : opts) {
+            option.apply(this);
         }
         this.enabled = true;
     }
@@ -35,11 +37,11 @@ public class Binding {
         return false;
     }
 
-    public static Consumer<Binding> withKeys(int... keys) {
+    public static BindingOption withKeys(int... keys) {
         return binding -> binding.keys = keys;
     }
 
-    public static Consumer<Binding> withHelp(String key, String desc) {
+    public static BindingOption withHelp(String key, String desc) {
         return binding -> binding.help = new Help(key, desc);
     }
 

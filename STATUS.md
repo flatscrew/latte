@@ -42,7 +42,7 @@ conform it
 | mouse             | `🟢 Done`        |                                                                                                                  |
 | package-manager   | `⚪ TODO`         | Needs **progress** bubble.                                                                                       |
 | pager             | `⚪ TODO`         | Needs **viewport** bubble.                                                                                       |
-| paginator         | `⚪ TODO`         | Needs **paginator** bubble.                                                                                      |
+| paginator         | `⚪ TODO`         | `🟢 Done`                                                                                                        |
 | pipe              | `⚪ TODO`         | Needs **textinput** bubble.                                                                                      |
 | prevent-quit      | `⚪ TODO`         | Needs **help**, **key** and **textarea** bubbles.                                                                |
 | progress-animated | `⚪ TODO`         | Needs **progress** bubble.                                                                                       |
@@ -82,7 +82,7 @@ This table covers all the Bubble's ported so far. The same status labels apply.
 | help       | `⚪ TODO`  |                                                                                     |
 | key        | `🟢 Done` |                                                                                     |
 | list       | `⚪ TODO`  | Needs **help**, **paginator** and **textinput** bubbles and **list** from lipgloss. |
-| paginator  | `⚪ TODO`  |                                                                                     |
+| paginator  | `🟢 Done` |                                                                                     |
 | progress   | `⚪ TODO`  |                                                                                     |
 | runeutil   | `⚪ TODO`  |                                                                                     |
 | spinner    | `🟢 Done` |                                                                                     |
