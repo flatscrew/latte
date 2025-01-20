@@ -45,9 +45,9 @@ class PaginatorTest {
 
         // when
         if (paginator.totalPages() != initialTotal) {
-            paginator.setTotalPages(initialTotal);
+            paginator.totalPages(initialTotal);
         }
-        paginator.setTotalPages(items);
+        paginator.totalPages(items);
 
         // then
         assertThat(paginator.totalPages()).isEqualTo(expected);
@@ -67,7 +67,7 @@ class PaginatorTest {
     void test_PrevPage(String name, int totalPages, int page, int expected) {
         // given
         Paginator paginator = new Paginator();
-        paginator.setTotalPages(totalPages);
+        paginator.totalPages(totalPages);
         paginator.setPage(page);
 
         // when
@@ -89,7 +89,7 @@ class PaginatorTest {
     void test_NextPage(String name, int totalPages, int page, int expected) {
         // given
         Paginator paginator = new Paginator();
-        paginator.setTotalPages(totalPages);
+        paginator.totalPages(totalPages);
         paginator.setPage(page);
 
         // when
@@ -111,7 +111,7 @@ class PaginatorTest {
     void test_OnLastPage(String name, int page, int totalPages, boolean expected) {
         // given
         Paginator paginator = new Paginator();
-        paginator.setTotalPages(totalPages);
+        paginator.totalPages(totalPages);
         paginator.setPage(page);
 
         // when
@@ -133,7 +133,7 @@ class PaginatorTest {
     void test_OnFirstPage(String name, int page, int totalPages, boolean expected) {
         // given
         Paginator paginator = new Paginator();
-        paginator.setTotalPages(totalPages);
+        paginator.totalPages(totalPages);
         paginator.setPage(page);
 
         // when
@@ -156,7 +156,7 @@ class PaginatorTest {
         // given
         Paginator paginator = new Paginator();
         paginator.setPage(currentPage);
-        paginator.setTotalPages(totalPages);
+        paginator.totalPages(totalPages);
 
         // when
         int actualItems = paginator.itemsOnPage(totalItems);

@@ -364,7 +364,6 @@ public class Style implements Cloneable {
             style = style.inverse();
         }
 
-
         List<String> strs = new ArrayList<>(List.of(strings));
         if (value != null && !value.isEmpty()) {
             strs.addFirst(value);

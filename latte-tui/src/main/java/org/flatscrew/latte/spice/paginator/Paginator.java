@@ -128,7 +128,7 @@ public class Paginator {
         return page;
     }
 
-    public int setTotalPages(int items) {
+    public int totalPages(int items) {
         if (items < 1) {
             return totalPages;
         }
@@ -141,19 +141,19 @@ public class Paginator {
         return n;
     }
 
-    public void setActiveDot(String activeDot) {
+    public void activeDot(String activeDot) {
         this.activeDot = activeDot;
     }
 
-    public void setInactiveDot(String inactiveDot) {
+    public void inactiveDot(String inactiveDot) {
         this.inactiveDot = inactiveDot;
     }
 
-    public void setType(Type type) {
+    public void type(Type type) {
         this.type = type;
     }
 
-    public void setPerPage(int perPage) {
+    public void perPage(int perPage) {
         this.perPage = perPage;
     }
 }

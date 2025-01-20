@@ -27,15 +27,16 @@ public class PaginatorExample implements Model {
         }
 
         this.paginator = new Paginator();
-        paginator.setType(Type.Dots);
-        paginator.setPerPage(10);
-        paginator.setTotalPages(items.length);
+        paginator.type(Type.Dots);
+        paginator.perPage(10);
+        paginator.totalPages(items.length);
     }
 
     @Override
     public Command init() {
-        paginator.setActiveDot(Style.newStyle().foreground(new AdaptiveColor("235", "252")).render("•"));
-        paginator.setInactiveDot(Style.newStyle().foreground(new AdaptiveColor("250", "238")).render("•"));
+        // cannot render until terminal info is provided
+        paginator.activeDot(Style.newStyle().foreground(new AdaptiveColor("235", "252")).render("•"));
+        paginator.inactiveDot(Style.newStyle().foreground(new AdaptiveColor("250", "238")).render("•"));
 
         return null;
     }
