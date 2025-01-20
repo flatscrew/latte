@@ -28,6 +28,10 @@ public class Binding {
         this.help = null;
     }
 
+    public Help help() {
+        return help;
+    }
+
     public boolean matches(KeyPressMessage keyPressMessage) {
         for (int bindingKey : keys) {
             if (keyPressMessage.key() == bindingKey) {
