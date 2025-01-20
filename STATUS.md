@@ -79,7 +79,7 @@ This table covers all the Bubble's ported so far. The same status labels apply.
 | cursor     | `🟢 Done` |                                                                                     |
 | filepicker | `⚪ TODO`  |                                                                                     |
 | filepicker | `⚪ TODO`  |                                                                                     |
-| help       | `⚪ TODO`  |                                                                                     |
+| help       | `🟢 Done` |                                                                                     |
 | key        | `🟢 Done` |                                                                                     |
 | list       | `⚪ TODO`  | Needs **help**, **paginator** and **textinput** bubbles and **list** from lipgloss. |
 | paginator  | `🟢 Done` |                                                                                     |
