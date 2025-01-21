@@ -29,7 +29,7 @@ public class SpinnerExample implements Model {
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof KeyPressMessage keyPressMessage) {
             return switch (keyPressMessage.key()) {
-                case 'q', 'Q' -> new UpdateResult<>(this, QuitMessage::new);
+                case "q", "Q" -> new UpdateResult<>(this, QuitMessage::new);
                 default -> new UpdateResult<>(this, null);
             };
         }

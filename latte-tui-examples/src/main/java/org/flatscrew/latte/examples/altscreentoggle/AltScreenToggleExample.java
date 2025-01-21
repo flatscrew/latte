@@ -48,11 +48,11 @@ public class AltScreenToggleExample implements Model {
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof KeyPressMessage keyPressMessage) {
             return switch (keyPressMessage.key()) {
-                case 'q', 'Q' -> {
+                case "q", "Q" -> {
                     quitting = true;
                     yield new UpdateResult<>(this, QuitMessage::new);
                 }
-                case ' ' -> {
+                case " " -> {
                     Command cmd;
                     if (altScreen) {
                         cmd = ExitAltScreen::new;

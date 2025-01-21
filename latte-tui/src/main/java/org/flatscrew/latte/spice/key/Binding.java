@@ -5,13 +5,13 @@ import org.flatscrew.latte.message.KeyPressMessage;
 public class Binding {
 
     public interface BindingOption {
+
         void apply(Binding binding);
     }
+    private String[] keys;
 
-    private int[] keys;
     private Help help;
     private boolean enabled;
-
     public Binding(BindingOption... opts) {
         for (BindingOption option : opts) {
             option.apply(this);
@@ -24,7 +24,7 @@ public class Binding {
     }
 
     public void unbind() {
-        this.keys = new int[0];
+        this.keys = new String[0];
         this.help = null;
     }
 
@@ -33,15 +33,15 @@ public class Binding {
     }
 
     public boolean matches(KeyPressMessage keyPressMessage) {
-        for (int bindingKey : keys) {
-            if (keyPressMessage.key() == bindingKey) {
+        for (String bindingKey : keys) {
+            if (bindingKey.equals(keyPressMessage.key())) {
                 return true;
             }
         }
         return false;
     }
 
-    public static BindingOption withKeys(int... keys) {
+    public static BindingOption withKeys(String... keys) {
         return binding -> binding.keys = keys;
     }
 

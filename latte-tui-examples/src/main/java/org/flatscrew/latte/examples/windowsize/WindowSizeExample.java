@@ -21,7 +21,7 @@ public class WindowSizeExample implements Model {
     @Override
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof KeyPressMessage keyPressMessage) {
-            if (keyPressMessage.key() == 'q') {
+            if (keyPressMessage.key().equals("q")) {
                 return UpdateResult.from(this, QuitMessage::new);
             }
             return UpdateResult.from(this, CheckWindowSizeMessage::new);

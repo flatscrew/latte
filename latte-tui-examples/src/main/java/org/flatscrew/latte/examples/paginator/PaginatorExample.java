@@ -44,8 +44,8 @@ public class PaginatorExample implements Model {
     @Override
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof KeyPressMessage keyPressMessage) {
-            int key = keyPressMessage.key();
-            if (key == 'q' || key == 'Q') {
+            String key = keyPressMessage.key();
+            if (key.equals("q") || key.equals("Q")) {
                 return new UpdateResult<>(this, QuitMessage::new);
             }
         }

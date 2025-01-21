@@ -8,6 +8,7 @@ import org.flatscrew.latte.UpdateResult;
 import org.flatscrew.latte.input.MouseMessage;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
+import org.flatscrew.latte.message.UnknownSequenceMessage;
 
 import static org.flatscrew.latte.Command.printf;
 
@@ -30,9 +31,18 @@ public class MouseExample implements Model {
                             mouseMessage.describe())
             );
         } else if (msg instanceof KeyPressMessage keyPressMessage) {
-            if (keyPressMessage.key() == 'q') {
+            if (keyPressMessage.key().equals("q")) {
                 return UpdateResult.from(this, QuitMessage::new);
             }
+            return UpdateResult.from(
+                    this,
+                    printf("key: %s, alt: %s", keyPressMessage.key(), keyPressMessage.alt() ? "true" : "false")
+            );
+        } else if (msg instanceof UnknownSequenceMessage unknownSequence) {
+            return UpdateResult.from(
+                    this,
+                    printf("unknown sequence: %s", unknownSequence.sequence())
+            );
         }
         return UpdateResult.from(this);
     }
@@ -44,7 +54,7 @@ public class MouseExample implements Model {
 
     public static void main(String[] args) {
         new Program(new MouseExample())
-                .withMouseAllMotion()
+//                .withMouseAllMotion()
                 .run();
     }
 }

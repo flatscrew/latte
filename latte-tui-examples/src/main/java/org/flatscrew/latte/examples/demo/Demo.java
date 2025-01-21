@@ -27,10 +27,10 @@ public class Demo implements Model {
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof KeyPressMessage keyPressMessage) {
             return switch (keyPressMessage.key()) {
-                case 'k', 'K', 65 -> UpdateResult.from(this.moveUp());
-                case 'j', 'J', 66 -> UpdateResult.from(this.moveDown());
-                case 13 -> UpdateResult.from(this.makeChoice(), QuitMessage::new);
-                case 'q', 'Q' -> UpdateResult.from(this, QuitMessage::new);
+                case "k", "K", "up" -> UpdateResult.from(this.moveUp());
+                case "j", "J", "down" -> UpdateResult.from(this.moveDown());
+                case "enter" -> UpdateResult.from(this.makeChoice(), QuitMessage::new);
+                case "q", "Q" -> UpdateResult.from(this, QuitMessage::new);
                 default -> UpdateResult.from(this);
             };
         }

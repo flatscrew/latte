@@ -33,10 +33,10 @@ public class ExamplesRunner implements Model {
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof KeyPressMessage keyPressMessage) {
             return switch (keyPressMessage.key()) {
-                case 'k', 'K', 65 -> new UpdateResult<>(this.moveUp(), null);
-                case 'j', 'J', 66 -> new UpdateResult<>(this.moveDown(), null);
-                case 13 -> new UpdateResult<>(this.makeChoice(), null);
-                case 'q', 'Q' -> new UpdateResult<>(this, QuitMessage::new);
+                case "k", "K", "up" -> new UpdateResult<>(this.moveUp(), null);
+                case "j", "J", "down" -> new UpdateResult<>(this.moveDown(), null);
+                case "enter" -> new UpdateResult<>(this.makeChoice(), null);
+                case "Q" -> new UpdateResult<>(this, QuitMessage::new);
                 default -> new UpdateResult<>(this, null);
             };
         }
