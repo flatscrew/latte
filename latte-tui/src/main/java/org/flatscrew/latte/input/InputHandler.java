@@ -74,7 +74,9 @@ public class InputHandler {
                         messageConsumer.accept(new KeyPressMessage(new Key(KeyAliases.getKeyType(KeyAliases.KeyAlias.KeyEscape), new char[]{'\u001b'}, false)));
                         continue;
                     } else {
-                        altPressed = true;
+                        if (!altPressed) {
+                            altPressed = true;
+                        }
                         handleControlSequence(reader, (char) nextChar);
                     }
                     continue;
@@ -95,7 +97,9 @@ public class InputHandler {
                         messageConsumer.accept(new KeyPressMessage(new Key(key.type())));
                     } else {
                         messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{(char) input}, altPressed)));
-                        altPressed = false;
+                        if (altPressed) {
+                            altPressed = false;
+                        }
                     }
                 }
             }
@@ -120,8 +124,8 @@ public class InputHandler {
             if (key != null) {
                 messageConsumer.accept(new KeyPressMessage(key));
             } else {
-                altPressed = true;
-                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, altPressed)));
+//                altPressed = true;
+                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, true)));
             }
             return;
         }
@@ -133,8 +137,8 @@ public class InputHandler {
             if (key != null) {
                 messageConsumer.accept(new KeyPressMessage(new Key(key.type())));
             } else {
-                altPressed = true;
-                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, altPressed)));
+//                altPressed = true;
+                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, true)));
             }
             return;
         }
@@ -173,12 +177,15 @@ public class InputHandler {
             if (ch <= 0) break;
 
             if (ch == 27) {
-                altPressed = false;
                 Key key = ExtendedSequences.getKey(sequence.toString());
                 if (key != null) {
                     messageConsumer.accept(new KeyPressMessage(key));
                 } else {
                     messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, sequence.toString().toCharArray(), altPressed)));
+                }
+
+                if (altPressed) {
+                    altPressed = false;
                 }
                 sequence = new StringBuilder();
             }
