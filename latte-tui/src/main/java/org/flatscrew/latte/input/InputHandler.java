@@ -74,9 +74,6 @@ public class InputHandler {
                         messageConsumer.accept(new KeyPressMessage(new Key(KeyAliases.getKeyType(KeyAliases.KeyAlias.KeyEscape), new char[]{'\u001b'}, false)));
                         continue;
                     } else {
-                        if (!altPressed) {
-                            altPressed = true;
-                        }
                         handleControlSequence(reader, (char) nextChar);
                     }
                     continue;
@@ -97,10 +94,11 @@ public class InputHandler {
                         messageConsumer.accept(new KeyPressMessage(new Key(key.type())));
                     } else {
                         messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{(char) input}, altPressed)));
-                        if (altPressed) {
-                            altPressed = false;
-                        }
                     }
+                }
+
+                if (altPressed) {
+                    altPressed = false;
                 }
             }
         } catch (IOException e) {
@@ -124,8 +122,8 @@ public class InputHandler {
             if (key != null) {
                 messageConsumer.accept(new KeyPressMessage(key));
             } else {
-//                altPressed = true;
-                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, true)));
+                altPressed = true;
+                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, altPressed)));
             }
             return;
         }
@@ -137,8 +135,8 @@ public class InputHandler {
             if (key != null) {
                 messageConsumer.accept(new KeyPressMessage(new Key(key.type())));
             } else {
-//                altPressed = true;
-                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, true)));
+                altPressed = true;
+                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, altPressed)));
             }
             return;
         }
