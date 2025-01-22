@@ -67,11 +67,18 @@ public class TextInput implements Model {
         this.placeholderStyle = Style.newStyle().foreground(Color.color("240"));
         this.showSuggestions = false;
         this.completionStyle = Style.newStyle().foreground(Color.color("240"));
+        this.promptStyle = Style.newStyle();
+        this.textStyle = Style.newStyle();
         this.cursor = new Cursor();
         this.keyMap = new KeyMap();
+        this.sanitizer = new Sanitizer(
+                Sanitizer.replaceTabs(" "),
+                Sanitizer.replaceNewlines(" ")
+        );
 
         this.suggestions = new char[][]{};
-        this.value = null;
+        this.matchedSuggestions = new char[][]{};
+        this.value = new char[0];
         this.focus = false;
         this.pos = 0;
     }
@@ -690,5 +697,21 @@ public class TextInput implements Model {
             return "";
         }
         return new String(matchedSuggestions[currentSuggestionIndex]);
+    }
+
+    public void setShowSuggestions(boolean showSuggestions) {
+        this.showSuggestions = showSuggestions;
+    }
+
+    public void setPlaceholder(String placeholder) {
+        this.placeholder = placeholder;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public void setCharLimit(int charLimit) {
+        this.charLimit = charLimit;
     }
 }
