@@ -103,7 +103,7 @@ public class Cursor implements Model {
         };
     }
 
-    private Message blink() {
+    public Message blink() {
         return new InitialBlinkMessage();
     }
 
@@ -139,6 +139,10 @@ public class Cursor implements Model {
         return null;
     }
 
+    public Mode mode() {
+        return mode;
+    }
+
     public void setBlinkSpeed(Duration blinkSpeed) {
         this.blinkSpeed = blinkSpeed;
     }
@@ -153,5 +157,9 @@ public class Cursor implements Model {
 
     public void setChar(String charUnderCursor) {
         this.charUnderCursor = charUnderCursor;
+    }
+
+    public void setBlink(boolean blink) {
+        this.blink = blink;
     }
 }

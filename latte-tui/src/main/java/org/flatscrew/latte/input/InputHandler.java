@@ -122,8 +122,7 @@ public class InputHandler {
             if (key != null) {
                 messageConsumer.accept(new KeyPressMessage(key));
             } else {
-                altPressed = true;
-                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, altPressed)));
+                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, true)));
             }
             return;
         }

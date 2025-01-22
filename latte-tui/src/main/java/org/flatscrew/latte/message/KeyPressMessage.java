@@ -15,6 +15,10 @@ public class KeyPressMessage implements Message {
         return key.toString();
     }
 
+    public char[] runes() {
+        return key.runes();
+    }
+
     public boolean alt() {
         return key.alt();
     }

@@ -39,4 +39,68 @@ public class KeyMap {
         this.nextSuggestion = new Binding(Binding.withKeys("down", "ctrl+n"));
         this.prevSuggestion = new Binding(Binding.withKeys("up", "ctrl+p"));
     }
+
+    public Binding characterForward() {
+        return characterForward;
+    }
+
+    public Binding characterBackward() {
+        return characterBackward;
+    }
+
+    public Binding wordForward() {
+        return wordForward;
+    }
+
+    public Binding wordBackward() {
+        return wordBackward;
+    }
+
+    public Binding deleteWordBackward() {
+        return deleteWordBackward;
+    }
+
+    public Binding deleteWordForward() {
+        return deleteWordForward;
+    }
+
+    public Binding deleteAfterCursor() {
+        return deleteAfterCursor;
+    }
+
+    public Binding deleteBeforeCursor() {
+        return deleteBeforeCursor;
+    }
+
+    public Binding deleteCharacterBackward() {
+        return deleteCharacterBackward;
+    }
+
+    public Binding deleteCharacterForward() {
+        return deleteCharacterForward;
+    }
+
+    public Binding lineStart() {
+        return lineStart;
+    }
+
+    public Binding lineEnd() {
+        return lineEnd;
+    }
+
+    public Binding paste() {
+        return paste;
+    }
+
+    public Binding acceptSuggestion() {
+        return acceptSuggestion;
+    }
+
+    public Binding nextSuggestion() {
+        return nextSuggestion;
+    }
+
+    public Binding prevSuggestion() {
+        return prevSuggestion;
+    }
 }
