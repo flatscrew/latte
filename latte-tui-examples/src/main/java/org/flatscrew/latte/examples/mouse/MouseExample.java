@@ -54,7 +54,7 @@ public class MouseExample implements Model {
 
     public static void main(String[] args) {
         new Program(new MouseExample())
-//                .withMouseAllMotion()
+                .withMouseAllMotion()
                 .run();
     }
 }

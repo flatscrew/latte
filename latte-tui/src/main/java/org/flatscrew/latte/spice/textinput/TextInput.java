@@ -11,7 +11,7 @@ import org.flatscrew.latte.cream.Style;
 import org.flatscrew.latte.cream.color.Color;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.spice.cursor.Cursor;
-import org.flatscrew.latte.spice.cursor.Mode;
+import org.flatscrew.latte.spice.cursor.CursorMode;
 import org.flatscrew.latte.spice.key.Binding;
 import org.flatscrew.latte.spice.runeutil.Sanitizer;
 
@@ -41,7 +41,6 @@ public class TextInput implements Model {
     private Style textStyle;
     private Style placeholderStyle;
     private Style completionStyle;
-    private Style cursorStyle;
 
     private int charLimit;
     private int width;
@@ -63,6 +62,7 @@ public class TextInput implements Model {
     public TextInput() {
         this.prompt = "> ";
         this.echoCharacter = '*';
+        this.echoMode = EchoMode.EchoNormal;
         this.charLimit = 0;
         this.placeholderStyle = Style.newStyle().foreground(Color.color("240"));
         this.showSuggestions = false;
@@ -81,6 +81,14 @@ public class TextInput implements Model {
         this.value = new char[0];
         this.focus = false;
         this.pos = 0;
+    }
+
+    public void setPromptStyle(Style promptStyle) {
+        this.promptStyle = promptStyle;
+    }
+
+    public void setTextStyle(Style textStyle) {
+        this.textStyle = textStyle;
     }
 
     public void setValue(String value) {
@@ -245,10 +253,10 @@ public class TextInput implements Model {
             this.offsetRight = pos;
 
             int w = 0;
-            char[] runes = Arrays.copyOfRange(value, offsetRight, value.length);
+            char[] runes = Arrays.copyOfRange(value, 0, offsetRight);
             int i = runes.length - 1;
 
-            while (i > 0 && width < 0) {
+            while (i > 0 && w < this.width) {
                 w += TextWidth.measureCellWidth(String.valueOf(runes[i]));
                 if (w <= this.width) {
                     i--;
@@ -497,6 +505,7 @@ public class TextInput implements Model {
             } else if (Binding.matches(keyPressMessage, keyMap.prevSuggestion())) {
                 previousSuggestion();
             } else {
+                // also handles paste
                 insertRunesFromUserInput(keyPressMessage.runes());
             }
 
@@ -507,10 +516,11 @@ public class TextInput implements Model {
         List<Command> commands = new LinkedList<>();
         Command command = null;
 
-        UpdateResult<? extends Model> cursorUpdateResult = cursor.update(msg);
+        UpdateResult<Cursor> cursorUpdateResult = cursor.update(msg);
+        this.cursor = cursorUpdateResult.model();
         commands.add(cursorUpdateResult.command());
 
-        if (oldPos != pos && cursor.mode() == Mode.CursorBlink) {
+        if (oldPos != pos && cursor.mode() == CursorMode.Blink) {
             cursor.setBlink(false);
             commands.add(cursor.blinkCommand());
         }
@@ -529,6 +539,7 @@ public class TextInput implements Model {
         if (value.length == 0 && placeholder != null && !placeholder.isEmpty()) {
             return placeholderView();
         }
+        cursor.resetTextStyle();
 
         Style styleText = textStyle.copy().inline(true);
 
@@ -536,7 +547,7 @@ public class TextInput implements Model {
         int pos = Math.max(0, this.pos - offset);
         String v = styleText.render(
                 echoTransform(
-                        String.valueOf(Arrays.copyOfRange(value, pos + 1, value.length))
+                        String.valueOf(Arrays.copyOfRange(value, 0, pos))
                 )
         );
 
@@ -570,7 +581,7 @@ public class TextInput implements Model {
         if (width > 0 && valWidth < width) {
             int padding = Math.max(0, this.width - valWidth);
             if (valWidth + padding <= this.width && pos < value.length) {
-                padding ++;
+                padding++;
             }
             v += styleText.render(" ".repeat(padding));
         }
@@ -583,7 +594,11 @@ public class TextInput implements Model {
         Style style = placeholderStyle.copy().inline(true);
 
         char[] p = new char[width + 1];
-        System.arraycopy(placeholder.toCharArray(), 0, p, 0, Math.min(placeholder.length(), p.length));
+        char[] placeholder = this.placeholder.toCharArray();
+        if (placeholder.length > width + 1) {
+            p = new char[placeholder.length];
+        }
+        System.arraycopy(placeholder, 0, p, 0, placeholder.length);
 
         cursor.setTextStyle(placeholderStyle.copy());
         cursor.setChar(String.valueOf(p[0]));
@@ -594,7 +609,7 @@ public class TextInput implements Model {
         }
 
         if (width > 0) {
-            int minWidth = Size.width(placeholder);
+            int minWidth = Size.width(this.placeholder);
             int availWidth = width - minWidth + 1;
 
             if (availWidth < 0) {
@@ -602,6 +617,7 @@ public class TextInput implements Model {
                 availWidth = 0;
             }
 
+            v += style.render(String.valueOf(Arrays.copyOfRange(p, 1, minWidth)));
             v += style.render(" ".repeat(availWidth));
         } else {
             // If no width is set, the placeholder can be any length
@@ -612,7 +628,7 @@ public class TextInput implements Model {
     }
 
     public Message blink() {
-        return cursor.blink();
+        return Cursor.blink();
     }
 
     public String completionView(int offset) {
@@ -713,5 +729,17 @@ public class TextInput implements Model {
 
     public void setCharLimit(int charLimit) {
         this.charLimit = charLimit;
+    }
+
+    public void setEchoMode(EchoMode echoMode) {
+        this.echoMode = echoMode;
+    }
+
+    public void setEchoCharacter(char echoCharacter) {
+        this.echoCharacter = echoCharacter;
+    }
+
+    public Cursor cursor() {
+        return cursor;
     }
 }

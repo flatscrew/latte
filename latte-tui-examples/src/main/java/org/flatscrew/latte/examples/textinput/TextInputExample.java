@@ -6,6 +6,8 @@ import org.flatscrew.latte.Model;
 import org.flatscrew.latte.Program;
 import org.flatscrew.latte.UpdateResult;
 import org.flatscrew.latte.input.key.KeyAliases;
+import org.flatscrew.latte.input.key.KeyAliases.KeyAlias;
+import org.flatscrew.latte.input.key.KeyType;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.spice.textinput.TextInput;
@@ -30,9 +32,9 @@ public class TextInputExample implements Model {
     @Override
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof KeyPressMessage keyPressMessage) {
-            if (KeyAliases.getKeyType(KeyAliases.KeyAlias.KeyEnter) == keyPressMessage.type()
-                    || KeyAliases.getKeyType(KeyAliases.KeyAlias.KeyCtrlC) == keyPressMessage.type()
-                    || KeyAliases.getKeyType(KeyAliases.KeyAlias.KeyEscape) == keyPressMessage.type()) {
+            if (KeyAliases.getKeyType(KeyAlias.KeyEnter) == keyPressMessage.type()
+                    || KeyAliases.getKeyType(KeyAlias.KeyCtrlC) == keyPressMessage.type()
+                    || KeyType.keyESC == keyPressMessage.type()) {
                 return UpdateResult.from(this, QuitMessage::new);
             }
         }

@@ -1,5 +1,7 @@
 package org.flatscrew.latte.spice.runeutil;
 
+import com.ibm.icu.lang.UCharacter;
+
 import java.util.function.Consumer;
 
 public class Sanitizer {
@@ -63,6 +65,6 @@ public class Sanitizer {
     }
 
     private static boolean isLatinLetter(char c) {
-        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+        return !UCharacter.isISOControl(c);
     }
 }

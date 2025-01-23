@@ -71,7 +71,7 @@ public class InputHandler {
                     int nextChar = reader.read(READ_TIMEOUT_MS);
                     if (nextChar < 0) {
                         // If no character follows within timeout, it's a standalone ESC
-                        messageConsumer.accept(new KeyPressMessage(new Key(KeyAliases.getKeyType(KeyAliases.KeyAlias.KeyEscape), new char[]{'\u001b'}, false)));
+                        messageConsumer.accept(new KeyPressMessage(new Key(KeyAliases.getKeyType(KeyAliases.KeyAlias.KeyEscape))));
                         continue;
                     } else {
                         handleControlSequence(reader, (char) nextChar);
@@ -79,22 +79,12 @@ public class InputHandler {
                     continue;
                 }
 
-                if (input > 127) {
-                    char baseChar = (char) input;
-                    if (isAscii(baseChar)) {
-                        // Treat as Alt + key for ASCII characters
-                        messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{(char) (input - 128)}, altPressed)));
-                    } else {
-                        messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{baseChar}, altPressed)));
-                    }
+                // Regular character press
+                Key key = ExtendedSequences.getKey(String.valueOf((char) input));
+                if (key != null) {
+                    messageConsumer.accept(new KeyPressMessage(new Key(key.type(), key.runes())));
                 } else {
-                    // Regular character press
-                    Key key = ExtendedSequences.getKey(String.valueOf((char) input));
-                    if (key != null) {
-                        messageConsumer.accept(new KeyPressMessage(new Key(key.type())));
-                    } else {
-                        messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{(char) input}, altPressed)));
-                    }
+                    messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{(char) input}, altPressed)));
                 }
 
                 if (altPressed) {
@@ -106,10 +96,6 @@ public class InputHandler {
                 throw new ProgramException("Unable to initialize keyboard input", e);
             }
         }
-    }
-
-    private boolean isAscii(char c) {
-        return c >= 32 && c <= 126;
     }
 
     private void handleControlSequence(NonBlockingReader reader, char firstChar) throws IOException {
@@ -154,18 +140,6 @@ public class InputHandler {
             case '<': // SGR Mouse Event
                 handleSGRMouseEvent(reader);
                 return;
-            case 'A': // Up arrow
-                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyUp)));
-                return;
-            case 'B': // Down arrow
-                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyDown)));
-                return;
-            case 'C': // Right arrow
-                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRight)));
-                return;
-            case 'D': // Left arrow
-                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyLeft)));
-                return;
         }
 
         // If not matched, continue reading the rest of the sequence
@@ -186,12 +160,7 @@ public class InputHandler {
                 }
                 sequence = new StringBuilder();
             }
-
             sequence.append((char) ch);
-
-            if (ch == 'M' || ch == 'm') { // End of a mouse sequence
-                break;
-            }
         }
 
         // Attempt to resolve the sequence

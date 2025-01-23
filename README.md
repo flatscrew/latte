@@ -22,6 +22,20 @@ Everything starts with a **model** - an implementation of `org.flatscrew.latte.M
 - **update**, a method that handles incoming events and updates theh model accordingly,
 - **view**, that renders the UI based on the data in the model.
   
+```mermaid
+graph TD
+    I[Init] -->|Command| ML[Main Loop]
+    ML -->|Message| U[Update]
+    U -->|Command| ML
+    ML -->|Model| V[View]
+    
+    style I fill:#bfb,stroke:#fff,color:#000
+    style U fill:#bbf,stroke:#fff,color:#000
+    style V fill:#f9f,stroke:#fff,color:#000
+    style ML fill:#fbb,stroke:#fff,color:#000
+```
+
+  
 ### The Model
 So let's start by deifning our model which will store our application's state. It can be any time imlementing `org.flatscrew.latte.Model` interface.
 
