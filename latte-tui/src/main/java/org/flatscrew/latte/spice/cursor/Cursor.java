@@ -37,27 +37,27 @@ public class Cursor implements Model {
     private int blinkTag;
     private boolean focus;
     private boolean blink;
-    private Mode mode;
+    private CursorMode mode;
 
     public Cursor() {
         this.id = 0;
         this.blinkSpeed = DEFAULT_BLINK_SPEEd;
         this.blink = true;
         this.focus = true;
-        this.mode = Mode.CursorBlink;
+        this.mode = CursorMode.Blink;
         this.style = Style.newStyle();
         this.textStyle = Style.newStyle();
     }
 
     @Override
     public Command init() {
-        return this::blink;
+        return Cursor::blink;
     }
 
     @Override
-    public UpdateResult<? extends Model> update(Message msg) {
+    public UpdateResult<Cursor> update(Message msg) {
         if (msg instanceof InitialBlinkMessage) {
-            if (mode != Mode.CursorBlink || !focus) {
+            if (mode != CursorMode.Blink || !focus) {
                 return UpdateResult.from(this);
             }
             return UpdateResult.from(this, blinkCommand());
@@ -67,13 +67,13 @@ public class Cursor implements Model {
             blur();
             return UpdateResult.from(this);
         } else if (msg instanceof BlinkMessage blinkMessage) {
-            if (mode != Mode.CursorBlink || !focus) {
+            if (mode != CursorMode.Blink || !focus) {
                 return UpdateResult.from(this);
             }
             if (blinkMessage.id() != id || blinkMessage.tag() != blinkTag) {
                 return UpdateResult.from(this);
             }
-            if (mode == Mode.CursorBlink) {
+            if (mode == CursorMode.Blink) {
                 this.blink = !blink;
                 return UpdateResult.from(this, blinkCommand());
             }
@@ -85,7 +85,7 @@ public class Cursor implements Model {
     }
 
     public Command blinkCommand() {
-        if (mode != Mode.CursorBlink) {
+        if (mode != CursorMode.Blink) {
             return null;
         }
 
@@ -103,14 +103,14 @@ public class Cursor implements Model {
         };
     }
 
-    private Message blink() {
+    public static Message blink() {
         return new InitialBlinkMessage();
     }
 
     public Command focus() {
         this.focus = true;
-        this.blink = this.mode == Mode.CursorHide;
-        if (mode == Mode.CursorBlink) {
+        this.blink = this.mode == CursorMode.Hide;
+        if (mode == CursorMode.Blink) {
             return blinkCommand();
         }
         return null;
@@ -124,19 +124,23 @@ public class Cursor implements Model {
     @Override
     public String view() {
         if (blink) {
-            return textStyle.render(charUnderCursor);
+            return textStyle.inline(true).render(charUnderCursor);
         }
-        return style.reverse(true).render(charUnderCursor);
+        return style.inline(true).reverse(true).render(charUnderCursor);
     }
 
-    public Command setMode(Mode mode) {
+    public Command setMode(CursorMode mode) {
         this.mode = mode;
-        this.blink = (mode == Mode.CursorHide || !focus);
+        this.blink = (mode == CursorMode.Hide || !focus);
 
-        if (mode == Mode.CursorBlink) {
-            return this::blink;
+        if (mode == CursorMode.Blink) {
+            return Cursor::blink;
         }
         return null;
+    }
+
+    public CursorMode mode() {
+        return mode;
     }
 
     public void setBlinkSpeed(Duration blinkSpeed) {
@@ -144,14 +148,22 @@ public class Cursor implements Model {
     }
 
     public void setStyle(Style style) {
-        this.style = style;
+        this.style = style.copy();
     }
 
     public void setTextStyle(Style textStyle) {
-        this.textStyle = textStyle;
+        this.textStyle = textStyle.copy();
+    }
+
+    public void resetTextStyle() {
+        this.textStyle = Style.newStyle();
     }
 
     public void setChar(String charUnderCursor) {
         this.charUnderCursor = charUnderCursor;
+    }
+
+    public void setBlink(boolean blink) {
+        this.blink = blink;
     }
 }

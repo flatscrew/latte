@@ -48,3 +48,27 @@ The `http` example shows how to make an `http` call within your Latte applicatio
 <a href="./src/main/java/org/flatscrew/latte/examples/http/HttpExample.java">
   <img width="750" src="http-tape.gif" />
 </a>
+
+### Paginator
+
+The `paginator` example shows how to build a simple paginated list.
+
+<a href="./src/main/java/org/flatscrew/latte/examples/paginator/PaginatorExample.java">
+  <img width="750" src="paginator-tape.gif" />
+</a>
+
+### Text Input
+
+The `textinput` example demonstrates a simple Latte application using a textinput bubble.
+
+<a href="./src/main/java/org/flatscrew/latte/examples/textinput/TextInputExample.java">
+  <img width="750" src="textinput-tape.gif" />
+</a>
+
+### Multiple Text Inputs
+
+The `textinputs` example shows multiple `textinputs` and being able to switch focus between them as well as changing the cursor mode.
+
+<a href="./src/main/java/org/flatscrew/latte/examples/textinput/TextInputExample.java">
+  <img width="750" src="textinputs-tape.gif" />
+</a>

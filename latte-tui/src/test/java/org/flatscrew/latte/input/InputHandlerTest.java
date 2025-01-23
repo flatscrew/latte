@@ -55,7 +55,7 @@ class InputHandlerTest {
         assertThat(receivedMessages.getFirst()).isInstanceOf(KeyPressMessage.class);
 
         KeyPressMessage keyMessage = (KeyPressMessage) receivedMessages.getFirst();
-        assertThat(keyMessage.key()).isEqualTo('a');
+        assertThat(keyMessage.key()).isEqualTo("a");
         assertThat(keyMessage.alt()).isFalse();
     }
 
@@ -88,7 +88,7 @@ class InputHandlerTest {
         assertThat(receivedMessages.getFirst()).isInstanceOf(KeyPressMessage.class);
 
         KeyPressMessage keyMessage = (KeyPressMessage) receivedMessages.getFirst();
-        assertThat(keyMessage.key()).isEqualTo('\u001b');
+        assertThat(keyMessage.key()).isEqualTo("esc");
         assertThat(keyMessage.alt()).isFalse();
     }
 
@@ -123,7 +123,7 @@ class InputHandlerTest {
         assertThat(receivedMessages.getFirst()).isInstanceOf(KeyPressMessage.class);
 
         KeyPressMessage keyMessage = (KeyPressMessage) receivedMessages.getFirst();
-        assertThat(keyMessage.key()).isEqualTo('a');
+        assertThat(keyMessage.key()).isEqualTo("alt+a");
         assertThat(keyMessage.alt()).isTrue();
     }
 

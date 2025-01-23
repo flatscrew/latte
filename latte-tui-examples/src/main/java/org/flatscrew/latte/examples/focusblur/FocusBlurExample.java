@@ -29,10 +29,10 @@ public class FocusBlurExample implements Model {
         } else if (msg instanceof KeyPressMessage keyPress) {
 
             switch (keyPress.key()) {
-                case 't':
+                case "t":
                     this.reporting = !this.reporting;
                     break;
-                case 'q':
+                case "q":
                     return UpdateResult.from(this, QuitMessage::new);
             }
         }

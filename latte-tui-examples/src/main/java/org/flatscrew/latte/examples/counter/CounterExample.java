@@ -29,10 +29,10 @@ public class CounterExample implements Model {
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof KeyPressMessage keyPressMessage) {
             return switch (keyPressMessage.key()) {
-                case 'k', 'K', 65 -> new UpdateResult<>(this, () -> CounterMsg.INCREMENT);
-                case 'j', 'J', 66 -> new UpdateResult<>(this, () -> CounterMsg.DECREMENT);
-                case 'd', 'D' -> new UpdateResult<>(this, () -> CounterMsg.INCREMENT_LATER);
-                case 'q', 'Q' -> new UpdateResult<>(this, QuitMessage::new);
+                case "k", "K", "up" -> new UpdateResult<>(this, () -> CounterMsg.INCREMENT);
+                case "j", "J", "down" -> new UpdateResult<>(this, () -> CounterMsg.DECREMENT);
+                case "d", "D" -> new UpdateResult<>(this, () -> CounterMsg.INCREMENT_LATER);
+                case "Q" -> new UpdateResult<>(this, QuitMessage::new);
                 default -> new UpdateResult<>(this, null);
             };
         } else if (msg == CounterMsg.INCREMENT) {

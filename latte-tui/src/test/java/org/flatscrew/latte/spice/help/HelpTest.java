@@ -30,7 +30,7 @@ class HelpTest {
         help.setWidth(width);
         help.showAll(true);
 
-        Binding.BindingOption k = Binding.withKeys('x');
+        Binding.BindingOption k = Binding.withKeys("x");
 
         // Create test bindings
         Binding[][] bindings = new Binding[][]{

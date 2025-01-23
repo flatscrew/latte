@@ -3,6 +3,7 @@ package org.flatscrew.latte;
 import org.flatscrew.latte.message.BatchMessage;
 import org.flatscrew.latte.message.ClearScreenMessage;
 import org.flatscrew.latte.message.PrintLineMessage;
+import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.message.SequenceMessage;
 import org.flatscrew.latte.message.SetWindowTitleMessage;
 
@@ -66,5 +67,9 @@ public interface Command {
 
     static Command clearScreen() {
         return ClearScreenMessage::new;
+    }
+
+    static Command quit() {
+        return QuitMessage::new;
     }
 }

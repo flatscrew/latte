@@ -176,6 +176,7 @@ public class Program {
                 } else if (msg instanceof BatchMessage batchMessage) {
                     Arrays.stream(batchMessage.commands())
                             .forEach(command -> commandExecutor.executeIfPresent(command, this::send, this::sendError));
+                    continue;
                 } else if (msg instanceof SequenceMessage sequenceMessage) {
                     Arrays.stream(sequenceMessage.commands())
                             .reduce(
@@ -186,11 +187,13 @@ public class Program {
                                             ),
                                     (f1, f2) -> f1.thenCompose(__ -> f2)
                             ).join();
+                    continue;
                 } else if (msg instanceof ErrorMessage errorMessage) {
                     this.lastError = errorMessage.error();
                     return currentModel;
                 } else if (msg instanceof CheckWindowSizeMessage) {
                     commandExecutor.executeIfPresent(this::checkSize, this::send, this::sendError);
+                    continue;
                 }
 
                 // process internal messages for the renderer

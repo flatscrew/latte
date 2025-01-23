@@ -44,8 +44,8 @@ public class PaginatorExample implements Model {
     @Override
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof KeyPressMessage keyPressMessage) {
-            int key = keyPressMessage.key();
-            if (key == 'q' || key == 'Q') {
+            String key = keyPressMessage.key();
+            if (key.equals("q") || key.equals("Q")) {
                 return new UpdateResult<>(this, QuitMessage::new);
             }
         }
@@ -61,9 +61,9 @@ public class PaginatorExample implements Model {
 
         String[] range = Arrays.copyOfRange(items, sliceBounds.start(), sliceBounds.end());
         for (String item : range) {
-            view.append("  • " + item + "\n\n");
+            view.append("  • ").append(item).append("\n\n");
         }
-        view.append("  " + paginator.view());
+        view.append("  ").append(paginator.view());
         view.append("\n\n  h/l ←/→ page • q: quit\n");
 
         return view.toString();

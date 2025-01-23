@@ -1,20 +1,30 @@
 package org.flatscrew.latte.message;
 
 import org.flatscrew.latte.Message;
+import org.flatscrew.latte.input.key.Key;
+import org.flatscrew.latte.input.key.KeyType;
 
 public class KeyPressMessage implements Message {
-    private final int key;
-    private final boolean alt;
 
-    public KeyPressMessage(int key) {
-        this(key, false);
-    }
+    private final Key key;
 
-    public KeyPressMessage(int key, boolean alt) {
+    public KeyPressMessage(Key key) {
         this.key = key;
-        this.alt = alt;
     }
 
-    public int key() { return key; }
-    public boolean alt() { return alt; }
+    public String key() {
+        return key.toString();
+    }
+
+    public char[] runes() {
+        return key.runes();
+    }
+
+    public KeyType type() {
+        return key.type();
+    }
+
+    public boolean alt() {
+        return key.alt();
+    }
 }
