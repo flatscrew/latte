@@ -6,7 +6,7 @@
 
     <groupId>org.flatscrew</groupId>
     <artifactId>latte-parent</artifactId>
-    <version>0.0.7</version>
+    <version>0.0.8</version>
     <packaging>pom</packaging>
     <description>Terminal User Interface framework</description>
     <url>https://github.com/flatscrew/latte</url>
