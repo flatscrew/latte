@@ -61,9 +61,9 @@ public class PaginatorExample implements Model {
 
         String[] range = Arrays.copyOfRange(items, sliceBounds.start(), sliceBounds.end());
         for (String item : range) {
-            view.append("  • " + item + "\n\n");
+            view.append("  • ").append(item).append("\n\n");
         }
-        view.append("  " + paginator.view());
+        view.append("  ").append(paginator.view());
         view.append("\n\n  h/l ←/→ page • q: quit\n");
 
         return view.toString();
