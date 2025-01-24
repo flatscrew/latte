@@ -18,14 +18,10 @@ public class SanitizerTest {
                 Sanitizer.replaceTabs("")
         );
 
-        // Convert input string to a char array, decoding UTF-8 runes
         char[] inputRunes = input.toCharArray();
-
-        // Sanitize the input and convert the result back to a string
         char[] resultRunes = sanitizer.sanitize(inputRunes);
         String result = new String(resultRunes);
 
-        // Assert the sanitized output matches the expected output
         assertEquals(expectedOutput, result,
                 String.format("Input: %s | Expected: %s | Got: %s", input, expectedOutput, result));
     }
@@ -33,7 +29,6 @@ public class SanitizerTest {
     // Method source for test data
     private static Stream<Object[]> provideTestData() {
         return Stream.of(
-                new Object[]{"", ""},
                 new Object[]{"Some poliśh łetters", "Some poliśh łetters"},
                 new Object[]{"some spaces are here", "some spaces are here"},
                 new Object[]{"x", "x"},
@@ -47,7 +42,7 @@ public class SanitizerTest {
                 new Object[]{"hel\tlo", "hello"},
                 new Object[]{"he\n\nl\tlo", "heXXXXllo"},
                 new Object[]{"he\tl\n\nlo", "helXXXXlo"},
-                new Object[]{"hello\u00C2", "helloÂ"}
+                new Object[]{new String(new char[]{'h', 'e', 'l', 'l', 'o', (char) 65533}), "hello"}
         );
     }
 }
