@@ -21,9 +21,9 @@ public class Grid implements Model {
     private final int width;
     private final int height;
 
-    private Tetromino nextPiece = Tetromino.random();
+    private TetrominoInstance nextPiece = Tetromino.random().newInstance();
+    private TetrominoInstance currentPiece;
     private Duration tickRate;
-    private GameState gameState;
 
     public Grid(int width, int height) {
         this.width = width;
@@ -39,7 +39,7 @@ public class Grid implements Model {
 
     @Override
     public UpdateResult<? extends Model> update(Message msg) {
-        if (msg instanceof TickMessage tickMessage) {
+        if (msg instanceof TickMessage) {
             return handleTick();
         } else if (msg instanceof KeyPressMessage keyPressMessage) {
             return handleKey(keyPressMessage);
@@ -73,7 +73,7 @@ public class Grid implements Model {
     }
 
     private boolean canMove(int dx, int dy) {
-        for (Block block : gameState.blocks()) {
+        for (Block block : currentPiece.blocks()) {
             Position newPos = new Position(block.position().x() + dx, block.position().y() + dy);
             if (newPos.x() < 0 || newPos.x() >= width ||
                     newPos.y() < 0 || newPos.y() >= height) {
@@ -84,20 +84,7 @@ public class Grid implements Model {
     }
 
     private void moveBlocks(int dx, int dy) {
-        Block[] newBlocks = new Block[gameState.blocks().length];
-        for (int i = 0; i < gameState.blocks().length; i++) {
-            Block block = gameState.blocks()[i];
-            Position newPos = new Position(
-                    block.position().x() + dx,
-                    block.position().y() + dy
-            );
-            newBlocks[i] = new Block(newPos);
-        }
-        Position newOffset = new Position(
-                gameState.currentOffset().x() + dx,
-                gameState.currentOffset().y() + dy
-        );
-        this.gameState = new GameState(newBlocks, gameState.currentPiece(), newOffset);
+        currentPiece.moveTo(dx, dy);
     }
 
     @Override
@@ -108,7 +95,7 @@ public class Grid implements Model {
             Arrays.fill(grid[i], '·');
         }
 
-        for (Block block : gameState.blocks()) {
+        for (Block block : currentPiece.blocks()) {
             grid[block.position().y()][block.position().x()] = '█';
         }
 
@@ -123,30 +110,13 @@ public class Grid implements Model {
     }
 
     private void spawnNewPiece() {
-        Tetromino piece = nextPiece;
-        Position startPos = new Position(width / 2 - 4, 0);
-        this.gameState = new GameState(piece.createBlocks(startPos), piece, startPos);
-        this.nextPiece = Tetromino.random();
+        this.currentPiece = nextPiece;
+        currentPiece.moveTo(width / 2 - 4, 0);
+
+        this.nextPiece = Tetromino.random().newInstance();
     }
 
     public String nextBlockPreview() {
-        Block[] previewBlocks = nextPiece.createBlocks(new Position(0, 0));
-
-        char[][] previewGrid = new char[4][8];  // 4 rows, 8 columns for preview
-        for (char[] chars : previewGrid) {
-            Arrays.fill(chars, ' ');
-        }
-
-        for (Block block : previewBlocks) {
-            if (block.position().y() < 4 && block.position().x() < 8) {
-                previewGrid[block.position().y()][block.position().x()] = '█';
-            }
-        }
-
-        StringBuilder preview = new StringBuilder();
-        for (char[] row : previewGrid) {
-            preview.append(String.valueOf(row)).append('\n');
-        }
-        return preview.toString();
+        return nextPiece.preview(8, 2);
     }
 }

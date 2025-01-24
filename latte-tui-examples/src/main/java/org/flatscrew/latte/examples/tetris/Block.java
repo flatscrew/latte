@@ -11,4 +11,11 @@ public class Block {
     public Position position() {
         return position;
     }
+
+    public void move(int dx, int dy) {
+        this.position = new Position(
+                position().x() + dx,
+                position().y() + dy
+        );
+    }
 }
