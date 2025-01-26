@@ -10,6 +10,12 @@ Latte tends to be a Java port of Golang's [Bubble Tea](https://github.com/charmb
 
 ![Demo](latte-tui-examples/demo-tape.gif "Demo")
 
+## Examples
+See all the [examples](latte-tui-examples) ported so far and some new as well ;)
+
+![Conway](latte-tui-examples/conway-tape.gif)
+
+
 ## Porting status
 Check out [this page](STATUS.md) to see porting status.
 
