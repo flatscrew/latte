@@ -166,40 +166,46 @@ public class Grid implements Model {
     }
 
     private int removeFullLines() {
-        List<Integer> fullLines = new ArrayList<>();
+        int linesCleared = 0;
 
-        // Detect full lines
-        for (int y = 0; y < height; y++) {
+        // Start from the bottom and move upwards
+        for (int y = height - 1; y >= 0; y--) {
             boolean isFull = true;
+
+            // Check if the line is full
             for (int x = 0; x < width; x++) {
                 if (blocks[y][x] == null) {
                     isFull = false;
                     break;
                 }
             }
-            if (isFull) {
-                fullLines.add(y);
-            }
-        }
 
-        // Remove full lines and shift blocks down
-        for (int line : fullLines) {
-            for (int x = 0; x < width; x++) {
-                blocks[line][x] = null;
-            }
-            for (int y = line - 1; y >= 0; y--) {
+            if (isFull) {
+                linesCleared++;
+
+                // Clear the full line
                 for (int x = 0; x < width; x++) {
-                    blocks[y + 1][x] = blocks[y][x];
-                    if (blocks[y + 1][x] != null) {
-                        blocks[y + 1][x].move(0, 1);
-                    }
                     blocks[y][x] = null;
                 }
+
+                // Shift all rows above down
+                for (int aboveY = y - 1; aboveY >= 0; aboveY--) {
+                    for (int x = 0; x < width; x++) {
+                        blocks[aboveY + 1][x] = blocks[aboveY][x];
+                        if (blocks[aboveY + 1][x] != null) {
+                            blocks[aboveY + 1][x].move(0, 1); // Update block position
+                        }
+                        blocks[aboveY][x] = null;
+                    }
+                }
+
+                // Since we shifted everything down, recheck the same row
+                y++;
             }
         }
 
-        totalLinesCleared += fullLines.size(); // Track total cleared lines
-        return fullLines.size();
+        totalLinesCleared += linesCleared; // Update the total lines cleared
+        return linesCleared;
     }
 
 

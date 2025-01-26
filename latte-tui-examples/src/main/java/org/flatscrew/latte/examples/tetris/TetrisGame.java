@@ -33,7 +33,6 @@ public class TetrisGame implements Model {
 
     private Style scoreStyle = borderStyle.copy()
             .width(20)
-//            .height(5)
             .align(Position.Center, Position.Center);
 
     private Style nextBlockStyle = borderStyle.copy()
