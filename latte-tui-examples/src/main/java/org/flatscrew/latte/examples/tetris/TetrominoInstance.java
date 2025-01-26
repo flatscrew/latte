@@ -37,12 +37,24 @@ public class TetrominoInstance {
         return blocks;
     }
 
-    public void rotate() {
-        rotationState = (rotationState + 1) % type.getRotationStatesCount();
-        Block[] newBlocks = type.buildBlocks(rotationState, color);
+    public void rotate(int gridWidth, int gridHeight) {
+        // Simulate the next rotation
+        int nextRotationState = (rotationState + 1) % type.getRotationStatesCount();
+        Block[] newBlocks = type.buildBlocks(nextRotationState, color);
+
+        // Offset the new blocks to align with the current tetromino's origin
         for (Block block : newBlocks) {
-            block.move(originX, originY); // Adjust for current origin
+            block.move(originX, originY);
+
+            // Check if the block is out of bounds
+            if (block.position().x() < 0 || block.position().x() >= gridWidth ||
+                    block.position().y() < 0 || block.position().y() >= gridHeight) {
+                return; // Cancel rotation if it would result in an invalid state
+            }
         }
+
+        // If valid, update the rotation state and replace the blocks
+        rotationState = nextRotationState;
         blocks = newBlocks;
     }
 

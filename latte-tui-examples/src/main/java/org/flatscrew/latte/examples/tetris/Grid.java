@@ -9,7 +9,9 @@ import org.flatscrew.latte.message.KeyPressMessage;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.flatscrew.latte.Command.tick;
@@ -18,18 +20,28 @@ public class Grid implements Model {
 
     record TickMessage(LocalDateTime localDateTime) implements Message {
 
+
+
     }
 
     private final int width;
     private final int height;
 
+    private int totalLinesCleared;
+    private int score;
+    private int level;
+
     private Block[][] blocks;
     private Style blockStyle = Style.newStyle();
     private TetrominoInstance nextPiece = Tetromino.random().newInstance();
     private TetrominoInstance currentPiece;
+    private boolean currentPieceLocked;
     private Duration tickRate;
 
+    private boolean gameOver;
+
     public Grid(int width, int height) {
+        this.level = 1;
         this.width = width;
         this.height = height;
         this.blocks = new Block[height][width];
@@ -57,8 +69,15 @@ public class Grid implements Model {
         if (canMove(0, 1)) {
             moveBlocks(0, 1);
         } else {
-            lockCurrentPiece();
-//            spawnNewPiece();
+            lockCurrentPiece(true);
+
+            if (isGameOver()) {
+                this.gameOver = true;
+                return UpdateResult.from(this, GameOverMessage::new);
+            }
+
+            spawnNewPiece();
+
         }
         return UpdateResult.from(this, tick(tickRate, TickMessage::new));
     }
@@ -66,29 +85,40 @@ public class Grid implements Model {
     private UpdateResult<? extends Model> handleKey(KeyPressMessage key) {
         switch (key.key()) {
             case "left" -> {
-                if (canMove(-1, 0)) moveBlocks(-1, 0);
+                if (canMove(-1, 0)) moveBlocks(-2, 0);
             }
             case "right" -> {
-                if (canMove(1, 0)) moveBlocks(1, 0);
+                if (canMove(1, 0)) moveBlocks(2, 0);
             }
             case "down" -> {
-                if (canMove(0, 1)) moveBlocks(0, 1);
+                if (canMove(0, 1)) {
+                    moveBlocks(0, 1);
+                } else {
+                    lockCurrentPiece(true);
+                }
             }
             case "up" -> {
-                currentPiece.rotate();
-                if (!canMove(0, 0)) { // Check if rotation is valid
-                    currentPiece.rotate(); // Rotate back if invalid
-//                    currentPiece.rotate();
-//                    currentPiece.rotate();
-                }
+                currentPiece.rotate(width, height);
+            }
+            case " " -> {
+                hardDrop();
             }
         }
         return UpdateResult.from(this);
     }
 
+    private void hardDrop() {
+        int rowsDropped = 0;
+        while (canMove(0, 1)) {
+            moveBlocks(0, 1);
+            rowsDropped++;
+        }
+        lockCurrentPiece(false);
+        score += rowsDropped * 2;
+    }
+
     private boolean canMove(int dx, int dy) {
         for (Block block : currentPiece.blocks()) {
-
             Position position = block.position();
             Position newPos = new Position(position.x() + dx, position.y() + dy);
             if (newPos.x() < 0 || newPos.x() >= width ||
@@ -100,13 +130,78 @@ public class Grid implements Model {
         return true;
     }
 
-    private void lockCurrentPiece() {
+    private void lockCurrentPiece(boolean softDrop) {
+        if (currentPieceLocked) {
+            return;
+        }
+
+        this.currentPieceLocked = true;
         for (Block block : currentPiece.blocks()) {
             Position pos = block.position();
             blocks[pos.y()][pos.x()] = block;
         }
-        spawnNewPiece();
+
+        int removed = removeFullLines();
+        if (removed == 0 && softDrop) {
+            score += level;
+        }
+        if (removed > 0) {
+            score += calculatePoints(removed);
+        }
+
+        if (totalLinesCleared / 10 > level) {
+            level++;
+            tickRate = tickRate.minusMillis(50);
+        }
     }
+
+    private int calculatePoints(int linesCleared) {
+        return switch (linesCleared) {
+            case 1 -> 40 * (level + 1);
+            case 2 -> 100 * (level + 1);
+            case 3 -> 300 * (level + 1);
+            case 4 -> 1200 * (level + 1); // Tetris!
+            default -> 0;
+        };
+    }
+
+    private int removeFullLines() {
+        List<Integer> fullLines = new ArrayList<>();
+
+        // Detect full lines
+        for (int y = 0; y < height; y++) {
+            boolean isFull = true;
+            for (int x = 0; x < width; x++) {
+                if (blocks[y][x] == null) {
+                    isFull = false;
+                    break;
+                }
+            }
+            if (isFull) {
+                fullLines.add(y);
+            }
+        }
+
+        // Remove full lines and shift blocks down
+        for (int line : fullLines) {
+            for (int x = 0; x < width; x++) {
+                blocks[line][x] = null;
+            }
+            for (int y = line - 1; y >= 0; y--) {
+                for (int x = 0; x < width; x++) {
+                    blocks[y + 1][x] = blocks[y][x];
+                    if (blocks[y + 1][x] != null) {
+                        blocks[y + 1][x].move(0, 1);
+                    }
+                    blocks[y][x] = null;
+                }
+            }
+        }
+
+        totalLinesCleared += fullLines.size(); // Track total cleared lines
+        return fullLines.size();
+    }
+
 
     private void moveBlocks(int dx, int dy) {
         currentPiece.moveTo(dx, dy);
@@ -143,6 +238,7 @@ public class Grid implements Model {
 
     private void spawnNewPiece() {
         this.currentPiece = nextPiece;
+        this.currentPieceLocked = false;
         currentPiece.moveTo(width / 2 - 4, 0);
 
         this.nextPiece = Tetromino.random().newInstance();
@@ -150,5 +246,30 @@ public class Grid implements Model {
 
     public String nextBlockPreview() {
         return nextPiece.preview(8, 4);
+    }
+
+    private boolean isGameOver() {
+        for (Block block : nextPiece.blocks()) {
+            Position pos = block.position();
+            int spawnX = pos.x() + width / 2 - 4;
+            int spawnY = pos.y();
+
+            if (blocks[spawnY][spawnX] != null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean gameOver() {
+        return gameOver;
+    }
+
+    public int score() {
+        return score;
+    }
+
+    public int level() {
+        return level;
     }
 }

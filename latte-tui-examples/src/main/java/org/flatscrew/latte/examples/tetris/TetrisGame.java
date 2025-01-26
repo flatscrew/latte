@@ -13,15 +13,15 @@ import org.flatscrew.latte.cream.join.HorizontalJoinDecorator;
 import org.flatscrew.latte.cream.join.VerticalJoinDecorator;
 import org.flatscrew.latte.cream.placement.PlacementDecorator;
 import org.flatscrew.latte.message.CheckWindowSizeMessage;
+import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.message.WindowSizeMessage;
 
 public class TetrisGame implements Model {
 
-    private static final int GRID_WIDTH = 30;
+    private static final int GRID_WIDTH = 20;
     private static final int GRID_HEIGHT = 20;
 
     private final Grid grid;
-    private final int score;
 
     private WindowSizeMessage windowSizeMessage = new WindowSizeMessage(0, 0);
 
@@ -33,7 +33,7 @@ public class TetrisGame implements Model {
 
     private Style scoreStyle = borderStyle.copy()
             .width(20)
-            .height(5)
+//            .height(5)
             .align(Position.Center, Position.Center);
 
     private Style nextBlockStyle = borderStyle.copy()
@@ -46,7 +46,6 @@ public class TetrisGame implements Model {
 
     public TetrisGame(int score) {
         this.grid = new Grid(GRID_WIDTH, GRID_HEIGHT);
-        this.score = score;
     }
 
     @Override
@@ -58,6 +57,8 @@ public class TetrisGame implements Model {
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof WindowSizeMessage sizeMsg) {
             this.windowSizeMessage = sizeMsg;
+        } else if (msg instanceof GameOverMessage) {
+            return UpdateResult.from(this, QuitMessage::new);
         }
         UpdateResult<? extends Model> updateResult = grid.update(msg);
         return UpdateResult.from(this, updateResult.command());
@@ -65,10 +66,11 @@ public class TetrisGame implements Model {
 
     @Override
     public String view() {
-        String grid = gridStyle.render(this.grid.view());
+        if (grid.gameOver()) {
+            return "Final score: %d".formatted(grid.score());
+        }
 
-        String scoreText = "Score:\n%d".formatted(score);
-        String scorePanel = scoreStyle.render(scoreText);
+        String grid = gridStyle.render(this.grid.view());
 
         String nextBlockPanel = nextBlockStyle.render(
                 VerticalJoinDecorator.joinVertical(
@@ -80,7 +82,8 @@ public class TetrisGame implements Model {
 
         String rightPanel = VerticalJoinDecorator.joinVertical(
                 Position.Left,
-                scorePanel,
+                scoreStyle.render("Level:\n%d".formatted(this.grid.level())),
+                scoreStyle.render("Score:\n%d".formatted(this.grid.score())),
                 nextBlockPanel
         );
 
@@ -102,6 +105,9 @@ public class TetrisGame implements Model {
     }
 
     public static void main(String[] args) {
-        new Program(new TetrisGame(0)).run();
+        new Program(new TetrisGame(0))
+//                .withAltScreen()
+                .run();
     }
+
 }
