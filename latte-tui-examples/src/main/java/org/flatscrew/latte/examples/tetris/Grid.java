@@ -4,11 +4,13 @@ import org.flatscrew.latte.Command;
 import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
 import org.flatscrew.latte.UpdateResult;
+import org.flatscrew.latte.cream.Style;
 import org.flatscrew.latte.message.KeyPressMessage;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import static org.flatscrew.latte.Command.tick;
 
@@ -21,6 +23,8 @@ public class Grid implements Model {
     private final int width;
     private final int height;
 
+    private Block[][] blocks;
+    private Style blockStyle = Style.newStyle();
     private TetrominoInstance nextPiece = Tetromino.random().newInstance();
     private TetrominoInstance currentPiece;
     private Duration tickRate;
@@ -28,7 +32,8 @@ public class Grid implements Model {
     public Grid(int width, int height) {
         this.width = width;
         this.height = height;
-        this.tickRate = Duration.ofSeconds(1);
+        this.blocks = new Block[height][width];
+        this.tickRate = Duration.ofMillis(500);
         spawnNewPiece();
     }
 
@@ -52,7 +57,8 @@ public class Grid implements Model {
         if (canMove(0, 1)) {
             moveBlocks(0, 1);
         } else {
-            spawnNewPiece();
+            lockCurrentPiece();
+//            spawnNewPiece();
         }
         return UpdateResult.from(this, tick(tickRate, TickMessage::new));
     }
@@ -68,19 +74,38 @@ public class Grid implements Model {
             case "down" -> {
                 if (canMove(0, 1)) moveBlocks(0, 1);
             }
+            case "up" -> {
+                currentPiece.rotate();
+                if (!canMove(0, 0)) { // Check if rotation is valid
+                    currentPiece.rotate(); // Rotate back if invalid
+//                    currentPiece.rotate();
+//                    currentPiece.rotate();
+                }
+            }
         }
         return UpdateResult.from(this);
     }
 
     private boolean canMove(int dx, int dy) {
         for (Block block : currentPiece.blocks()) {
-            Position newPos = new Position(block.position().x() + dx, block.position().y() + dy);
+
+            Position position = block.position();
+            Position newPos = new Position(position.x() + dx, position.y() + dy);
             if (newPos.x() < 0 || newPos.x() >= width ||
-                    newPos.y() < 0 || newPos.y() >= height) {
+                    newPos.y() < 0 || newPos.y() >= height ||
+                    blocks[newPos.y()][newPos.x()] != null) {
                 return false;
             }
         }
         return true;
+    }
+
+    private void lockCurrentPiece() {
+        for (Block block : currentPiece.blocks()) {
+            Position pos = block.position();
+            blocks[pos.y()][pos.x()] = block;
+        }
+        spawnNewPiece();
     }
 
     private void moveBlocks(int dx, int dy) {
@@ -89,25 +114,32 @@ public class Grid implements Model {
 
     @Override
     public String view() {
-        char[][] grid = new char[height][];
+        String[][] grid = new String[height][];
         for (int i = 0; i < grid.length; i++) {
-            grid[i] = new char[width];
-            Arrays.fill(grid[i], '·');
+            grid[i] = new String[width];
+            Arrays.fill(grid[i], "·");
+        }
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (blocks[y][x] != null) {
+                    grid[y][x] = blockStyle.foreground(blocks[y][x].color()).render("█");
+                }
+            }
         }
 
         for (Block block : currentPiece.blocks()) {
-            grid[block.position().y()][block.position().x()] = '█';
+            Position pos = block.position();
+            if (pos.y() >= 0 && pos.y() < height && pos.x() >= 0 && pos.x() < width) { // Ensure within bounds
+                grid[pos.y()][pos.x()] = blockStyle.foreground(block.color()).render("█");
+            }
         }
 
-        StringBuilder gridView = new StringBuilder();
-        for (char[] row : grid) {
-            for (char cell : row) {
-                gridView.append(cell);
-            }
-            gridView.append('\n');
-        }
-        return gridView.toString();
+        return Arrays.stream(grid)
+                .map(row -> String.join("", row))
+                .collect(Collectors.joining("\n")) + "\n";
     }
+
 
     private void spawnNewPiece() {
         this.currentPiece = nextPiece;
@@ -117,6 +149,6 @@ public class Grid implements Model {
     }
 
     public String nextBlockPreview() {
-        return nextPiece.preview(8, 2);
+        return nextPiece.preview(8, 4);
     }
 }

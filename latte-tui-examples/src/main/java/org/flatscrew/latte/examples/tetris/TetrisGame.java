@@ -70,7 +70,13 @@ public class TetrisGame implements Model {
         String scoreText = "Score:\n%d".formatted(score);
         String scorePanel = scoreStyle.render(scoreText);
 
-        String nextBlockPanel = nextBlockStyle.render(this.grid.nextBlockPreview());
+        String nextBlockPanel = nextBlockStyle.render(
+                VerticalJoinDecorator.joinVertical(
+                        Position.Center,
+                        "Next block:\n\n",
+                        this.grid.nextBlockPreview()
+                )
+        );
 
         String rightPanel = VerticalJoinDecorator.joinVertical(
                 Position.Left,
