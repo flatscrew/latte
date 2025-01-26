@@ -13,16 +13,15 @@ import org.flatscrew.latte.cream.join.HorizontalJoinDecorator;
 import org.flatscrew.latte.cream.join.VerticalJoinDecorator;
 import org.flatscrew.latte.cream.placement.PlacementDecorator;
 import org.flatscrew.latte.message.CheckWindowSizeMessage;
+import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.message.WindowSizeMessage;
 
 public class TetrisGame implements Model {
 
-    private static final int GRID_WIDTH = 30;
+    private static final int GRID_WIDTH = 20;
     private static final int GRID_HEIGHT = 20;
 
-    private final String grid;
-    private final int score;
-    private final String nextBlock;
+    private final Grid grid;
 
     private WindowSizeMessage windowSizeMessage = new WindowSizeMessage(0, 0);
 
@@ -30,14 +29,10 @@ public class TetrisGame implements Model {
             .border(StandardBorder.RoundedBorder)
             .borderForeground(Color.color("63"));
 
-    private Style gridStyle = borderStyle.copy()
-            .width(GRID_WIDTH)
-            .height(GRID_HEIGHT)
-            .align(Position.Center, Position.Center);
+    private Style gridStyle = borderStyle.copy();
 
     private Style scoreStyle = borderStyle.copy()
             .width(20)
-            .height(5)
             .align(Position.Center, Position.Center);
 
     private Style nextBlockStyle = borderStyle.copy()
@@ -48,37 +43,46 @@ public class TetrisGame implements Model {
     private Style rightPanelStyle = Style.newStyle()
             .marginLeft(2);
 
-    public TetrisGame(String grid, int score, String nextBlock) {
-        this.grid = grid;
-        this.score = score;
-        this.nextBlock = nextBlock;
+    public TetrisGame(int score) {
+        this.grid = new Grid(GRID_WIDTH, GRID_HEIGHT);
     }
 
     @Override
     public Command init() {
-        return CheckWindowSizeMessage::new;
+        return Command.batch(grid.init(), CheckWindowSizeMessage::new);
     }
 
     @Override
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof WindowSizeMessage sizeMsg) {
             this.windowSizeMessage = sizeMsg;
+        } else if (msg instanceof GameOverMessage) {
+            return UpdateResult.from(this, QuitMessage::new);
         }
-        return UpdateResult.from(this);
+        UpdateResult<? extends Model> updateResult = grid.update(msg);
+        return UpdateResult.from(this, updateResult.command());
     }
 
     @Override
     public String view() {
-        String grid = gridStyle.render(this.grid);
+        if (grid.gameOver()) {
+            return "Final score: %d".formatted(grid.score());
+        }
 
-        String scoreText = "Score:\n%d".formatted(score);
-        String scorePanel = scoreStyle.render(scoreText);
+        String grid = gridStyle.render(this.grid.view());
 
-        String nextBlockPanel = nextBlockStyle.render(nextBlock);
+        String nextBlockPanel = nextBlockStyle.render(
+                VerticalJoinDecorator.joinVertical(
+                        Position.Center,
+                        "Next block:\n\n",
+                        this.grid.nextBlockPreview()
+                )
+        );
 
         String rightPanel = VerticalJoinDecorator.joinVertical(
                 Position.Left,
-                scorePanel,
+                scoreStyle.render("Level:\n%d".formatted(this.grid.level())),
+                scoreStyle.render("Score:\n%d".formatted(this.grid.score())),
                 nextBlockPanel
         );
 
@@ -100,6 +104,9 @@ public class TetrisGame implements Model {
     }
 
     public static void main(String[] args) {
-        new Program(new TetrisGame("Game Grid\nWill be here", 0, "Next Block\nPreview")).run();
+        new Program(new TetrisGame(0))
+//                .withAltScreen()
+                .run();
     }
+
 }

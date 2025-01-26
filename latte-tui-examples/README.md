@@ -69,6 +69,13 @@ The `textinput` example demonstrates a simple Latte application using a textinpu
 
 The `textinputs` example shows multiple `textinputs` and being able to switch focus between them as well as changing the cursor mode.
 
-<a href="./src/main/java/org/flatscrew/latte/examples/textinput/TextInputExample.java">
+<a href="./src/main/java/org/flatscrew/latte/examples/textinputs/TextInputsExample.java">
   <img width="750" src="textinputs-tape.gif" />
+</a>
+
+### Tetris
+A fully functional Tetris clone written with Latte :)
+
+<a href="./src/main/java/org/flatscrew/latte/examples/tetris/TetrisGame.java">
+  <img width="750" src="tetris.gif" />
 </a>
