@@ -76,8 +76,6 @@ The `textinputs` example shows multiple `textinputs` and being able to switch fo
 ### Tetris
 A fully functional Tetris clone written with Latte :)
 
-![Tetris clone](tetris.mp4)
-
 <a href="./src/main/java/org/flatscrew/latte/examples/tetris/TetrisGame.java">
-  Code
+  <img width="750" src="tetris.gif" />
 </a>
