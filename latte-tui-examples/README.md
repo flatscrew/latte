@@ -79,3 +79,10 @@ A fully functional Tetris clone written with Latte :)
 <a href="./src/main/java/org/flatscrew/latte/examples/tetris/TetrisGame.java">
   <img width="750" src="tetris.gif" />
 </a>
+
+### Game of Life
+ A cellular automaton implementation.
+
+ <a href="./src/main/java/org/flatscrew/latte/examples/conway/ConwayGame.java">
+  <img width="750" src="conway-tape.gif" />
+</a>
