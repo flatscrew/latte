@@ -86,3 +86,10 @@ A fully functional Tetris clone written with Latte :)
  <a href="./src/main/java/org/flatscrew/latte/examples/conway/ConwayGame.java">
   <img width="750" src="conway-tape.gif" />
 </a>
+
+### Fireworks
+Fireworks simulation :) Ported from https://github.com/Wayoung7/firework-rs/
+
+ <a href="./src/main/java/org/flatscrew/latte/examples/fireworks/Fireworks.java">
+  <img width="750" src="fireworks-tape.gif" />
+</a>
