@@ -141,6 +141,10 @@ public class Paginator {
         return n;
     }
 
+    public void setTotalPages(int totalPages) {
+        this.totalPages = totalPages;
+    }
+
     public void activeDot(String activeDot) {
         this.activeDot = activeDot;
     }

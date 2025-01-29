@@ -23,6 +23,10 @@ public class Binding {
         return enabled;
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     public void unbind() {
         this.keys = new String[0];
         this.help = null;

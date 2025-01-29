@@ -11,6 +11,7 @@ import org.flatscrew.latte.message.SetWindowTitleMessage;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -21,6 +22,10 @@ import java.util.stream.Collectors;
 public interface Command {
 
     Message execute();
+
+    static Command batch(Collection<Command> commands) {
+        return () -> new BatchMessage(commands.toArray(new Command[0]));
+    }
 
     static Command batch(Command... commands) {
         return () -> new BatchMessage(commands);

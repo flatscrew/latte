@@ -17,7 +17,7 @@ public class SpinnerExample implements Model {
     private Model spinner;
 
     public SpinnerExample() {
-        this.spinner = new Spinner(SpinnerType.DOT).style(Style.newStyle().foreground(Color.color("205")));
+        this.spinner = new Spinner(SpinnerType.DOT).setStyle(Style.newStyle().foreground(Color.color("205")));
     }
 
     @Override

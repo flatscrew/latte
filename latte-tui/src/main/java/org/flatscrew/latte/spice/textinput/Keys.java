@@ -2,7 +2,7 @@ package org.flatscrew.latte.spice.textinput;
 
 import org.flatscrew.latte.spice.key.Binding;
 
-public class KeyMap {
+public class Keys {
 
     private final Binding characterForward;
     private final Binding characterBackward;
@@ -21,7 +21,7 @@ public class KeyMap {
     private final Binding nextSuggestion;
     private final Binding prevSuggestion;
 
-    public KeyMap() {
+    public Keys() {
         this.characterForward = new Binding(Binding.withKeys("right", "ctrl+f"));
         this.characterBackward = new Binding(Binding.withKeys("left", "ctrl+b"));
         this.wordForward = new Binding(Binding.withKeys("alt+right", "ctrl+right", "alt+f"));

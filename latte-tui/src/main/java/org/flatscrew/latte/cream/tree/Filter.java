@@ -2,12 +2,12 @@ package org.flatscrew.latte.cream.tree;
 
 public class Filter implements Children {
 
-    public interface FilterFunc {
+    public interface FilterFunction {
         boolean filter(int index);
     }
 
     private final Children data;
-    private FilterFunc filterFunc = index -> true;
+    private FilterFunction filterFunction = index -> true;
 
     public Filter(Children data) {
         this.data = data;
@@ -17,7 +17,7 @@ public class Filter implements Children {
     public Node at(int index) {
         int j = 0;
         for (int i = 0; i < data.length(); i++) {
-            if (filterFunc.filter(i)) {
+            if (filterFunction.filter(i)) {
                 if (j == index) {
                     return data.at(i);
                 }
@@ -28,8 +28,8 @@ public class Filter implements Children {
         return null;
     }
 
-    public Filter filter(FilterFunc filterFunc) {
-        this.filterFunc = filterFunc;
+    public Filter filter(FilterFunction filterFunction) {
+        this.filterFunction = filterFunction;
         return this;
     }
 
@@ -47,7 +47,7 @@ public class Filter implements Children {
     public int length() {
         int j = 0;
         for (int i = 0; i < data.length(); i++) {
-            if (filterFunc.filter(i)) {
+            if (filterFunction.filter(i)) {
                 j++;
             }
         }

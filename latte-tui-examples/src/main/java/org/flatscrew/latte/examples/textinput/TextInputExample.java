@@ -26,7 +26,7 @@ public class TextInputExample implements Model {
 
     @Override
     public Command init() {
-        return textInput::blink;
+        return TextInput::blink;
     }
 
     @Override

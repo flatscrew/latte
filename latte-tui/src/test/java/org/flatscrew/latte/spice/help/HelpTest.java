@@ -28,7 +28,7 @@ class HelpTest {
         Help help = new Help();
         help.setFullSeparator(" | ");
         help.setWidth(width);
-        help.showAll(true);
+        help.setShowAll(true);
 
         Binding.BindingOption k = Binding.withKeys("x");
 
@@ -48,7 +48,7 @@ class HelpTest {
                 }
         };
 
-        // Create test KeyMap
+        // Create test Keys
         KeyMap keyMap = new TestKeyMap(bindings);
 
         // Act

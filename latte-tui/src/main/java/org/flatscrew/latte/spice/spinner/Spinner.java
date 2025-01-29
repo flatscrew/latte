@@ -8,11 +8,9 @@ import org.flatscrew.latte.cream.Style;
 
 import java.time.LocalDateTime;
 
-import static org.flatscrew.latte.Command.tick;
-
 public class Spinner implements Model {
 
-    private final SpinnerType type;
+    private SpinnerType type;
     private int frame;
     private int id;
     private int tag;
@@ -22,16 +20,20 @@ public class Spinner implements Model {
         this.type = type;
     }
 
-    public Spinner style(Style style) {
+    public void setType(SpinnerType type) {
+        this.type = type;
+    }
+
+    public Spinner setStyle(Style style) {
         this.style = style;
         return this;
     }
 
     public Command init() {
-        return () -> new TickMessage(LocalDateTime.now(), tag, id);
+        return this::tick;
     }
 
-    public UpdateResult<? extends Model> update(Message msg) {
+    public UpdateResult<Spinner> update(Message msg) {
         if (msg instanceof TickMessage tickMessage) {
             if (tickMessage.id() > 0 && tickMessage.id() != id) {
                 return UpdateResult.from(this);
@@ -48,7 +50,7 @@ public class Spinner implements Model {
             tag++;
             return UpdateResult.from(
                     this,
-                    tick(type.duration(), localDateTime -> new TickMessage(localDateTime, tag, id))
+                    Command.tick(type.duration(), localDateTime -> new TickMessage(localDateTime, tag, id))
             );
         }
 
@@ -60,5 +62,9 @@ public class Spinner implements Model {
             return "(error)";
         }
         return style.render(type.frames()[frame]);
+    }
+
+    public Message tick() {
+        return new TickMessage(LocalDateTime.now(), id, tag);
     }
 }
