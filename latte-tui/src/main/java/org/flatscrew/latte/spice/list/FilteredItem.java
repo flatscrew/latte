@@ -5,6 +5,12 @@ public class FilteredItem {
     private Item item;
     private int[] matches;
 
+    public FilteredItem(int index, Item item, int[] matches) {
+        this.index = index;
+        this.item = item;
+        this.matches = matches;
+    }
+
     public FilteredItem(Item item) {
         this.item = item;
     }

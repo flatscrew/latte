@@ -12,10 +12,12 @@ public class Binding {
 
     private Help help;
     private boolean enabled;
+
     public Binding(BindingOption... opts) {
         for (BindingOption option : opts) {
             option.apply(this);
         }
+        this.help = new Help();
         this.enabled = true;
     }
 
@@ -29,7 +31,7 @@ public class Binding {
 
     public void unbind() {
         this.keys = new String[0];
-        this.help = null;
+        this.help = new Help();
     }
 
     public Help help() {

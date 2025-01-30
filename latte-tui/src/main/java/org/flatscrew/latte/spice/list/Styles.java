@@ -57,21 +57,20 @@ public class Styles {
 
         defaultStyles.activePaginationDot = Style.newStyle()
                 .foreground(new AdaptiveColor("#847A85", "#979797"))
-                .setString(bullet);
+                .setString(BULLET);
 
         defaultStyles.inactivePaginationDot = Style.newStyle()
                 .foreground(verySubduedColor)
-                .setString(bullet);
+                .setString(BULLET);
 
         defaultStyles.dividerDot = Style.newStyle()
                 .foreground(verySubduedColor)
-                .setString(" " + bullet + " ");
+                .setString(" " + BULLET + " ");
 
         return defaultStyles;
     }
 
-    private static final String bullet = "•";
-    private static final String ellipsis = "…";
+    private static final String BULLET = "•";
 
     private Style titleBar;
     private Style title;

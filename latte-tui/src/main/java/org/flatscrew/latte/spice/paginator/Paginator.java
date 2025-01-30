@@ -44,6 +44,10 @@ public class Paginator {
         }
     }
 
+    public void setType(Type type) {
+        this.type = type;
+    }
+
     public int itemsOnPage(int totalItems) {
         if (totalItems < 1) {
             return 0;

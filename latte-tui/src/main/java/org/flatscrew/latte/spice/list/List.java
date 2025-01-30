@@ -4,6 +4,7 @@ import org.flatscrew.latte.Command;
 import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
 import org.flatscrew.latte.UpdateResult;
+import org.flatscrew.latte.ansi.Truncate;
 import org.flatscrew.latte.cream.Position;
 import org.flatscrew.latte.cream.Size;
 import org.flatscrew.latte.cream.Style;
@@ -14,6 +15,7 @@ import org.flatscrew.latte.spice.help.Help;
 import org.flatscrew.latte.spice.help.KeyMap;
 import org.flatscrew.latte.spice.key.Binding;
 import org.flatscrew.latte.spice.list.fuzzy.FuzzyFilter;
+import org.flatscrew.latte.spice.paginator.Bounds;
 import org.flatscrew.latte.spice.paginator.Paginator;
 import org.flatscrew.latte.spice.paginator.Type;
 import org.flatscrew.latte.spice.spinner.Spinner;
@@ -34,8 +36,11 @@ import java.util.concurrent.BlockingQueue;
 import java.util.function.Supplier;
 
 import static org.flatscrew.latte.Command.batch;
+import static org.flatscrew.latte.spice.list.DefaultItemStyles.ELLIPSIS;
 
+// FIXME it needs a complete overhaul, no idea how bubble guys maintained it o_O
 public class List implements Model, KeyMap {
+
 
     private boolean showTitle;
     private boolean showFilter;
@@ -76,6 +81,11 @@ public class List implements Model, KeyMap {
     private java.util.List<FilteredItem> filteredItems;
     private ItemDelegate itemDelegate;
 
+
+    public List(Item[] items, int width, int height) {
+        this(items, new DefaultDelegate(), width, height);
+    }
+
     public List(Item[] items, ItemDelegate delegate, int width, int height) {
         this.width = width;
         this.height = height;
@@ -109,11 +119,6 @@ public class List implements Model, KeyMap {
 
         this.paginator = new Paginator();
         paginator.type(Type.Dots);
-        paginator.activeDot(styles.activePaginationDot().render());
-        paginator.inactiveDot(styles.inactivePaginationDot().render());
-
-        updatePagination();
-        updateKeybindings();
     }
 
     public void setFilteringEnabled(boolean filteringEnabled) {
@@ -126,6 +131,10 @@ public class List implements Model, KeyMap {
 
     public boolean filteringEnabled() {
         return filteringEnabled;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public void setShowTitle(boolean showTitle) {
@@ -578,11 +587,17 @@ public class List implements Model, KeyMap {
 
     @Override
     public Command init() {
+        paginator.activeDot(styles.activePaginationDot().render());
+        paginator.inactiveDot(styles.inactivePaginationDot().render());
+
+        updatePagination();
+        updateKeybindings();
+
         return null;
     }
 
     @Override
-    public UpdateResult<? extends Model> update(Message msg) {
+    public UpdateResult<List> update(Message msg) {
         java.util.List<Command> commands = new LinkedList<>();
 
         if (msg instanceof KeyPressMessage keyPressMessage) {
@@ -751,6 +766,190 @@ public class List implements Model, KeyMap {
         return VerticalJoinDecorator.joinVertical(Position.Left, sections.toArray(new String[0]));
     }
 
+    private String titleView() {
+        StringBuilder view = new StringBuilder();
+        Style titleBarStyle = styles.titleBar().copy();
+        String spinnerView = spinnerView();
+        int spinnerWidth = Size.width(spinnerView);
+        String spinnerLeftGap = " ";
+        boolean spinnerOnLeft = titleBarStyle.leftPadding() >= spinnerWidth + Size.width(spinnerLeftGap) && showSpinner;
+
+        if (showFilter && filterState == FilterState.Filtering) {
+            view.append(filterInput.view());
+        } else if (showTitle) {
+            if (showSpinner && spinnerOnLeft) {
+                view.append(spinnerView).append(spinnerLeftGap);
+
+                int titleBarGap = titleBarStyle.leftPadding();
+                titleBarStyle = titleBarStyle.paddingLeft(titleBarGap - spinnerWidth - Size.width(spinnerLeftGap));
+            }
+
+            view.append(styles.title().render(title));
+
+            if (filterState != FilterState.Filtering) {
+                view.append(" ").append(statusMessage);
+                view = new StringBuilder(Truncate.truncate(view.toString(), width - spinnerWidth, ELLIPSIS));
+            }
+        }
+
+        if (showSpinner && !spinnerOnLeft) {
+            int availSpace = width - Size.width(styles.titleBar().render(view.toString()));
+            if (availSpace > spinnerWidth) {
+                view
+                        .append(" ".repeat(availSpace - spinnerWidth))
+                        .append(spinnerView);
+            }
+        }
+
+        if (!view.isEmpty()) {
+            return titleBarStyle.render(view.toString());
+        }
+        return view.toString();
+    }
+
+    private String statusView() {
+        StringBuilder status = new StringBuilder();
+        int totalItems = items.size();
+        int visibleItems = visibleItems().size();
+
+        String itemName = itemNameSingular;
+        if (visibleItems != 1) {
+            itemName = itemNamePlural;
+        }
+
+        String itemsDisplay = "%d %s".formatted(visibleItems, itemName);
+
+        if (filterState == FilterState.Filtering) {
+            if (visibleItems == 0) {
+                status = new StringBuilder(styles.statusEmpty().render("Nothing matched"));
+            } else {
+                status = new StringBuilder(itemsDisplay);
+            }
+        } else if (items.isEmpty()) {
+            status = new StringBuilder(styles.statusEmpty().render("No " + itemNamePlural));
+        } else {
+            boolean filtered = filterState == FilterState.FilterApplied;
+
+            if (filtered) {
+                String f = filterInput.value().trim();
+                f = Truncate.truncate(f, 10, ELLIPSIS);
+                status.append("“%s” ".formatted(f));
+            }
+
+            status.append(itemsDisplay);
+        }
+
+        int numFiltered = totalItems - visibleItems;
+        if (numFiltered > 0) {
+            status
+                    .append(styles.dividerDot().render())
+                    .append(styles.statusBarFilterCount().render("%d filtered".formatted(numFiltered)));
+        }
+
+        return styles.statusBar().render(status.toString());
+    }
+
+    private String paginationView() {
+        if (paginator.totalPages() < 2) {
+            return "";
+        }
+
+        String s = paginator.view();
+        if (Size.width(s) > width) {
+            paginator.setType(Type.Arabic);
+            s = styles.arabicPagination().render(paginator.view());
+        }
+
+        Style style = styles.paginationStyle().copy();
+        if (itemDelegate.spacing() == 0 && style.topMargin() == 0) {
+            style = style.marginBottom(1);
+        }
+
+        return style.render(s);
+    }
+
+    private String populatedView() {
+        java.util.List<Item> items = visibleItems();
+
+        StringBuilder b = new StringBuilder();
+
+        if (items.isEmpty()) {
+            if (filterState == FilterState.Filtering) {
+                return "";
+            }
+            return styles.noItems().render("No " + itemNamePlural + ".");
+        } else {
+            Bounds sliceBounds = paginator.getSliceBounds(items.size());
+            int start = sliceBounds.start();
+            int end = sliceBounds.end();
+
+            for (int i = start; i < end; i++) {
+                itemDelegate.render(b, this, i+start, items.get(i));
+                if (i != end - 1) {
+                    b.append("\n".repeat(itemDelegate.spacing() + 1));
+                }
+            }
+        }
+
+        int itemsOnPage = paginator.itemsOnPage(items.size());
+        if (itemsOnPage < paginator.perPage()) {
+            int n = (paginator.perPage() - itemsOnPage) * (itemDelegate.height() + itemDelegate.spacing());
+            // can this happen at all ??
+            if (items.isEmpty()) {
+                n -= itemDelegate.height() - 1;
+            }
+            b.append("\n".repeat(n));
+        }
+
+        return b.toString();
+    }
+
+    private String helpView() {
+        return styles.helpStyle().render(help.render(this));
+    }
+
+    private String spinnerView() {
+        return spinner.view();
+    }
+
+    private Command filterItems() {
+        return () -> {
+            if ("".equals(filterInput.value()) || filterState == FilterState.Unfiltered) {
+                return new FilterMatchesMessage(itemsAsFilteredItems());
+            }
+
+            String[] targets = new String[items.size()];
+
+            for (int i = 0; i < items.size(); i++) {
+                targets[i] = items.get(i).filterValue();
+            }
+
+            java.util.List<FilteredItem> filterMatches = new LinkedList<>();
+
+            Rank[] ranks = filterFunction.apply(filterInput.value(), targets);
+            for (Rank rank : ranks) {
+                filterMatches.add(new FilteredItem(
+                        rank.getIndex(),
+                        items.get(rank.getIndex()),
+                        rank.getMatchedIndexes()
+                ));
+            }
+            return new FilterMatchesMessage(filterMatches);
+        };
+    }
+
+    private int countEnabledBindings(Binding[][] groups) {
+        int count = 0;
+        for (Binding[] group : groups) {
+            for (Binding binding : group) {
+                if (binding.isEnabled()) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
     @Override
     public Binding[] shortHelp() {
         java.util.List<Binding> kb = new LinkedList<>(Arrays.asList(
@@ -820,5 +1019,9 @@ public class List implements Model, KeyMap {
                 keys.closeFullHelp()
         });
         return kb.toArray(new Binding[0][]);
+    }
+
+    public java.util.List<FilteredItem> filteredItems() {
+        return filteredItems;
     }
 }
