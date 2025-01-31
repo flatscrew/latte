@@ -37,7 +37,7 @@ class FuzzyFilterTest {
                         new Rank[]{new Rank(0, new int[]{0, 8, 10})}),
                 arguments("cats", new String[]{"cat"}, new Rank[]{}),
                 arguments("", new String[]{"cat"}, new Rank[]{}),
-                arguments("abcx", new String[]{"abc\\width"},
+                arguments("abcx", new String[]{"abc\\x"},
                         new Rank[]{new Rank(0, new int[]{0, 1, 2, 4})})
         );
     }
