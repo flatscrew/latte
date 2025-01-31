@@ -39,7 +39,7 @@ class PaginatorTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("totalPagesCases")
-    void test_SetTotalPages(String name, int items, int initialTotal, int expected) {
+    void test_SetTotalPagesFromItemsSize(String name, int items, int initialTotal, int expected) {
         // given
         Paginator paginator = new Paginator();
 

@@ -41,7 +41,6 @@ import static org.flatscrew.latte.spice.list.DefaultItemStyles.ELLIPSIS;
 // FIXME it needs a complete overhaul, no idea how bubble guys maintained it o_O
 public class List implements Model, KeyMap {
 
-
     private boolean showTitle;
     private boolean showFilter;
     private boolean showStatusBar;
@@ -87,6 +86,7 @@ public class List implements Model, KeyMap {
     }
 
     public List(Item[] items, ItemDelegate delegate, int width, int height) {
+        this.filterState = FilterState.Unfiltered;
         this.width = width;
         this.height = height;
         this.itemDelegate = delegate;
@@ -105,6 +105,7 @@ public class List implements Model, KeyMap {
         this.filterFunction = FuzzyFilter::defaultFilter;
         this.styles = Styles.defaultStyles();
         this.statusMessageLifetime = Duration.ofSeconds(1);
+        this.statusMessage = "";
         this.help = new Help();
 
         this.spinner = new Spinner(SpinnerType.LINE);
@@ -118,7 +119,7 @@ public class List implements Model, KeyMap {
         filterInput.focus();
 
         this.paginator = new Paginator();
-        paginator.type(Type.Dots);
+        paginator.setType(Type.Dots);
     }
 
     public void setFilteringEnabled(boolean filteringEnabled) {
@@ -479,6 +480,7 @@ public class List implements Model, KeyMap {
         this.height = height;
         this.help.setWidth(width);
         this.filterInput.setWidth(width - promptWidth - Size.width(spinnerView()));
+        updatePagination();
     }
 
     public void setWidth(int width) {
@@ -565,10 +567,14 @@ public class List implements Model, KeyMap {
             availHeight -= Size.height(helpView());
         }
 
-        paginator.setPage(Math.max(1, availHeight / itemDelegate.height() + itemDelegate.spacing()));
+        paginator.setPerPage(Math.max(1, availHeight / (itemDelegate.height() + itemDelegate.spacing())));
 
         int pages = visibleItems().size();
-        paginator.setTotalPages(Math.max(pages, 1));
+        if (pages < 1) {
+            paginator.setTotalPagesFromItemsSize(1);
+        } else {
+            paginator.setTotalPagesFromItemsSize(pages);
+        }
 
         paginator.setPage(index / paginator.perPage());
         this.cursor = index % paginator.perPage();
@@ -854,6 +860,7 @@ public class List implements Model, KeyMap {
             return "";
         }
 
+        paginator.setType(Type.Dots);
         String s = paginator.view();
         if (Size.width(s) > width) {
             paginator.setType(Type.Arabic);
@@ -883,8 +890,11 @@ public class List implements Model, KeyMap {
             int start = sliceBounds.start();
             int end = sliceBounds.end();
 
-            for (int i = start; i < end; i++) {
-                itemDelegate.render(b, this, i+start, items.get(i));
+            java.util.List<Item> docs = items.subList(start, end);
+
+
+            for (int i = 0; i < docs.size(); i++) {
+                itemDelegate.render(b, this, i+start, docs.get(i));
                 if (i != end - 1) {
                     b.append("\n".repeat(itemDelegate.spacing() + 1));
                 }

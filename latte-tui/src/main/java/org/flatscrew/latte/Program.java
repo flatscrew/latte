@@ -153,7 +153,7 @@ public class Program {
 
     private Model eventLoop() {
         while (isRunning.get()) {
-            Message msg;
+            Message msg;// = messageQueue.poll();
             try {
                 msg = messageQueue.poll(10, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
@@ -204,8 +204,10 @@ public class Program {
                 currentModel = updateResult.model();
                 renderer.notifyModelChanged();
                 commandExecutor.executeIfPresent(updateResult.command(), this::send, this::sendError);
+
+                renderer.write(currentModel.view());
             }
-            renderer.write(currentModel.view());
+
         }
         return currentModel;
     }

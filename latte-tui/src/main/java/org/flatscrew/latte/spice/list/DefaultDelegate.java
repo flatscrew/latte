@@ -50,7 +50,7 @@ public class DefaultDelegate implements ItemDelegate, KeyMap {
 
         if (showDescription) {
             java.util.List<String> lines = new LinkedList<>();
-            String[] descLines = desc.split("\n");
+            String[] descLines = desc.split("\n", 0);
             for (int i = 0; i < descLines.length; i++) {
                 if (i > height - 1) {
                     break;

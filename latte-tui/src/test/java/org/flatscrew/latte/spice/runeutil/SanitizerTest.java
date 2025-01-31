@@ -31,7 +31,7 @@ public class SanitizerTest {
         return Stream.of(
                 new Object[]{"Some poliśh łetters", "Some poliśh łetters"},
                 new Object[]{"some spaces are here", "some spaces are here"},
-                new Object[]{"x", "x"},
+                new Object[]{"width", "width"},
                 new Object[]{"\n", "XX"},
                 new Object[]{"\na\n", "XXaXX"},
                 new Object[]{"\n\n", "XXXX"},

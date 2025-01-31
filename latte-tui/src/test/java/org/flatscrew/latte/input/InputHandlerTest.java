@@ -268,9 +268,9 @@ class InputHandlerTest {
                 (int)'<',    // SGR mouse indicator
                 (int)'0',    // button (left click, no modifiers)
                 (int)';',    // separator
-                (int)'1', (int)'0',  // x = 10
+                (int)'1', (int)'0',  // width = 10
                 (int)';',    // separator
-                (int)'2', (int)'0',  // y = 20
+                (int)'2', (int)'0',  // height = 20
                 (int)'M',    // Press indicator ('M' for press, 'm' would be release)
                 -1
         );
@@ -298,8 +298,8 @@ class InputHandlerTest {
         assertThat(mouseMessage.isWheel()).isFalse();
 
         assertThat(mouseMessage.toString())
-                .contains("x=9")
-                .contains("y=19")
+                .contains("width=9")
+                .contains("height=19")
                 .contains("shift=false")
                 .contains("alt=false")
                 .contains("ctrl=false")
@@ -331,9 +331,9 @@ class InputHandlerTest {
                 (int)'<',    // SGR mouse indicator
                 (int)'0',    // button (left button, no modifiers)
                 (int)';',    // separator
-                (int)'1', (int)'0',  // x = 10
+                (int)'1', (int)'0',  // width = 10
                 (int)';',    // separator
-                (int)'2', (int)'0',  // y = 20
+                (int)'2', (int)'0',  // height = 20
                 (int)'m',    // Release indicator (lowercase 'm' for release)
                 -1
         );
@@ -360,8 +360,8 @@ class InputHandlerTest {
         assertThat(mouseMessage.getAction()).isEqualTo(MouseAction.MouseActionRelease);
         assertThat(mouseMessage.isWheel()).isFalse();
 
-        assertThat(mouseMessage.toString()).contains("x=9")
-                .contains("y=19")
+        assertThat(mouseMessage.toString()).contains("width=9")
+                .contains("height=19")
                 .contains("shift=false")
                 .contains("alt=false")
                 .contains("ctrl=false")

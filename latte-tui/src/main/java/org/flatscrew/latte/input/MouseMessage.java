@@ -61,7 +61,7 @@ public class MouseMessage implements Message {
 
     @Override
     public String toString() {
-        return String.format("MouseMessage(x=%d, y=%d, shift=%b, alt=%b, ctrl=%b, action=%s, button=%s)",
+        return String.format("MouseMessage(width=%d, height=%d, shift=%b, alt=%b, ctrl=%b, action=%s, button=%s)",
                 x, y, shift, alt, ctrl, action, button);
     }
 

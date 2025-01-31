@@ -27,7 +27,7 @@ public class PaginatorExample implements Model {
         }
 
         this.paginator = new Paginator();
-        paginator.type(Type.Dots);
+        paginator.setType(Type.Dots);
         paginator.perPage(10);
         paginator.totalPages(items.length);
     }

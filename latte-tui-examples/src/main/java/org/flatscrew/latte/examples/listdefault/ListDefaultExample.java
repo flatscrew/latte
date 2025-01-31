@@ -22,7 +22,7 @@ public class ListDefaultExample implements Model {
 
         @Override
         public String description() {
-            return "";
+            return desc;
         }
 
         @Override
@@ -78,8 +78,8 @@ public class ListDefaultExample implements Model {
         if (msg instanceof WindowSizeMessage windowSizeMessage) {
             Dimensions frameSize = docStyle.getFrameSize();
             this.list.setSize(
-                    windowSizeMessage.width() - frameSize.x(),
-                    windowSizeMessage.height() - frameSize.y()
+                    windowSizeMessage.width() - frameSize.width(),
+                    windowSizeMessage.height() - frameSize.height()
             );
         }
         UpdateResult<List> update = list.update(msg);

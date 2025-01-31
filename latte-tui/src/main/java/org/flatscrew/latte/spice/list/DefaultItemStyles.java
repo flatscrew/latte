@@ -23,21 +23,21 @@ public class DefaultItemStyles {
         this.normalTitle = Style.newStyle()
                 .foreground(new AdaptiveColor("#1a1a1a", "#dddddd"))
                 .padding(0, 0, 0, 2);
-        this.normalDesc = Style.newStyle()
+        this.normalDesc = normalTitle.copy()
                 .foreground(new AdaptiveColor("#A49FA5", "#777777"));
 
         this.selectedTitle = Style.newStyle()
-                .border(StandardBorder.NormalBorder)
+                .border(StandardBorder.NormalBorder, false, false, false, true)
                 .borderForeground(new AdaptiveColor("#F793FF", "#AD58B4"))
                 .foreground(new AdaptiveColor("#EE6FF8", "#EE6FF8"))
                 .padding(0, 0, 0, 1);
-        this.selectedDesc = Style.newStyle()
+        this.selectedDesc = selectedTitle.copy()
                 .foreground(new AdaptiveColor("#F793FF", "#AD58B4"));
 
         this.dimmedTitle = Style.newStyle()
                 .foreground(new AdaptiveColor("#A49FA5", "#777777"))
                 .padding(0, 0, 0, 2);
-        this.dimmedDesc = Style.newStyle()
+        this.dimmedDesc = dimmedTitle.copy()
                 .foreground(new AdaptiveColor("#C2B8C2", "#4D4D4D"));
 
         this.filterMatch = Style.newStyle().underline(true);
