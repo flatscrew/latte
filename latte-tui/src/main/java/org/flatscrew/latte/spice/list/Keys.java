@@ -21,25 +21,26 @@ public class Keys {
 
     public Keys() {
         // Browsing
-        this.cursorUp = new Binding(Binding.withKeys("up", "k"));
-        this.cursorDown = new Binding(Binding.withKeys("down", "j"));
-        this.prevPage = new Binding(Binding.withKeys("left", "h", "pgup", "b", "u"));
-        this.nextPage = new Binding(Binding.withKeys("right", "l", "pgdown", "f", "d"));
-        this.goToStart = new Binding(Binding.withKeys("home", "g"));
-        this.goToEnd = new Binding(Binding.withKeys("end", "G"));
+        this.cursorUp = new Binding(Binding.withKeys("up", "k"), Binding.withHelp("↑/k", "up"));
+        this.cursorDown = new Binding(Binding.withKeys("down", "j"), Binding.withHelp("↓/j", "down"));
+        this.prevPage = new Binding(Binding.withKeys("left", "h", "pgup", "b", "u"), Binding.withHelp("←/h/pgup", "prev page"));
+        this.nextPage = new Binding(Binding.withKeys("right", "l", "pgdown", "f", "d"), Binding.withHelp("→/l/pgdn", "next page"));
+        this.goToStart = new Binding(Binding.withKeys("home", "g"), Binding.withHelp("g/home", "go to start"));
+        this.goToEnd = new Binding(Binding.withKeys("end", "G"), Binding.withHelp("G/end", "go to end"));
 
         // Filtering
-        this.filter = new Binding(Binding.withKeys("/"));
-        this.clearFilter = new Binding(Binding.withKeys("esc"));
-        this.cancelWhileFiltering = new Binding(Binding.withKeys("esc"));
-        this.acceptWhileFiltering = new Binding(Binding.withKeys("enter", "tab", "shift+tab", "ctrl+k", "up", "ctrl+j", "down"));
+        this.filter = new Binding(Binding.withKeys("/"), Binding.withHelp("/", "filter"));
+        this.clearFilter = new Binding(Binding.withKeys("esc"), Binding.withHelp("esc", "clear filter"));
+        this.cancelWhileFiltering = new Binding(Binding.withKeys("esc"), Binding.withHelp("esc", "cancel"));
+        this.acceptWhileFiltering = new Binding(Binding.withKeys("enter", "tab", "shift+tab", "ctrl+k", "up", "ctrl+j", "down"),
+                Binding.withHelp("enter", "apply filter"));
 
         // Help
-        this.showFullHelp = new Binding(Binding.withKeys("?"));
-        this.closeFullHelp = new Binding(Binding.withKeys("?"));
+        this.showFullHelp = new Binding(Binding.withKeys("?"), Binding.withHelp("?", "more"));
+        this.closeFullHelp = new Binding(Binding.withKeys("?"), Binding.withHelp("?", "close help"));
 
         // Quitting
-        this.quit = new Binding(Binding.withKeys("q", "esc"));
+        this.quit = new Binding(Binding.withKeys("q", "esc"), Binding.withHelp("q", "quit"));
         this.forceQuit = new Binding(Binding.withKeys("ctrl+c"));
     }
 

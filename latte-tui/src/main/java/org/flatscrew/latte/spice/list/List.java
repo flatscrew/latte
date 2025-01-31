@@ -891,8 +891,6 @@ public class List implements Model, KeyMap {
             int end = sliceBounds.end();
 
             java.util.List<Item> docs = items.subList(start, end);
-
-
             for (int i = 0; i < docs.size(); i++) {
                 itemDelegate.render(b, this, i+start, docs.get(i));
                 if (i != end - 1) {

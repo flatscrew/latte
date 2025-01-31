@@ -14,11 +14,12 @@ public class Binding {
     private boolean enabled;
 
     public Binding(BindingOption... opts) {
+        this.help = new Help();
+        this.enabled = true;
+
         for (BindingOption option : opts) {
             option.apply(this);
         }
-        this.help = new Help();
-        this.enabled = true;
     }
 
     public boolean isEnabled() {
