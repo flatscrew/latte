@@ -23,7 +23,7 @@ class PaginatorTest {
         Paginator paginator = new Paginator();
 
         // then
-        assertThat(paginator.perPage()).isEqualTo(1);
+        assertThat(paginator.setPerPage()).isEqualTo(1);
         assertThat(paginator.totalPages()).isEqualTo(1);
 
         // when
@@ -33,13 +33,13 @@ class PaginatorTest {
         );
 
         // then
-        assertThat(paginator.perPage()).isEqualTo(perPage);
+        assertThat(paginator.setPerPage()).isEqualTo(perPage);
         assertThat(paginator.totalPages()).isEqualTo(totalPages);
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("totalPagesCases")
-    void test_SetTotalPages(String name, int items, int initialTotal, int expected) {
+    void test_SetTotalPagesFromItemsSize(String name, int items, int initialTotal, int expected) {
         // given
         Paginator paginator = new Paginator();
 

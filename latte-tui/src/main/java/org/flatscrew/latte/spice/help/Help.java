@@ -154,8 +154,12 @@ public class Help {
         this.fullSeparator = fullSeparator;
     }
 
-    public void showAll(boolean showAll) {
+    public void setShowAll(boolean showAll) {
         this.showAll = showAll;
+    }
+
+    public boolean showAll() {
+        return showAll;
     }
 
     record Result(boolean ok, String tail) {

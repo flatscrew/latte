@@ -1,6 +1,7 @@
 package org.flatscrew.latte;
 
 import org.flatscrew.latte.input.InputHandler;
+import org.flatscrew.latte.input.NewInputHandler;
 import org.flatscrew.latte.message.BatchMessage;
 import org.flatscrew.latte.message.CheckWindowSizeMessage;
 import org.flatscrew.latte.message.ClearScreenMessage;
@@ -55,7 +56,7 @@ public class Program {
             TerminalInfo.provide(new JLineTerminalInfoProvider(terminal));
 
             this.renderer = new StandardRenderer(terminal);
-            this.inputHandler = new InputHandler(terminal, this::send);
+            this.inputHandler = new NewInputHandler(terminal, this::send);
         } catch (IOException e) {
             throw new ProgramException("Failed to initialize terminal", e);
         }
@@ -153,7 +154,7 @@ public class Program {
 
     private Model eventLoop() {
         while (isRunning.get()) {
-            Message msg;
+            Message msg;// = messageQueue.poll();
             try {
                 msg = messageQueue.poll(10, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
@@ -204,8 +205,10 @@ public class Program {
                 currentModel = updateResult.model();
                 renderer.notifyModelChanged();
                 commandExecutor.executeIfPresent(updateResult.command(), this::send, this::sendError);
+
+                renderer.write(currentModel.view());
             }
-            renderer.write(currentModel.view());
+
         }
         return currentModel;
     }
@@ -220,7 +223,7 @@ public class Program {
     }
 
     public void send(Message msg) {
-        if (isRunning.get()) {
+        if (isRunning.get() && msg != null) {
             messageQueue.offer(msg);
         }
     }

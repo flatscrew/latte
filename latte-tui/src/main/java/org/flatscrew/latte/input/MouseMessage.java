@@ -61,7 +61,7 @@ public class MouseMessage implements Message {
 
     @Override
     public String toString() {
-        return String.format("MouseMessage(x=%d, y=%d, shift=%b, alt=%b, ctrl=%b, action=%s, button=%s)",
+        return String.format("MouseMessage(width=%d, height=%d, shift=%b, alt=%b, ctrl=%b, action=%s, button=%s)",
                 x, y, shift, alt, ctrl, action, button);
     }
 
@@ -102,11 +102,11 @@ public class MouseMessage implements Message {
         return s.toString();
     }
 
-    public static MouseMessage parseX10MouseEvent(int button, int col, int row) {
+    public static MouseMessage parseX10MouseEvent(int col, int row, int button) {
         MouseEvent event = parseMouseButton(button, false);
         return new MouseMessage(
-                col - X10_MOUSE_BYTE_OFFSET - 1,  // Normalize to (0,0)
-                row - X10_MOUSE_BYTE_OFFSET - 1,
+                col - 1,  // ✅ Subtract only 1 for zero-based indexing
+                row - 1,
                 event.shift,
                 event.alt,
                 event.ctrl,
@@ -142,12 +142,11 @@ public class MouseMessage implements Message {
 
     private static MouseEvent parseMouseButton(int b, boolean isSGR) {
         MouseEvent m = new MouseEvent();
-        int e = b;
+        int e = b & 0xFF;               // ✅ Treat b as unsigned
         if (!isSGR) {
-            e -= X10_MOUSE_BYTE_OFFSET;
+            e = (e - X10_MOUSE_BYTE_OFFSET) & 0xFF;  // ✅ Wrap around correctly to stay in 0-255 range
         }
 
-        // Constants matching Go implementation
         final int BIT_SHIFT = 0b0000_0100;
         final int BIT_ALT = 0b0000_1000;
         final int BIT_CTRL = 0b0001_0000;
@@ -156,26 +155,33 @@ public class MouseMessage implements Message {
         final int BIT_ADD = 0b1000_0000;
         final int BITS_MASK = 0b0000_0011;
 
+
+        int buttonOffset = e & BITS_MASK;
+
+
         if ((e & BIT_ADD) != 0) {
-            int buttonOffset = e & BITS_MASK;
+            // Handles extra buttons: Backward, Forward
             m.button = MouseButton.values()[MouseButton.MouseButtonBackward.ordinal() + buttonOffset];
         } else if ((e & BIT_WHEEL) != 0) {
-            int buttonOffset = e & BITS_MASK;
+            // Handles mouse wheel: WheelUp, WheelDown
             m.button = MouseButton.values()[MouseButton.MouseButtonWheelUp.ordinal() + buttonOffset];
         } else {
-            int buttonOffset = e & BITS_MASK;
-            m.button = MouseButton.values()[MouseButton.MouseButtonLeft.ordinal() + buttonOffset];
-
-            // X10 reports button release as 0b0000_0011 (3)
-            if ((e & BITS_MASK) == BITS_MASK) {
+            // Handles standard buttons: Left, Middle, Right
+            if (buttonOffset == 0b11) { // X10 reports button release as 0b00000011 (3)
                 m.action = MouseAction.MouseActionRelease;
                 m.button = MouseButton.MouseButtonNone;
+            } else {
+                m.button = MouseButton.values()[MouseButton.MouseButtonLeft.ordinal() + buttonOffset];
+                m.action = MouseAction.MouseActionPress; // Default to press if it's a button click
             }
         }
+
 
         // Motion bit doesn't get reported for wheel events
         if ((e & BIT_MOTION) != 0 && !isWheelButton(m.button)) {
             m.action = MouseAction.MouseActionMotion;
+        } else if (m.action == null) {
+            m.action = MouseAction.MouseActionPress; // Default to press if no other action is set
         }
 
         // Modifiers

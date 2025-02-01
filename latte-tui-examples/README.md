@@ -73,6 +73,30 @@ The `textinputs` example shows multiple `textinputs` and being able to switch fo
   <img width="750" src="textinputs-tape.gif" />
 </a>
 
+### Default List
+
+The `list-default` example shows how to use the list bubble.
+
+<a href="./src/main/java/org/flatscrew/latte/examples/listdefault/ListDefaultExample.java">
+  <img width="750" src="list-default-tape.gif" />
+</a>
+
+### Fancy List
+
+The `list-fancy` example shows how to use the list bubble with extra customizations.
+
+<a href="./src/main/java/org/flatscrew/latte/examples/listfancy/ListFancyExample.java">
+  <img width="750" src="list-fancy-tape.gif" />
+</a>
+
+### Simple List
+
+The `list-simple` example shows how to use the list and customize it to have a simpler, more compact, appearance.
+
+<a href="./src/main/java/org/flatscrew/latte/examples/listsimple/ListSimpleExample.java">
+  <img width="750" src="list-simple-tape.gif" />
+</a>
+
 ### Tetris
 A fully functional Tetris clone written with Latte :)
 

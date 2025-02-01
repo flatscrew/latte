@@ -30,6 +30,16 @@
             <artifactId>icu4j</artifactId>
             <version>${icu4j.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.intuit.fuzzymatcher</groupId>
+            <artifactId>fuzzy-matcher</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>1.13.0</version>
+        </dependency>
 
         <!-- Testing -->
         <dependency>

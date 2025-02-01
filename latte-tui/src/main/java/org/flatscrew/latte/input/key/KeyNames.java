@@ -32,8 +32,8 @@ public class KeyNames {
         KEY_NAMES.put(KeyType.keyNAK, "ctrl+u");
         KEY_NAMES.put(KeyType.keySYN, "ctrl+v");
         KEY_NAMES.put(KeyType.keyETB, "ctrl+w");
-        KEY_NAMES.put(KeyType.keyCAN, "ctrl+x");
-        KEY_NAMES.put(KeyType.keyEM, "ctrl+y");
+        KEY_NAMES.put(KeyType.keyCAN, "ctrl+width");
+        KEY_NAMES.put(KeyType.keyEM, "ctrl+height");
         KEY_NAMES.put(KeyType.keySUB, "ctrl+z");
         KEY_NAMES.put(KeyType.keyESC, "esc");
         KEY_NAMES.put(KeyType.keyFS, "ctrl+\\");

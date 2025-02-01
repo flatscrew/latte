@@ -176,6 +176,10 @@ public class Style implements Cloneable {
         return this;
     }
 
+    public int rightPadding() {
+        return rightPadding;
+    }
+
     public Style paddingBottom(int bottomPadding) {
         this.bottomPadding = bottomPadding;
         return this;
@@ -184,6 +188,10 @@ public class Style implements Cloneable {
     public Style paddingLeft(int leftPadding) {
         this.leftPadding = leftPadding;
         return this;
+    }
+
+    public int leftPadding() {
+        return leftPadding;
     }
 
     public Style margin(int... values) {
@@ -218,6 +226,10 @@ public class Style implements Cloneable {
     public Style marginBackgroundColor(TerminalColor marginBackgroundColor) {
         this.marginBackgroundColor = marginBackgroundColor;
         return this;
+    }
+
+    public int topMargin() {
+        return topMargin;
     }
 
     public Style border(Border border, boolean... sides) {
@@ -502,7 +514,7 @@ public class Style implements Cloneable {
         return result;
     }
 
-    public Dimensions getFrameSize() {
+    public Dimensions frameSize() {
         return new Dimensions(getHorizontalFrameSize(), getVerticalFrameSize());
     }
 
@@ -577,5 +589,11 @@ public class Style implements Cloneable {
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public Style inherit(Style style) {
+        // TODO copy the rest of the inherited properties
+        this.underline = style.underline;
+        return this;
     }
 }

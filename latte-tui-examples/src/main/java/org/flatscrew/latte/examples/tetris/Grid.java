@@ -9,9 +9,7 @@ import org.flatscrew.latte.message.KeyPressMessage;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.flatscrew.latte.Command.tick;
@@ -19,9 +17,6 @@ import static org.flatscrew.latte.Command.tick;
 public class Grid implements Model {
 
     record TickMessage(LocalDateTime localDateTime) implements Message {
-
-
-
     }
 
     private final int width;
@@ -77,7 +72,6 @@ public class Grid implements Model {
             }
 
             spawnNewPiece();
-
         }
         return UpdateResult.from(this, tick(tickRate, TickMessage::new));
     }
@@ -168,46 +162,38 @@ public class Grid implements Model {
     private int removeFullLines() {
         int linesCleared = 0;
 
-        // Start from the bottom and move upwards
         for (int y = height - 1; y >= 0; y--) {
-            boolean isFull = true;
-
-            // Check if the line is full
-            for (int x = 0; x < width; x++) {
-                if (blocks[y][x] == null) {
-                    isFull = false;
-                    break;
-                }
-            }
-
-            if (isFull) {
+            if (isLineFull(y)) {
+                clearLine(y);
+                shiftRowsDown(y);
                 linesCleared++;
-
-                // Clear the full line
-                for (int x = 0; x < width; x++) {
-                    blocks[y][x] = null;
-                }
-
-                // Shift all rows above down
-                for (int aboveY = y - 1; aboveY >= 0; aboveY--) {
-                    for (int x = 0; x < width; x++) {
-                        blocks[aboveY + 1][x] = blocks[aboveY][x];
-                        if (blocks[aboveY + 1][x] != null) {
-                            blocks[aboveY + 1][x].move(0, 1); // Update block position
-                        }
-                        blocks[aboveY][x] = null;
-                    }
-                }
-
-                // Since we shifted everything down, recheck the same row
-                y++;
+                y++; // Recheck the same row
             }
         }
 
-        totalLinesCleared += linesCleared; // Update the total lines cleared
+        totalLinesCleared += linesCleared;
         return linesCleared;
     }
 
+    private boolean isLineFull(int y) {
+        for (int x = 0; x < width; x++) {
+            if (blocks[y][x] == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void clearLine(int y) {
+        Arrays.fill(blocks[y], null);
+    }
+
+    private void shiftRowsDown(int y) {
+        for (int aboveY = y - 1; aboveY >= 0; aboveY--) {
+            System.arraycopy(blocks[aboveY], 0, blocks[aboveY + 1], 0, width);
+            Arrays.fill(blocks[aboveY], null);
+        }
+    }
 
     private void moveBlocks(int dx, int dy) {
         currentPiece.moveTo(dx, dy);

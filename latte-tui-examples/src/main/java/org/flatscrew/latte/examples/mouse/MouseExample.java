@@ -6,6 +6,7 @@ import org.flatscrew.latte.Model;
 import org.flatscrew.latte.Program;
 import org.flatscrew.latte.UpdateResult;
 import org.flatscrew.latte.input.MouseMessage;
+import org.flatscrew.latte.input.key.KeyType;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.message.UnknownSequenceMessage;
@@ -31,7 +32,7 @@ public class MouseExample implements Model {
                             mouseMessage.describe())
             );
         } else if (msg instanceof KeyPressMessage keyPressMessage) {
-            if (keyPressMessage.key().equals("q")) {
+            if (keyPressMessage.key().equals("q") || keyPressMessage.type() == KeyType.keyESC) {
                 return UpdateResult.from(this, QuitMessage::new);
             }
             return UpdateResult.from(

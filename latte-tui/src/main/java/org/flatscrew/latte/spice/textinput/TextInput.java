@@ -27,38 +27,38 @@ public class TextInput implements Model {
 
     @FunctionalInterface
     interface ValidateFunction {
+
         boolean isValid(char[] runes);
     }
-
     private String prompt;
+
     private String placeholder;
     private EchoMode echoMode;
     private char echoCharacter;
     private Cursor cursor;
-
     // styles
+
     private Style promptStyle;
     private Style textStyle;
     private Style placeholderStyle;
     private Style completionStyle;
-
     private int charLimit;
+
     private int width;
-    private KeyMap keyMap;
+    private Keys keys;
     private char[] value;
     private boolean focus;
     private int pos;
     private int offset;
     private int offsetRight;
-
     private ValidateFunction validateFunction;
-    private Sanitizer sanitizer;
 
+    private Sanitizer sanitizer;
     private boolean showSuggestions;
+
     private char[][] suggestions;
     private char[][] matchedSuggestions;
     private int currentSuggestionIndex;
-
     public TextInput() {
         this.prompt = "> ";
         this.echoCharacter = '*';
@@ -70,7 +70,7 @@ public class TextInput implements Model {
         this.promptStyle = Style.newStyle();
         this.textStyle = Style.newStyle();
         this.cursor = new Cursor();
-        this.keyMap = new KeyMap();
+        this.keys = new Keys();
         this.sanitizer = new Sanitizer(
                 Sanitizer.replaceTabs(" "),
                 Sanitizer.replaceNewlines(" ")
@@ -81,6 +81,14 @@ public class TextInput implements Model {
         this.value = new char[0];
         this.focus = false;
         this.pos = 0;
+    }
+
+    public void setPrompt(String prompt) {
+        this.prompt = prompt;
+    }
+
+    public String prompt() {
+        return prompt;
     }
 
     public void setPromptStyle(Style promptStyle) {
@@ -116,6 +124,10 @@ public class TextInput implements Model {
 
     public String value() {
         return String.valueOf(value);
+    }
+
+    public boolean isEmpty() {
+        return value == null || value.length == 0;
     }
 
     public int position() {
@@ -461,7 +473,7 @@ public class TextInput implements Model {
     }
 
     @Override
-    public UpdateResult<? extends Model> update(Message msg) {
+    public UpdateResult<TextInput> update(Message msg) {
         if (!focus) {
             return UpdateResult.from(this);
         }
@@ -470,39 +482,39 @@ public class TextInput implements Model {
         int oldPos = pos;
 
         if (msg instanceof KeyPressMessage keyPressMessage) {
-            if (Binding.matches(keyPressMessage, keyMap.deleteWordBackward())) {
+            if (Binding.matches(keyPressMessage, keys.deleteWordBackward())) {
                 deleteWordBackward();
-            } else if (Binding.matches(keyPressMessage, keyMap.deleteCharacterBackward())) {
+            } else if (Binding.matches(keyPressMessage, keys.deleteCharacterBackward())) {
                 deleteCharacterBackward();
-            } else if (Binding.matches(keyPressMessage, keyMap.wordBackward())) {
+            } else if (Binding.matches(keyPressMessage, keys.wordBackward())) {
                 wordBackward();
-            } else if (Binding.matches(keyPressMessage, keyMap.characterBackward())) {
+            } else if (Binding.matches(keyPressMessage, keys.characterBackward())) {
                 if (pos > 0) {
                     setCursor(pos - 1);
                 }
-            } else if (Binding.matches(keyPressMessage, keyMap.wordForward())) {
+            } else if (Binding.matches(keyPressMessage, keys.wordForward())) {
                 wordForward();
-            } else if (Binding.matches(keyPressMessage, keyMap.characterForward())) {
+            } else if (Binding.matches(keyPressMessage, keys.characterForward())) {
                 if (pos < value.length) {
                     setCursor(pos + 1);
                 }
-            } else if (Binding.matches(keyPressMessage, keyMap.lineStart())) {
+            } else if (Binding.matches(keyPressMessage, keys.lineStart())) {
                 cursorStart();
-            } else if (Binding.matches(keyPressMessage, keyMap.deleteCharacterForward())) {
+            } else if (Binding.matches(keyPressMessage, keys.deleteCharacterForward())) {
                 deleteCharacterForward();
-            } else if (Binding.matches(keyPressMessage, keyMap.lineEnd())) {
+            } else if (Binding.matches(keyPressMessage, keys.lineEnd())) {
                 cursorEnd();
-            } else if (Binding.matches(keyPressMessage, keyMap.deleteAfterCursor())) {
+            } else if (Binding.matches(keyPressMessage, keys.deleteAfterCursor())) {
                 deleteAfterCursor();
-            } else if (Binding.matches(keyPressMessage, keyMap.deleteBeforeCursor())) {
+            } else if (Binding.matches(keyPressMessage, keys.deleteBeforeCursor())) {
                 deleteBeforeCursor();
-            } else if (Binding.matches(keyPressMessage, keyMap.paste())) {
+            } else if (Binding.matches(keyPressMessage, keys.paste())) {
                 return UpdateResult.from(this, this::paste);
-            } else if (Binding.matches(keyPressMessage, keyMap.deleteWordForward())) {
+            } else if (Binding.matches(keyPressMessage, keys.deleteWordForward())) {
                 deleteWordForward();
-            } else if (Binding.matches(keyPressMessage, keyMap.nextSuggestion())) {
+            } else if (Binding.matches(keyPressMessage, keys.nextSuggestion())) {
                 nextSuggestion();
-            } else if (Binding.matches(keyPressMessage, keyMap.prevSuggestion())) {
+            } else if (Binding.matches(keyPressMessage, keys.prevSuggestion())) {
                 previousSuggestion();
             } else {
                 // also handles paste
@@ -627,7 +639,7 @@ public class TextInput implements Model {
         return promptStyle.render(prompt) + v;
     }
 
-    public Message blink() {
+    public static Message blink() {
         return Cursor.blink();
     }
 
@@ -653,11 +665,17 @@ public class TextInput implements Model {
     }
 
     public void nextSuggestion() {
-        currentSuggestionIndex = (currentSuggestionIndex + 1) % matchedSuggestions.length;
+        this.currentSuggestionIndex = currentSuggestionIndex + 1;
+        if (currentSuggestionIndex > matchedSuggestions.length) {
+            this.currentSuggestionIndex = 0;
+        }
     }
 
     public void previousSuggestion() {
-        currentSuggestionIndex = (currentSuggestionIndex - 1 + matchedSuggestions.length) % matchedSuggestions.length;
+        this.currentSuggestionIndex = currentSuggestionIndex - 1;
+        if (currentSuggestionIndex < 0) {
+            this.currentSuggestionIndex = matchedSuggestions.length;
+        }
     }
 
     public void updateSuggestions() {

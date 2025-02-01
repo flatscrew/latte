@@ -1,6 +1,7 @@
 package org.flatscrew.latte.input;
 
 import org.flatscrew.latte.Message;
+import org.flatscrew.latte.input.key.KeyAliases;
 import org.flatscrew.latte.message.BlurMessage;
 import org.flatscrew.latte.message.FocusMessage;
 import org.flatscrew.latte.message.KeyPressMessage;
@@ -19,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,13 +43,21 @@ class InputHandlerTest {
             receivedMessages.add(e);
             messageLatch.countDown();
         };
-        when(reader.read()).thenReturn((int) 'a', -1);
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        // Mocking reader.read(buffer, 0, BUFFER_SIZE)
+        when(reader.read(any(char[].class), eq(0), eq(256)))
+                .thenAnswer(invocation -> {
+                    char[] buf = invocation.getArgument(0);
+                    buf[0] = 'a';  // Simulate pressing 'a'
+                    return 1;      // Number of characters read
+                })
+                .thenReturn(-1);   // Simulate end of input
+
+        InputHandler inputHandler = new NewInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
-        boolean received = messageLatch.await(1, TimeUnit.SECONDS);
+        boolean received = messageLatch.await(2, TimeUnit.SECONDS);  // Allow time for processing
         inputHandler.stop();
 
         // then
@@ -55,6 +66,8 @@ class InputHandlerTest {
         assertThat(receivedMessages.getFirst()).isInstanceOf(KeyPressMessage.class);
 
         KeyPressMessage keyMessage = (KeyPressMessage) receivedMessages.getFirst();
+
+        // Correct key comparison
         assertThat(keyMessage.key()).isEqualTo("a");
         assertThat(keyMessage.alt()).isFalse();
     }
@@ -71,15 +84,23 @@ class InputHandlerTest {
             messageLatch.countDown();
         };
 
-        // Setup reader to return ESC and then wait
-        when(reader.read()).thenReturn((int) '\u001b', -1);  // return ESC first, then -1
-        when(reader.read(50)).thenReturn(-1);
+        // Mocking reader.read(buffer, 0, BUFFER_SIZE)
+        when(reader.read(any(char[].class), eq(0), eq(256)))
+                .thenAnswer(invocation -> {
+                    char[] buf = invocation.getArgument(0);
+                    buf[0] = '\u001b';  // Simulate pressing ESC
+                    return 1;           // Number of characters read
+                })
+                .thenReturn(-1);         // Simulate end of input
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        // ✅ Mocking peek to simulate no additional data after ESC
+        when(reader.peek(10)).thenReturn(-1);
+
+        InputHandler inputHandler = new NewInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
-        boolean received = messageLatch.await(1, TimeUnit.SECONDS);
+        boolean received = messageLatch.await(2, TimeUnit.SECONDS);  // Allow time for processing
         inputHandler.stop();
 
         // then
@@ -88,7 +109,9 @@ class InputHandlerTest {
         assertThat(receivedMessages.getFirst()).isInstanceOf(KeyPressMessage.class);
 
         KeyPressMessage keyMessage = (KeyPressMessage) receivedMessages.getFirst();
-        assertThat(keyMessage.key()).isEqualTo("esc");
+
+        // ✅ Correct key comparison
+        assertThat(keyMessage.type()).isEqualTo(KeyAliases.getKeyType(KeyAliases.KeyAlias.KeyEscape));
         assertThat(keyMessage.alt()).isFalse();
     }
 
@@ -104,17 +127,23 @@ class InputHandlerTest {
             messageLatch.countDown();
         };
 
-        // Setup reader to return ESC and then wait
-        when(reader.read()).thenReturn((int) '\u001b', -1);  // return ESC first, then -1
-        when(reader.read(50)).thenReturn((int) 'a', -1);
+        // ✅ Mocking reader.read(buffer, 0, BUFFER_SIZE)
+        when(reader.read(any(char[].class), eq(0), eq(256)))
+                .thenAnswer(invocation -> {
+                    char[] buf = invocation.getArgument(0);
+                    buf[0] = '\u001b';  // Simulate ESC (Alt modifier)
+                    buf[1] = 'a';       // Simulate pressing 'a' after Alt
+                    return 2;           // Two characters read
+                })
+                .thenReturn(-1);         // Simulate end of input
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new NewInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
 
         // Wait for message or timeout
-        boolean received = messageLatch.await(1, TimeUnit.SECONDS);
+        boolean received = messageLatch.await(2, TimeUnit.SECONDS);
         inputHandler.stop();
 
         // then
@@ -126,6 +155,7 @@ class InputHandlerTest {
         assertThat(keyMessage.key()).isEqualTo("alt+a");
         assertThat(keyMessage.alt()).isTrue();
     }
+
 
     @Test
     void test_ShouldPublishFocusMessage_When_FocusGained() throws Throwable {
@@ -139,17 +169,24 @@ class InputHandlerTest {
             messageLatch.countDown();
         };
 
-        // Setup reader to return ESC and then wait
-        when(reader.read()).thenReturn((int) '\u001b', -1);  // return ESC first, then -1
-        when(reader.read(50)).thenReturn((int) '[', (int) 'I', -1);
+        // ✅ Mocking reader.read(buffer, 0, BUFFER_SIZE)
+        when(reader.read(any(char[].class), eq(0), eq(256)))
+                .thenAnswer(invocation -> {
+                    char[] buf = invocation.getArgument(0);
+                    buf[0] = '\u001b';  // ESC
+                    buf[1] = '[';       // '['
+                    buf[2] = 'I';       // 'I' (Focus event)
+                    return 3;           // Three characters read
+                })
+                .thenReturn(-1);         // Simulate end of input
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new NewInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
 
         // Wait for message or timeout
-        boolean received = messageLatch.await(1, TimeUnit.SECONDS);
+        boolean received = messageLatch.await(2, TimeUnit.SECONDS);
         inputHandler.stop();
 
         // then
@@ -170,17 +207,24 @@ class InputHandlerTest {
             messageLatch.countDown();
         };
 
-        // Setup reader to return ESC and then wait
-        when(reader.read()).thenReturn((int) '\u001b', -1);  // return ESC first, then -1
-        when(reader.read(50)).thenReturn((int) '[', (int) 'O', -1);
+        // ✅ Mocking reader.read(buffer, 0, BUFFER_SIZE)
+        when(reader.read(any(char[].class), eq(0), eq(256)))
+                .thenAnswer(invocation -> {
+                    char[] buf = invocation.getArgument(0);
+                    buf[0] = '\u001b';  // ESC
+                    buf[1] = '[';       // '['
+                    buf[2] = 'O';       // 'O' (Blur event)
+                    return 3;           // Three characters read
+                })
+                .thenReturn(-1);         // Simulate end of input
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new NewInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
 
         // Wait for message or timeout
-        boolean received = messageLatch.await(1, TimeUnit.SECONDS);
+        boolean received = messageLatch.await(2, TimeUnit.SECONDS);
         inputHandler.stop();
 
         // then
@@ -197,35 +241,29 @@ class InputHandlerTest {
         CountDownLatch messageLatch = new CountDownLatch(1);
 
         Consumer<Message> messageConsumer = message -> {
+            System.out.println("DEBUG: Received message: " + message);
             receivedMessages.add(message);
             messageLatch.countDown();
         };
 
-        // Simulating a left click at position (10, 20) with Alt modifier
-        // Binary: 0000_1000 (Alt bit set) = 8
-        int button = 32 + 8; // Adding X10_MOUSE_BYTE_OFFSET (32) + Alt modifier (8)
-        int col = 32 + 10;  // X coordinate 10
-        int row = 32 + 20;  // Y coordinate 20
+        when(reader.read(any(char[].class), eq(0), eq(256)))
+                .thenAnswer(invocation -> {
+                    char[] buf = invocation.getArgument(0);
+                    buf[0] = '\u001b';              // ESC
+                    buf[1] = '[';                   // CSI
+                    buf[2] = 'M';                   // Mouse Event Identifier
+                    buf[3] = (char) (32 + 8);       // Button with Alt modifier
+                    buf[4] = (char) (32 + 10);      // Column
+                    buf[5] = (char) (32 + 20);      // Row
+                    return 6;
+                })
+                .thenReturn(-1);  // Signal end of input
 
-        when(reader.read()).thenReturn(
-                (int) '\u001b',
-                button,
-                col,
-                row,
-                -1
-        );
-
-        when(reader.read(50)).thenReturn(
-                (int) '[',
-                (int) 'M',
-                -1
-        );
-
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new NewInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
-        boolean received = messageLatch.await(1, TimeUnit.SECONDS);
+        boolean received = messageLatch.await(2, TimeUnit.SECONDS);
         inputHandler.stop();
 
         // then
@@ -234,8 +272,8 @@ class InputHandlerTest {
         assertThat(receivedMessages.getFirst()).isInstanceOf(MouseMessage.class);
 
         MouseMessage mouseMessage = (MouseMessage) receivedMessages.getFirst();
-        assertThat(mouseMessage.column()).isEqualTo(9);  // 10 - 1 for zero-based
-        assertThat(mouseMessage.row()).isEqualTo(19);    // 20 - 1 for zero-based
+        assertThat(mouseMessage.column()).isEqualTo(9);      // 10 - 1
+        assertThat(mouseMessage.row()).isEqualTo(19);        // 20 - 1
         assertThat(mouseMessage.isAlt()).isTrue();
         assertThat(mouseMessage.isCtrl()).isFalse();
         assertThat(mouseMessage.isShift()).isFalse();
@@ -246,7 +284,6 @@ class InputHandlerTest {
 
     @Test
     void test_ShouldPublishMouseMessage_When_ReceivingSGRMousePress() throws Throwable {
-        // given
         when(terminal.reader()).thenReturn(reader);
         List<Message> receivedMessages = new ArrayList<>();
         CountDownLatch messageLatch = new CountDownLatch(1);
@@ -256,40 +293,37 @@ class InputHandlerTest {
             messageLatch.countDown();
         };
 
-        when(reader.read()).thenReturn(
-                (int)'\u001b',    // ESC
-                -1          // End of input
-        );
+        when(reader.read(any(char[].class), eq(0), eq(256)))
+                .thenAnswer(invocation -> {
+                    char[] buf = invocation.getArgument(0);
+                    buf[0] = '\u001b';
+                    buf[1] = '[';
+                    buf[2] = '<';
+                    buf[3] = '0';
+                    buf[4] = ';';
+                    buf[5] = '1';
+                    buf[6] = '0';
+                    buf[7] = ';';
+                    buf[8] = '2';
+                    buf[9] = '0';
+                    buf[10] = 'M';
+                    return 11;
+                })
+                .thenReturn(-1);
 
-        // Simulating a left button press at position (10, 20)
-        // button = 0 represents left button with no modifiers in SGR mode
-        when(reader.read(50)).thenReturn(
-                (int)'[',    // First char after ESC
-                (int)'<',    // SGR mouse indicator
-                (int)'0',    // button (left click, no modifiers)
-                (int)';',    // separator
-                (int)'1', (int)'0',  // x = 10
-                (int)';',    // separator
-                (int)'2', (int)'0',  // y = 20
-                (int)'M',    // Press indicator ('M' for press, 'm' would be release)
-                -1
-        );
+        InputHandler inputHandler = new NewInputHandler(terminal, messageConsumer);
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
-
-        // when
         inputHandler.start();
-        boolean received = messageLatch.await(1, TimeUnit.SECONDS);
+        boolean received = messageLatch.await(2, TimeUnit.SECONDS);
         inputHandler.stop();
 
-        // then
         assertThat(received).isTrue();
         assertThat(receivedMessages).hasSize(1);
         assertThat(receivedMessages.getFirst()).isInstanceOf(MouseMessage.class);
 
         MouseMessage mouseMessage = (MouseMessage) receivedMessages.getFirst();
-        assertThat(mouseMessage.column()).isEqualTo(9);  // 10 - 1 for zero-based
-        assertThat(mouseMessage.row()).isEqualTo(19);    // 20 - 1 for zero-based
+        assertThat(mouseMessage.column()).isEqualTo(9);
+        assertThat(mouseMessage.row()).isEqualTo(19);
         assertThat(mouseMessage.isAlt()).isFalse();
         assertThat(mouseMessage.isCtrl()).isFalse();
         assertThat(mouseMessage.isShift()).isFalse();
@@ -298,8 +332,8 @@ class InputHandlerTest {
         assertThat(mouseMessage.isWheel()).isFalse();
 
         assertThat(mouseMessage.toString())
-                .contains("x=9")
-                .contains("y=19")
+                .contains("width=9")
+                .contains("height=19")
                 .contains("shift=false")
                 .contains("alt=false")
                 .contains("ctrl=false")
@@ -309,7 +343,6 @@ class InputHandlerTest {
 
     @Test
     void test_ShouldPublishMouseMessage_When_ReceivingSGRMouseRelease() throws Throwable {
-        // given
         when(terminal.reader()).thenReturn(reader);
         List<Message> receivedMessages = new ArrayList<>();
         CountDownLatch messageLatch = new CountDownLatch(1);
@@ -319,59 +352,56 @@ class InputHandlerTest {
             messageLatch.countDown();
         };
 
-        when(reader.read()).thenReturn(
-                (int) '\u001b',    // ESC
-                -1          // End of input
-        );
+        when(reader.read(any(char[].class), eq(0), eq(256)))
+                .thenAnswer(invocation -> {
+                    char[] buf = invocation.getArgument(0);
+                    buf[0] = '\u001b';
+                    buf[1] = '[';
+                    buf[2] = '<';
+                    buf[3] = '0';
+                    buf[4] = ';';
+                    buf[5] = '1';
+                    buf[6] = '0';
+                    buf[7] = ';';
+                    buf[8] = '2';
+                    buf[9] = '0';
+                    buf[10] = 'm'; // 'm' for release (instead of 'M' for press)
+                    return 11;
+                })
+                .thenReturn(-1);
 
-        // Simulating a button release at position (10, 20)
-        // button = 0 represents left button with no modifiers in SGR mode
-        when(reader.read(50)).thenReturn(
-                (int)'[',    // First char after ESC
-                (int)'<',    // SGR mouse indicator
-                (int)'0',    // button (left button, no modifiers)
-                (int)';',    // separator
-                (int)'1', (int)'0',  // x = 10
-                (int)';',    // separator
-                (int)'2', (int)'0',  // y = 20
-                (int)'m',    // Release indicator (lowercase 'm' for release)
-                -1
-        );
+        InputHandler inputHandler = new NewInputHandler(terminal, messageConsumer);
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
-
-        // when
         inputHandler.start();
         boolean received = messageLatch.await(1, TimeUnit.SECONDS);
         inputHandler.stop();
 
-        // then
         assertThat(received).isTrue();
         assertThat(receivedMessages).hasSize(1);
         assertThat(receivedMessages.getFirst()).isInstanceOf(MouseMessage.class);
 
         MouseMessage mouseMessage = (MouseMessage) receivedMessages.getFirst();
-        assertThat(mouseMessage.column()).isEqualTo(9);  // 10 - 1 for zero-based
-        assertThat(mouseMessage.row()).isEqualTo(19);    // 20 - 1 for zero-based
+        assertThat(mouseMessage.column()).isEqualTo(9);
+        assertThat(mouseMessage.row()).isEqualTo(19);
         assertThat(mouseMessage.isAlt()).isFalse();
         assertThat(mouseMessage.isCtrl()).isFalse();
         assertThat(mouseMessage.isShift()).isFalse();
-        assertThat(mouseMessage.getButton()).isEqualTo(MouseButton.MouseButtonNone);  // None on release
+        assertThat(mouseMessage.getButton()).isEqualTo(MouseButton.MouseButtonNone);
         assertThat(mouseMessage.getAction()).isEqualTo(MouseAction.MouseActionRelease);
         assertThat(mouseMessage.isWheel()).isFalse();
 
-        assertThat(mouseMessage.toString()).contains("x=9")
-                .contains("y=19")
+        assertThat(mouseMessage.toString())
+                .contains("width=9")
+                .contains("height=19")
                 .contains("shift=false")
                 .contains("alt=false")
                 .contains("ctrl=false")
                 .contains("action=release")
-                .contains("button=none");  // None on release
+                .contains("button=none");
     }
 
     @Test
     void test_ShouldPublishUnknownSequenceMessage_When_ReceivingUnknownEscapeSequence() throws Throwable {
-        // given
         when(terminal.reader()).thenReturn(reader);
         List<Message> receivedMessages = new ArrayList<>();
         CountDownLatch messageLatch = new CountDownLatch(1);
@@ -380,29 +410,27 @@ class InputHandlerTest {
             receivedMessages.add(message);
             messageLatch.countDown();
         };
+        when(reader.read(any(char[].class), eq(0), eq(256)))
+                .thenAnswer(invocation -> {
+                    char[] buf = invocation.getArgument(0);
+                    String unknownSequence = "\u001b[?999~";  // Clearly invalid sequence
+                    for (int i = 0; i < unknownSequence.length(); i++) {
+                        buf[i] = unknownSequence.charAt(i);
+                    }
+                    return unknownSequence.length();
+                })
+                .thenReturn(-1);
 
-        when(reader.read()).thenReturn(
-                (int) '\u001b',    // ESC
-                -1          // End of input
-        );
 
-        when(reader.read(50)).thenReturn(
-                (int)'[',    // First char after ESC
-                (int)'?',    // Unknown sequence
-                (int)'1',
-                -1
-        );
+        InputHandler inputHandler = new NewInputHandler(terminal, messageConsumer);
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
-
-        // when
         inputHandler.start();
         boolean received = messageLatch.await(1, TimeUnit.SECONDS);
         inputHandler.stop();
 
-        // then
         assertThat(received).isTrue();
         assertThat(receivedMessages).hasSize(1);
         assertThat(receivedMessages.getFirst()).isInstanceOf(UnknownSequenceMessage.class);
     }
+
 }

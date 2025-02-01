@@ -27,7 +27,7 @@ conform it
 | cellbuffer        | `⚪ TODO`      | Any reasonable port of **harmonica** is needed.                                                                  |
 | chat              | `⚪ TODO`      | Needs **textarea** and **viewport** bubbles.                                                                     |
 | composable-views  | `⚪ TODO`      | Needs **timer** bubble.                                                                                          |
-| credit-card-form  | `⚪ TODO`      | Needs **textinput** bubble.                                                                                      |
+| credit-card-form  | `⚪ TODO`      |                                                                                                                  |
 | debounce          | `⚪ TODO`      |                                                                                                                  |
 | exec              | `⚪ TODO`      |                                                                                                                  |
 | file-picker       | `⚪ TODO`      | Needs **filepicker** bubble.                                                                                     |
@@ -36,14 +36,14 @@ conform it
 | glamour           | `⚪ TODO`      | Needs any reasonable port of **glamour**.                                                                        |
 | help              | `⚪ TODO`      | Needs **help** and **key** bubbles.                                                                              |
 | http              | `🟢 Done`     |                                                                                                                  |
-| list-default      | `⚪ TODO`      | Needs **list** bubble.                                                                                           |
-| list-fancy        | `⚪ TODO`      | Needs **list** and **key** bubbles.                                                                              |
-| list-simple       | `⚪ TODO`      | Needs **list** bubble.                                                                                           |
+| list-default      | `🟢 Done`     |                                                                                                                  |
+| list-fancy        | `🟢 Done`     |                                                                                                                  |
+| list-simple       | `🟢 Done`     |                                                                                                                  |
 | mouse             | `🟢 Done`     |                                                                                                                  |
 | package-manager   | `⚪ TODO`      | Needs **progress** bubble.                                                                                       |
 | pager             | `⚪ TODO`      | Needs **viewport** bubble.                                                                                       |
 | paginator         | `⚪ TODO`      | `🟢 Done`                                                                                                        |
-| pipe              | `⚪ TODO`      | Needs **textinput** bubble.                                                                                      |
+| pipe              | `⚪ TODO`      |                                                                                                                  |
 | prevent-quit      | `⚪ TODO`      | Needs **help**, **key** and **textarea** bubbles.                                                                |
 | progress-animated | `⚪ TODO`      | Needs **progress** bubble.                                                                                       |
 | progress-download | `⚪ TODO`      | Needs **progress** bubble.                                                                                       |
@@ -81,7 +81,7 @@ This table covers all the Bubble's ported so far. The same status labels apply.
 | filepicker | `⚪ TODO`  |                                |
 | help       | `🟢 Done` |                                |
 | key        | `🟢 Done` |                                |
-| list       | `⚪ TODO`  |                                |
+| list       | `🟢 Done` |                                |
 | paginator  | `🟢 Done` |                                |
 | progress   | `⚪ TODO`  |                                |
 | runeutil   | `🟢 Done` |                                |
