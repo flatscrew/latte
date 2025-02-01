@@ -24,15 +24,16 @@ import org.flatscrew.latte.spice.spinner.TickMessage;
 import org.flatscrew.latte.spice.textinput.TextInput;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static org.flatscrew.latte.Command.batch;
@@ -74,12 +75,12 @@ public class List implements Model, KeyMap {
 
     private Duration statusMessageLifetime;
     private String statusMessage;
-    private Timer statusMessageTimer;
+    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private Future<? extends Message> statusMessageFuture;
 
     private java.util.List<Item> items;
     private java.util.List<FilteredItem> filteredItems;
     private ItemDelegate itemDelegate;
-
 
     public List(Item[] items, int width, int height) {
         this(items, new DefaultDelegate(), width, height);
@@ -447,30 +448,31 @@ public class List implements Model, KeyMap {
         keys.forceQuit().setEnabled(false);
     }
 
-    // FIXME
     public Command newStatusMessage(String status) {
         this.statusMessage = status;
-        if (statusMessageTimer != null) {
-            statusMessageTimer.cancel();
+
+        if (statusMessageFuture != null && !statusMessageFuture.isDone()) {
+            statusMessageFuture.cancel(true);
         }
+        statusMessageFuture = scheduler.schedule(
+                StatusMessageTimeoutMessage::new,
+                statusMessageLifetime.toMillis(),
+                TimeUnit.MILLISECONDS
+        );
 
-        this.statusMessageTimer = new Timer();
         return () -> {
-            BlockingQueue<LocalDateTime> queue = new ArrayBlockingQueue<>(1);
-            statusMessageTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    queue.offer(LocalDateTime.now());
-                }
-            }, statusMessageLifetime.toMillis());
-
             try {
-                queue.take();
-                return new StatusMessageTimeoutMessage();
-            } catch (InterruptedException e) {
+                return statusMessageFuture.get();
+            } catch (InterruptedException | CancellationException e) {
+                return null;
+            } catch (ExecutionException e) {
                 throw new RuntimeException(e);
             }
         };
+    }
+
+    public void setStatusMessageLifetime(Duration statusMessageLifetime) {
+        this.statusMessageLifetime = statusMessageLifetime;
     }
 
     public void setSize(int width, int height) {
@@ -586,8 +588,10 @@ public class List implements Model, KeyMap {
 
     private void hideStatusMessage() {
         this.statusMessage = "";
-        if (statusMessageTimer != null) {
-            statusMessageTimer.cancel();
+
+        // Cancel the active timer if it's still running
+        if (statusMessageFuture != null && !statusMessageFuture.isDone()) {
+            statusMessageFuture.cancel(true);
         }
     }
 
@@ -716,8 +720,9 @@ public class List implements Model, KeyMap {
             }
         }
 
+        String beforeChange = filterInput.value();
         UpdateResult<TextInput> updateResult = filterInput.update(msg);
-        boolean filterChanged = !Objects.equals(filterInput.value(), updateResult.model().value());
+        boolean filterChanged = !Objects.equals(beforeChange, updateResult.model().value());
         this.filterInput = updateResult.model();
         commands.add(updateResult.command());
 
@@ -892,7 +897,7 @@ public class List implements Model, KeyMap {
 
             java.util.List<Item> docs = items.subList(start, end);
             for (int i = 0; i < docs.size(); i++) {
-                itemDelegate.render(b, this, i+start, docs.get(i));
+                itemDelegate.render(b, this, i + start, docs.get(i));
                 if (i != end - 1) {
                     b.append("\n".repeat(itemDelegate.spacing() + 1));
                 }

@@ -7,10 +7,13 @@ import org.flatscrew.latte.Program;
 import org.flatscrew.latte.UpdateResult;
 import org.flatscrew.latte.cream.Dimensions;
 import org.flatscrew.latte.cream.Style;
+import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.WindowSizeMessage;
 import org.flatscrew.latte.spice.list.DefaultItem;
 import org.flatscrew.latte.spice.list.Item;
 import org.flatscrew.latte.spice.list.List;
+
+import java.time.Duration;
 
 public class ListDefaultExample implements Model {
 
@@ -65,6 +68,7 @@ public class ListDefaultExample implements Model {
                 0,
                 0
         );
+        list.setStatusMessageLifetime(Duration.ofSeconds(5));
         list.setTitle("My Fave Things");
     }
 
@@ -81,6 +85,10 @@ public class ListDefaultExample implements Model {
                     windowSizeMessage.width() - frameSize.width(),
                     windowSizeMessage.height() - frameSize.height()
             );
+        } else if (msg instanceof KeyPressMessage keyPressMessage) {
+            if (keyPressMessage.key().equals("o")) {
+                return UpdateResult.from(this, list.newStatusMessage("Some status"));
+            }
         }
         UpdateResult<List> update = list.update(msg);
         this.list = update.model();
