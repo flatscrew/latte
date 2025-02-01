@@ -74,7 +74,7 @@ public class ListDefaultExample implements Model {
 
     @Override
     public Command init() {
-        return list.init();
+        return Command.sequence(Command.checkWindowSize(), list.init());
     }
 
     @Override
