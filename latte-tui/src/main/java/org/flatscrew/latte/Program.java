@@ -223,7 +223,7 @@ public class Program {
     }
 
     public void send(Message msg) {
-        if (isRunning.get()) {
+        if (isRunning.get() && msg != null) {
             messageQueue.offer(msg);
         }
     }

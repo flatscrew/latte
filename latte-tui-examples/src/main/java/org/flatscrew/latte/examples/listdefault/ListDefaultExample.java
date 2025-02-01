@@ -80,7 +80,7 @@ public class ListDefaultExample implements Model {
     @Override
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof WindowSizeMessage windowSizeMessage) {
-            Dimensions frameSize = docStyle.getFrameSize();
+            Dimensions frameSize = docStyle.frameSize();
             this.list.setSize(
                     windowSizeMessage.width() - frameSize.width(),
                     windowSizeMessage.height() - frameSize.height()
@@ -101,6 +101,8 @@ public class ListDefaultExample implements Model {
     }
 
     public static void main(String[] args) {
-        new Program(new ListDefaultExample()).run();
+        new Program(new ListDefaultExample())
+                .withAltScreen()
+                .run();
     }
 }

@@ -91,7 +91,7 @@ public class List implements Model, KeyMap {
         this.width = width;
         this.height = height;
         this.itemDelegate = delegate;
-        this.items = java.util.List.of(items);
+        this.items = new ArrayList<>(Arrays.asList(items));
         this.filteredItems = new LinkedList<>();
         this.title = "List";
         this.showTitle = true;
@@ -1040,5 +1040,13 @@ public class List implements Model, KeyMap {
 
     public Styles styles() {
         return styles;
+    }
+
+    public void setAdditionalShortHelpKeys(Supplier<Binding[]> additionalShortHelpKeys) {
+        this.additionalShortHelpKeys = additionalShortHelpKeys;
+    }
+
+    public void setAdditionalFullHelpKeys(Supplier<Binding[]> additionalFullHelpKeys) {
+        this.additionalFullHelpKeys = additionalFullHelpKeys;
     }
 }

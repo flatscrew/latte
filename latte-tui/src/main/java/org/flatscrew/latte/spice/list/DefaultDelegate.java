@@ -98,11 +98,11 @@ public class DefaultDelegate implements ItemDelegate, KeyMap {
     }
 
     @Override
-    public Command update(Message msg, Model model) {
+    public Command update(Message msg, List listModel) {
         if (updateFunction == null) {
             return null;
         }
-        return updateFunction.update(msg, model);
+        return updateFunction.update(msg, listModel);
     }
 
     @Override
@@ -121,6 +121,18 @@ public class DefaultDelegate implements ItemDelegate, KeyMap {
 
     public void setSpacing(int spacing) {
         this.spacing = spacing;
+    }
+
+    public void setUpdateFunction(UpdateFunction updateFunction) {
+        this.updateFunction = updateFunction;
+    }
+
+    public void setShortHelpFunc(ShortHelpFunc shortHelpFunc) {
+        this.shortHelpFunc = shortHelpFunc;
+    }
+
+    public void setFullHelpFunc(FullHelpFunc fullHelpFunc) {
+        this.fullHelpFunc = fullHelpFunc;
     }
 
     @Override

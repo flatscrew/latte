@@ -27,7 +27,7 @@ conform it
 | cellbuffer        | `⚪ TODO`      | Any reasonable port of **harmonica** is needed.                                                                  |
 | chat              | `⚪ TODO`      | Needs **textarea** and **viewport** bubbles.                                                                     |
 | composable-views  | `⚪ TODO`      | Needs **timer** bubble.                                                                                          |
-| credit-card-form  | `⚪ TODO`      | Needs **textinput** bubble.                                                                                      |
+| credit-card-form  | `⚪ TODO`      |                                                                                                                  |
 | debounce          | `⚪ TODO`      |                                                                                                                  |
 | exec              | `⚪ TODO`      |                                                                                                                  |
 | file-picker       | `⚪ TODO`      | Needs **filepicker** bubble.                                                                                     |
@@ -37,13 +37,13 @@ conform it
 | help              | `⚪ TODO`      | Needs **help** and **key** bubbles.                                                                              |
 | http              | `🟢 Done`     |                                                                                                                  |
 | list-default      | `🟢 Done`     |                                                                                                                  |
-| list-fancy        | `⚪ TODO`      |                                                                                                                  |
+| list-fancy        | `🟢 Done`     |                                                                                                                  |
 | list-simple       | `🟢 Done`     |                                                                                                                  |
 | mouse             | `🟢 Done`     |                                                                                                                  |
 | package-manager   | `⚪ TODO`      | Needs **progress** bubble.                                                                                       |
 | pager             | `⚪ TODO`      | Needs **viewport** bubble.                                                                                       |
 | paginator         | `⚪ TODO`      | `🟢 Done`                                                                                                        |
-| pipe              | `⚪ TODO`      | Needs **textinput** bubble.                                                                                      |
+| pipe              | `⚪ TODO`      |                                                                                                                  |
 | prevent-quit      | `⚪ TODO`      | Needs **help**, **key** and **textarea** bubbles.                                                                |
 | progress-animated | `⚪ TODO`      | Needs **progress** bubble.                                                                                       |
 | progress-download | `⚪ TODO`      | Needs **progress** bubble.                                                                                       |

@@ -514,7 +514,7 @@ public class Style implements Cloneable {
         return result;
     }
 
-    public Dimensions getFrameSize() {
+    public Dimensions frameSize() {
         return new Dimensions(getHorizontalFrameSize(), getVerticalFrameSize());
     }
 

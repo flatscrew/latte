@@ -55,7 +55,7 @@ public class ListSimpleExample implements Model {
         }
 
         @Override
-        public Command update(Message msg, Model model) {
+        public Command update(Message msg, List model) {
             return null;
         }
     }
