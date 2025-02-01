@@ -229,7 +229,7 @@ public class NewInputHandler implements InputHandler {
 
     private void handleX10MouseEvent(char[] input) {
         if (input.length < 3) return;
-        int button = input[0] - 32;
+        int button = input[0];
         int col = input[1] - 32;
         int row = input[2] - 32;
 

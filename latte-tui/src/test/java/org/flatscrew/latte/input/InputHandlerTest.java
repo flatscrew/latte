@@ -241,24 +241,23 @@ class InputHandlerTest {
         CountDownLatch messageLatch = new CountDownLatch(1);
 
         Consumer<Message> messageConsumer = message -> {
+            System.out.println("DEBUG: Received message: " + message);
             receivedMessages.add(message);
             messageLatch.countDown();
         };
 
-
         when(reader.read(any(char[].class), eq(0), eq(256)))
                 .thenAnswer(invocation -> {
                     char[] buf = invocation.getArgument(0);
-                    buf[0] = '\u001b';
-                    buf[1] = '[';
-                    buf[2] = 'M';
-                    buf[3] = (char) (32 + 8);
-                    buf[4] = (char) (32 + 10);
-                    buf[5] = (char) (32 + 20);
+                    buf[0] = '\u001b';              // ESC
+                    buf[1] = '[';                   // CSI
+                    buf[2] = 'M';                   // Mouse Event Identifier
+                    buf[3] = (char) (32 + 8);       // Button with Alt modifier
+                    buf[4] = (char) (32 + 10);      // Column
+                    buf[5] = (char) (32 + 20);      // Row
                     return 6;
                 })
-                .thenReturn(-1);
-
+                .thenReturn(-1);  // Signal end of input
 
         InputHandler inputHandler = new NewInputHandler(terminal, messageConsumer);
 
@@ -267,21 +266,14 @@ class InputHandlerTest {
         boolean received = messageLatch.await(2, TimeUnit.SECONDS);
         inputHandler.stop();
 
-        // Log actual message content
-        if (receivedMessages.isEmpty()) {
-            System.out.println("No messages received.");
-            return;
-        }
-
-        MouseMessage mouseMessage = (MouseMessage) receivedMessages.getFirst();
-
         // then
         assertThat(received).isTrue();
         assertThat(receivedMessages).hasSize(1);
         assertThat(receivedMessages.getFirst()).isInstanceOf(MouseMessage.class);
 
-        assertThat(mouseMessage.column()).isEqualTo(9);  // ✅ (10 - 1)
-        assertThat(mouseMessage.row()).isEqualTo(19);    // ✅ (20 - 1)
+        MouseMessage mouseMessage = (MouseMessage) receivedMessages.getFirst();
+        assertThat(mouseMessage.column()).isEqualTo(9);      // 10 - 1
+        assertThat(mouseMessage.row()).isEqualTo(19);        // 20 - 1
         assertThat(mouseMessage.isAlt()).isTrue();
         assertThat(mouseMessage.isCtrl()).isFalse();
         assertThat(mouseMessage.isShift()).isFalse();
@@ -289,7 +281,6 @@ class InputHandlerTest {
         assertThat(mouseMessage.getAction()).isEqualTo(MouseAction.MouseActionPress);
         assertThat(mouseMessage.isWheel()).isFalse();
     }
-
 
     @Test
     void test_ShouldPublishMouseMessage_When_ReceivingSGRMousePress() throws Throwable {

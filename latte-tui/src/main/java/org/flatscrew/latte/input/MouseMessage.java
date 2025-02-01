@@ -142,7 +142,10 @@ public class MouseMessage implements Message {
 
     private static MouseEvent parseMouseButton(int b, boolean isSGR) {
         MouseEvent m = new MouseEvent();
-        int e = b & 0xFF;  // Treat b as unsigned
+        int e = b & 0xFF;               // ✅ Treat b as unsigned
+        if (!isSGR) {
+            e = (e - X10_MOUSE_BYTE_OFFSET) & 0xFF;  // ✅ Wrap around correctly to stay in 0-255 range
+        }
 
         final int BIT_SHIFT = 0b0000_0100;
         final int BIT_ALT = 0b0000_1000;
@@ -153,13 +156,26 @@ public class MouseMessage implements Message {
         final int BITS_MASK = 0b0000_0011;
 
 
+        int buttonOffset = e & BITS_MASK;
+
+
         if ((e & BIT_ADD) != 0) {
-            int buttonOffset = e & BITS_MASK;
+            // Handles extra buttons: Backward, Forward
             m.button = MouseButton.values()[MouseButton.MouseButtonBackward.ordinal() + buttonOffset];
+        } else if ((e & BIT_WHEEL) != 0) {
+            // Handles mouse wheel: WheelUp, WheelDown
+            m.button = MouseButton.values()[MouseButton.MouseButtonWheelUp.ordinal() + buttonOffset];
         } else {
-            int buttonOffset = e & BITS_MASK;
-            m.button = MouseButton.values()[MouseButton.MouseButtonLeft.ordinal() + buttonOffset];
+            // Handles standard buttons: Left, Middle, Right
+            if (buttonOffset == 0b11) { // X10 reports button release as 0b00000011 (3)
+                m.action = MouseAction.MouseActionRelease;
+                m.button = MouseButton.MouseButtonNone;
+            } else {
+                m.button = MouseButton.values()[MouseButton.MouseButtonLeft.ordinal() + buttonOffset];
+                m.action = MouseAction.MouseActionPress; // Default to press if it's a button click
+            }
         }
+
 
         // Motion bit doesn't get reported for wheel events
         if ((e & BIT_MOTION) != 0 && !isWheelButton(m.button)) {
