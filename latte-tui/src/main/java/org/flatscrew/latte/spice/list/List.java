@@ -623,7 +623,7 @@ public class List implements Model, KeyMap {
             if (showSpinner) {
                 commands.add(updateResult.command());
             }
-        } else if (msg instanceof StatusMessageTimeoutMessage timeoutMessage) {
+        } else if (msg instanceof StatusMessageTimeoutMessage) {
             hideStatusMessage();
         }
 

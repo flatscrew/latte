@@ -665,11 +665,17 @@ public class TextInput implements Model {
     }
 
     public void nextSuggestion() {
-        currentSuggestionIndex = (currentSuggestionIndex + 1) % matchedSuggestions.length;
+        this.currentSuggestionIndex = currentSuggestionIndex + 1;
+        if (currentSuggestionIndex > matchedSuggestions.length) {
+            this.currentSuggestionIndex = 0;
+        }
     }
 
     public void previousSuggestion() {
-        currentSuggestionIndex = (currentSuggestionIndex - 1 + matchedSuggestions.length) % matchedSuggestions.length;
+        this.currentSuggestionIndex = currentSuggestionIndex - 1;
+        if (currentSuggestionIndex < 0) {
+            this.currentSuggestionIndex = matchedSuggestions.length;
+        }
     }
 
     public void updateSuggestions() {
