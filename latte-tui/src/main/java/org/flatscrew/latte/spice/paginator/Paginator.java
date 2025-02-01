@@ -120,7 +120,7 @@ public class Paginator {
         return totalPages;
     }
 
-    public int perPage() {
+    public int setPerPage() {
         return perPage;
     }
 
@@ -161,15 +161,11 @@ public class Paginator {
         return n;
     }
 
-    public void activeDot(String activeDot) {
+    public void setActiveDot(String activeDot) {
         this.activeDot = activeDot;
     }
 
-    public void inactiveDot(String inactiveDot) {
+    public void setInactiveDot(String inactiveDot) {
         this.inactiveDot = inactiveDot;
-    }
-
-    public void perPage(int perPage) {
-        this.perPage = perPage;
     }
 }

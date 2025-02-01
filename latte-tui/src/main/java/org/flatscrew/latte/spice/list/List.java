@@ -243,8 +243,8 @@ public class List implements Model, KeyMap {
     }
 
     public void select(int index) {
-        this.paginator.setPage(index / paginator.perPage());
-        this.cursor = index & paginator.perPage();
+        this.paginator.setPage(index / paginator.setPerPage());
+        this.cursor = index & paginator.setPerPage();
     }
 
     public void resetSelected() {
@@ -323,7 +323,7 @@ public class List implements Model, KeyMap {
     }
 
     public int index() {
-        return paginator.page() * paginator.perPage() + cursor;
+        return paginator.page() * paginator.setPerPage() + cursor;
     }
 
     public int globalIndex() {
@@ -578,8 +578,8 @@ public class List implements Model, KeyMap {
             paginator.setTotalPagesFromItemsSize(pages);
         }
 
-        paginator.setPage(index / paginator.perPage());
-        this.cursor = index % paginator.perPage();
+        paginator.setPage(index / paginator.setPerPage());
+        this.cursor = index % paginator.setPerPage();
 
         if (paginator.page() >= paginator.totalPages() - 1) {
             paginator.setPage(Math.max(0, paginator.totalPages() - 1));
@@ -597,8 +597,8 @@ public class List implements Model, KeyMap {
 
     @Override
     public Command init() {
-        paginator.activeDot(styles.activePaginationDot().render());
-        paginator.inactiveDot(styles.inactivePaginationDot().render());
+        paginator.setActiveDot(styles.activePaginationDot().render());
+        paginator.setInactiveDot(styles.inactivePaginationDot().render());
 
         updatePagination();
         updateKeybindings();
@@ -905,8 +905,8 @@ public class List implements Model, KeyMap {
         }
 
         int itemsOnPage = paginator.itemsOnPage(items.size());
-        if (itemsOnPage < paginator.perPage()) {
-            int n = (paginator.perPage() - itemsOnPage) * (itemDelegate.height() + itemDelegate.spacing());
+        if (itemsOnPage < paginator.setPerPage()) {
+            int n = (paginator.setPerPage() - itemsOnPage) * (itemDelegate.height() + itemDelegate.spacing());
             // can this happen at all ??
             if (items.isEmpty()) {
                 n -= itemDelegate.height() - 1;
@@ -1036,5 +1036,9 @@ public class List implements Model, KeyMap {
 
     public java.util.List<FilteredItem> filteredItems() {
         return filteredItems;
+    }
+
+    public Styles styles() {
+        return styles;
     }
 }

@@ -36,9 +36,9 @@ conform it
 | glamour           | `⚪ TODO`      | Needs any reasonable port of **glamour**.                                                                        |
 | help              | `⚪ TODO`      | Needs **help** and **key** bubbles.                                                                              |
 | http              | `🟢 Done`     |                                                                                                                  |
-| list-default      | `⚪ TODO`      | Needs **list** bubble.                                                                                           |
-| list-fancy        | `⚪ TODO`      | Needs **list** and **key** bubbles.                                                                              |
-| list-simple       | `⚪ TODO`      | Needs **list** bubble.                                                                                           |
+| list-default      | `🟢 Done`     |                                                                                                                  |
+| list-fancy        | `⚪ TODO`      |                                                                                                                  |
+| list-simple       | `🟢 Done`     |                                                                                                                  |
 | mouse             | `🟢 Done`     |                                                                                                                  |
 | package-manager   | `⚪ TODO`      | Needs **progress** bubble.                                                                                       |
 | pager             | `⚪ TODO`      | Needs **viewport** bubble.                                                                                       |
@@ -81,7 +81,7 @@ This table covers all the Bubble's ported so far. The same status labels apply.
 | filepicker | `⚪ TODO`  |                                |
 | help       | `🟢 Done` |                                |
 | key        | `🟢 Done` |                                |
-| list       | `⚪ TODO`  |                                |
+| list       | `🟢 Done` |                                |
 | paginator  | `🟢 Done` |                                |
 | progress   | `⚪ TODO`  |                                |
 | runeutil   | `🟢 Done` |                                |
