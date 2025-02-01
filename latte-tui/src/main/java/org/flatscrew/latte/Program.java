@@ -1,6 +1,7 @@
 package org.flatscrew.latte;
 
 import org.flatscrew.latte.input.InputHandler;
+import org.flatscrew.latte.input.NewInputHandler;
 import org.flatscrew.latte.message.BatchMessage;
 import org.flatscrew.latte.message.CheckWindowSizeMessage;
 import org.flatscrew.latte.message.ClearScreenMessage;
@@ -55,7 +56,7 @@ public class Program {
             TerminalInfo.provide(new JLineTerminalInfoProvider(terminal));
 
             this.renderer = new StandardRenderer(terminal);
-            this.inputHandler = new InputHandler(terminal, this::send);
+            this.inputHandler = new NewInputHandler(terminal, this::send);
         } catch (IOException e) {
             throw new ProgramException("Failed to initialize terminal", e);
         }

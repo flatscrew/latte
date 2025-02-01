@@ -42,7 +42,7 @@ class InputHandlerTest {
         };
         when(reader.read()).thenReturn((int) 'a', -1);
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new OldLaggyInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
@@ -75,7 +75,7 @@ class InputHandlerTest {
         when(reader.read()).thenReturn((int) '\u001b', -1);  // return ESC first, then -1
         when(reader.read(50)).thenReturn(-1);
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new OldLaggyInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
@@ -108,7 +108,7 @@ class InputHandlerTest {
         when(reader.read()).thenReturn((int) '\u001b', -1);  // return ESC first, then -1
         when(reader.read(50)).thenReturn((int) 'a', -1);
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new OldLaggyInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
@@ -143,7 +143,7 @@ class InputHandlerTest {
         when(reader.read()).thenReturn((int) '\u001b', -1);  // return ESC first, then -1
         when(reader.read(50)).thenReturn((int) '[', (int) 'I', -1);
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new OldLaggyInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
@@ -174,7 +174,7 @@ class InputHandlerTest {
         when(reader.read()).thenReturn((int) '\u001b', -1);  // return ESC first, then -1
         when(reader.read(50)).thenReturn((int) '[', (int) 'O', -1);
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new OldLaggyInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
@@ -221,7 +221,7 @@ class InputHandlerTest {
                 -1
         );
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new OldLaggyInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
@@ -275,7 +275,7 @@ class InputHandlerTest {
                 -1
         );
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new OldLaggyInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
@@ -338,7 +338,7 @@ class InputHandlerTest {
                 -1
         );
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new OldLaggyInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
@@ -393,7 +393,7 @@ class InputHandlerTest {
                 -1
         );
 
-        InputHandler inputHandler = new InputHandler(terminal, messageConsumer);
+        InputHandler inputHandler = new OldLaggyInputHandler(terminal, messageConsumer);
 
         // when
         inputHandler.start();
