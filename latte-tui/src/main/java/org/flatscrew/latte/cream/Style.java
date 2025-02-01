@@ -590,4 +590,10 @@ public class Style implements Cloneable {
             throw new RuntimeException(e);
         }
     }
+
+    public Style inherit(Style style) {
+        // TODO copy the rest of the inherited properties
+        this.underline = style.underline;
+        return this;
+    }
 }

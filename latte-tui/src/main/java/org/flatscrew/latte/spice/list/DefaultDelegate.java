@@ -4,11 +4,11 @@ import org.flatscrew.latte.Command;
 import org.flatscrew.latte.Message;
 import org.flatscrew.latte.Model;
 import org.flatscrew.latte.ansi.Truncate;
+import org.flatscrew.latte.cream.Runes;
 import org.flatscrew.latte.cream.Style;
 import org.flatscrew.latte.spice.help.KeyMap;
 import org.flatscrew.latte.spice.key.Binding;
 
-import java.io.IOException;
 import java.util.LinkedList;
 
 public class DefaultDelegate implements ItemDelegate, KeyMap {
@@ -32,7 +32,7 @@ public class DefaultDelegate implements ItemDelegate, KeyMap {
     public void render(StringBuilder output, List list, int index, Item item) {
         String title = "";
         String desc = "";
-        int[] matchedRunes;
+        int[] matchedRunes = new int[0];
 
         if (item instanceof DefaultItem defaultItem) {
             title = defaultItem.title();
@@ -74,8 +74,8 @@ public class DefaultDelegate implements ItemDelegate, KeyMap {
         } else if (isSelected && list.filterState() != FilterState.Filtering) {
             if (isFiltered) {
                 Style unmatched = styles.selectedTitle().copy().inline(true);
-                // wtf is INHERIT doing?!
-                // and STYLE RUNES ?!
+                Style matched = unmatched.copy().inherit(styles.filterMatch());
+                title = Runes.styleRunes(title, matchedRunes, matched, unmatched);
             }
 
             title = styles.selectedTitle().render(title);
@@ -83,8 +83,8 @@ public class DefaultDelegate implements ItemDelegate, KeyMap {
         } else {
             if (isFiltered) {
                 Style unmatched = styles.normalTitle().copy().inline(true);
-                // wtf is INHERIT doing?!
-                // and STYLE RUNES ?!
+                Style matched = unmatched.copy().inherit(styles.filterMatch());
+                title = Runes.styleRunes(title, matchedRunes, matched, unmatched);
             }
             title = styles.normalTitle().render(title);
             desc = styles.normalDesc().render(desc);

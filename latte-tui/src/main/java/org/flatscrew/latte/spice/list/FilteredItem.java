@@ -13,6 +13,7 @@ public class FilteredItem {
 
     public FilteredItem(Item item) {
         this.item = item;
+        this.matches = new int[0];
     }
 
     public Item item() {
