@@ -4,10 +4,12 @@ import org.flatscrew.latte.Message;
 import org.flatscrew.latte.ProgramException;
 import org.flatscrew.latte.input.key.ExtendedSequences;
 import org.flatscrew.latte.input.key.Key;
+import org.flatscrew.latte.input.key.KeyAliases;
 import org.flatscrew.latte.input.key.KeyType;
 import org.flatscrew.latte.message.BlurMessage;
 import org.flatscrew.latte.message.FocusMessage;
 import org.flatscrew.latte.message.KeyPressMessage;
+import org.flatscrew.latte.message.UnknownSequenceMessage;
 import org.jline.terminal.Terminal;
 import org.jline.utils.NonBlockingReader;
 
@@ -26,9 +28,8 @@ public class NewInputHandler implements InputHandler {
     private final Consumer<Message> messageConsumer;
     private volatile boolean running;
     private final ExecutorService inputExecutor;
-    private volatile boolean altPressed = false;
 
-    private static final int READ_TIMEOUT_MS = 50;
+    private static final int PEEK_TIMEOUT_MS = 10;
     private static final int BUFFER_SIZE = 256;
 
     public NewInputHandler(Terminal terminal, Consumer<Message> messageConsumer) {
@@ -68,7 +69,9 @@ public class NewInputHandler implements InputHandler {
 
             while (running) {
                 int numRead = reader.read(buffer, 0, BUFFER_SIZE);
-                if (numRead == -1) continue;
+                if (numRead < 0) {
+                    continue;
+                }
 
                 char[] inputChunk = Arrays.copyOfRange(buffer, 0, numRead);
                 if (leftover.length > 0) {
@@ -85,6 +88,8 @@ public class NewInputHandler implements InputHandler {
                     }
                     i += processed;
                 }
+
+
             }
         } catch (IOException e) {
             if (!Thread.currentThread().isInterrupted()) {
@@ -99,21 +104,50 @@ public class NewInputHandler implements InputHandler {
         char firstChar = input[0];
 
         if (firstChar == '\u001b') { // ESC character
-            if (input.length == 1) return 0; // Incomplete sequence
-            return processControlSequence(input);
+            if (input.length == 1) {
+
+                // ✅ Peek to check if more data is available
+                NonBlockingReader reader = terminal.reader();
+                if (reader.peek(PEEK_TIMEOUT_MS) < 0) {
+                    // No data available, treat as standalone ESC
+                    messageConsumer.accept(new KeyPressMessage(new Key(KeyAliases.getKeyType(KeyAliases.KeyAlias.KeyEscape))));
+                    return 1;
+                }
+
+                // Buffer might be incomplete, wait for more data
+                return 0;
+            }
+
+            // Check if it's a known control sequence
+            if (input[1] == '[' || input[1] == 'O') {
+                return processControlSequence(input);
+            }
+
+            Key key = ExtendedSequences.getKey(new String(input));
+            if (key != null) {
+                messageConsumer.accept(new KeyPressMessage(key));
+                return input.length;
+            }
+
+            // If there's no control sequence, treat ESC as Alt modifier
+            if (input.length == 2) {
+                messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{input[1]}, true)));
+                return 2;
+            }
+
+            // If it's just ESC with no following characters, treat it as standalone ESC
+            messageConsumer.accept(new KeyPressMessage(new Key(KeyAliases.getKeyType(KeyAliases.KeyAlias.KeyEscape))));
+            return 1;
         }
 
         // Regular character press
         Key key = ExtendedSequences.getKey(String.valueOf(firstChar));
         if (key != null) {
-            messageConsumer.accept(new KeyPressMessage(new Key(key.type(), key.runes())));
+            messageConsumer.accept(new KeyPressMessage(key));
         } else {
-            messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, altPressed)));
+            messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, false)));
         }
 
-        if (altPressed) {
-            altPressed = false;
-        }
         return 1;
     }
 
@@ -166,21 +200,23 @@ public class NewInputHandler implements InputHandler {
                 Key key = ExtendedSequences.getKey(sequence.toString());
                 if (key != null) {
                     messageConsumer.accept(new KeyPressMessage(key));
-                    return sequence.length();
+                    return i + 1;
                 }
                 if (Character.isLetter(input[i]) || input[i] == '~') {
                     break;
                 }
             }
-        }
 
-        if (input.length == 2 && Character.isLetterOrDigit(firstChar)) {
-            messageConsumer.accept(new KeyPressMessage(new Key(KeyType.KeyRunes, new char[]{firstChar}, true)));
-            return 2;
+            // If we reach here, it's an unrecognized sequence
+            if (input.length > 5) { // Arbitrary limit to prevent infinite waiting
+                messageConsumer.accept(new UnknownSequenceMessage(sequence.toString()));
+                return sequence.length();
+            }
         }
 
         return 0; // Incomplete sequence
     }
+
 
     private int findEndIndex(char[] input, int start, char... terminators) {
         for (int i = start; i < input.length; i++) {
@@ -197,7 +233,7 @@ public class NewInputHandler implements InputHandler {
         int col = input[1] - 32;
         int row = input[2] - 32;
 
-        messageConsumer.accept(MouseMessage.parseX10MouseEvent(button, col, row));
+        messageConsumer.accept(MouseMessage.parseX10MouseEvent(col, row, button));
     }
 
     private void handleSGRMouseEvent(char[] input) {
