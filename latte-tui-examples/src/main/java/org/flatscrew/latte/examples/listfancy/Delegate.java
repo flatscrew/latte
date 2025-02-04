@@ -4,6 +4,7 @@ import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.spice.help.KeyMap;
 import org.flatscrew.latte.spice.key.Binding;
 import org.flatscrew.latte.spice.list.DefaultDelegate;
+import org.flatscrew.latte.spice.list.DefaultDataSource;
 
 public class Delegate {
 
@@ -61,9 +62,12 @@ public class Delegate {
                     return model.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"You choose", title}));
                 } else if (Binding.matches(keyPressMessage, keyMap.remove())) {
                     int index = model.index();
-                    model.removeItem(index);
-                    if (model.items().size() == 0) {
-                        keyMap.remove().setEnabled(false);
+
+                    if (model.dataSource() instanceof DefaultDataSource defaultDataSource) {
+                        defaultDataSource.removeItem(index);
+                        if (defaultDataSource.isEmpty()) {
+                            keyMap.remove().setEnabled(false);
+                        }
                     }
                     return model.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Deleted", title}));
                 }

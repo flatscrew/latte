@@ -12,10 +12,12 @@ import org.flatscrew.latte.spice.key.Binding;
 import org.flatscrew.latte.spice.list.FilterState;
 import org.flatscrew.latte.spice.list.Item;
 import org.flatscrew.latte.spice.list.List;
+import org.flatscrew.latte.spice.list.DefaultDataSource;
 
 public class ListFancyExample implements Model {
 
     private List list;
+
     private RandomItemGenerator itemGenerator;
     private Keys keys;
     private Delegate.DelegateKeyMap delegateKeys;
@@ -42,6 +44,7 @@ public class ListFancyExample implements Model {
                 keys.togglePagination(),
                 keys.toggleHelpMenu()
         });
+
     }
 
     @Override
@@ -78,11 +81,16 @@ public class ListFancyExample implements Model {
                     list.setShowHelp(!list.showHelp());
                     return UpdateResult.from(this);
                 } else if (Binding.matches(keyPressMessage, keys.insertItem())) {
-                    delegateKeys.remove().setEnabled(true);
-                    FancyItem newItem = itemGenerator.next();
-                    Command insertCmd = list.insertItem(0, newItem);
-                    Command statusCmd = list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Added", newItem.title()}));
-                    return UpdateResult.from(this, Command.batch(insertCmd, statusCmd));
+                    if (list.dataSource() instanceof DefaultDataSource defaultDataSource) {
+                        delegateKeys.remove().setEnabled(true);
+                        FancyItem newItem = itemGenerator.next();
+                        Command insertCmd = defaultDataSource.insertItem(0, newItem);
+                        Command statusCmd = list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Added", newItem.title()}));
+                        return UpdateResult.from(this, Command.batch(insertCmd, statusCmd));
+                    }
+                    return UpdateResult.from(this);
+                } else if ("g".equals(keyPressMessage.key())) {
+                    return UpdateResult.from(this, list.toggleSpinner());
                 }
             }
         }

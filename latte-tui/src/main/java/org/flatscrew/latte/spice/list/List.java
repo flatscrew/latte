@@ -14,8 +14,6 @@ import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.spice.help.Help;
 import org.flatscrew.latte.spice.help.KeyMap;
 import org.flatscrew.latte.spice.key.Binding;
-import org.flatscrew.latte.spice.list.fuzzy.FuzzyFilter;
-import org.flatscrew.latte.spice.paginator.Bounds;
 import org.flatscrew.latte.spice.paginator.Paginator;
 import org.flatscrew.latte.spice.paginator.Type;
 import org.flatscrew.latte.spice.spinner.Spinner;
@@ -57,7 +55,6 @@ public class List implements Model, KeyMap {
     private boolean infiniteScrolling;
 
     private Keys keys;
-    private FilterFunction filterFunction;
     private boolean disableQuitKeybindings;
 
     private Supplier<Binding[]> additionalShortHelpKeys;
@@ -78,7 +75,9 @@ public class List implements Model, KeyMap {
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private Future<? extends Message> statusMessageFuture;
 
-    private java.util.List<Item> items;
+    private ListDataSource dataSource;
+    private boolean fetchingItems;
+    private java.util.List<? extends Item> currentPageItems;
     private java.util.List<FilteredItem> filteredItems;
     private ItemDelegate itemDelegate;
 
@@ -87,12 +86,27 @@ public class List implements Model, KeyMap {
     }
 
     public List(Item[] items, ItemDelegate delegate, int width, int height) {
+        init(new DefaultDataSource(this, items), delegate, width, height);
+    }
+
+    public List(ListDataSource dataSource, ItemDelegate delegate, int width, int height) {
+        init(dataSource, delegate, width, height);
+    }
+
+    public List(ListDataSource dataSource, int width, int height) {
+        this(dataSource, new DefaultDelegate(), width, height);
+    }
+
+    private void init(ListDataSource dataSource, ItemDelegate delegate, int width, int height) {
+        this.dataSource = dataSource;
+        this.currentPageItems = new ArrayList<>();
+        this.filteredItems = new LinkedList<>();
         this.filterState = FilterState.Unfiltered;
+        this.itemDelegate = delegate;
+        this.fetchingItems = false;
+
         this.width = width;
         this.height = height;
-        this.itemDelegate = delegate;
-        this.items = new ArrayList<>(Arrays.asList(items));
-        this.filteredItems = new LinkedList<>();
         this.title = "List";
         this.showTitle = true;
         this.showFilter = true;
@@ -103,7 +117,6 @@ public class List implements Model, KeyMap {
         this.itemNamePlural = "items";
         this.filteringEnabled = true;
         this.keys = new Keys();
-        this.filterFunction = FuzzyFilter::defaultFilter;
         this.styles = Styles.defaultStyles();
         this.statusMessageLifetime = Duration.ofSeconds(1);
         this.statusMessage = "";
@@ -121,6 +134,21 @@ public class List implements Model, KeyMap {
 
         this.paginator = new Paginator();
         paginator.setType(Type.Dots);
+    }
+
+    public ListDataSource dataSource() {
+        return dataSource;
+    }
+
+    private Command fetchCurrentPageItems(Runnable... postFetch) {
+        this.fetchingItems = true;
+        updateKeybindings();
+
+        startSpinner();
+        return batch(
+                startSpinner(),
+                () -> new FetchedCurrentPageItems(dataSource.fetchItems(paginator.page(), paginator.perPage()), postFetch)
+        );
     }
 
     public void setFilteringEnabled(boolean filteringEnabled) {
@@ -144,31 +172,20 @@ public class List implements Model, KeyMap {
         updatePagination();
     }
 
-    public void setFilterText(String filter) {
+    public Command setFilterText(String filter) {
         this.filterState = FilterState.Filtering;
         this.filterInput.setValue(filter);
-
-        Command cmd = filterItems();
-        Message msg = cmd.execute();
-
-        if (msg instanceof FilterMatchesMessage filterMatchesMessage) {
-            this.filteredItems = filterMatchesMessage.filteredItems();
-            this.filterState = FilterState.FilterApplied;
-            this.paginator.setPage(0);
-            this.cursor = 0;
-            this.filterInput.cursorEnd();
-
-            updatePagination();
-            updateKeybindings();
-        }
+        return dataSource.filterItems(filterInput.value());
     }
 
-    public void setFilterState(FilterState filterState) {
+    public Command setFilterState(FilterState filterState) {
         this.paginator.setPage(0);
         this.cursor = 0;
         this.filterInput.cursorEnd();
         this.filterInput.focus();
         this.filterState = filterState;
+
+        return fetchCurrentPageItems();
     }
 
     public boolean showTitle() {
@@ -224,27 +241,10 @@ public class List implements Model, KeyMap {
         return showHelp;
     }
 
-    public java.util.List<Item> items() {
-        return items;
-    }
-
-    public Command setItems(Item... items) {
-        this.items = java.util.List.of(items);
-        Command cmd = null;
-
-        if (filterState != FilterState.Unfiltered) {
-            this.filteredItems = null;
-            cmd = filterItems();
-        }
-
-        updatePagination();
-        updateKeybindings();
-        return cmd;
-    }
-
-    public void select(int index) {
-        this.paginator.setPage(index / paginator.setPerPage());
-        this.cursor = index & paginator.setPerPage();
+    public Command select(int index) {
+        this.paginator.setPage(index / paginator.perPage());
+        this.cursor = index & paginator.perPage();
+        return fetchCurrentPageItems();
     }
 
     public void resetSelected() {
@@ -255,64 +255,26 @@ public class List implements Model, KeyMap {
         resetFiltering();
     }
 
-    public Command setItem(int index, Item item) {
-        Command cmd = null;
-        this.items.set(index, item);
-
-        if (filterState != FilterState.Unfiltered) {
-            cmd = filterItems();
-        }
-
-        updatePagination();
-        return cmd;
-    }
-
-    public Command insertItem(int index, Item item) {
-        Command cmd = null;
-        this.items.add(index, item);
-
-        if (filterState != FilterState.Unfiltered) {
-            cmd = filterItems();
-        }
-
-        updatePagination();
-        updateKeybindings();
-        return cmd;
-    }
-
-    public void removeItem(int index) {
-        this.items.remove(index);
-
-        if (filterState != FilterState.Unfiltered) {
-            this.filteredItems.remove(index);
-
-            if (filteredItems.isEmpty()) {
-                resetFiltering();
-            }
-        }
-        updatePagination();
-    }
-
     public void setItemDelegate(ItemDelegate itemDelegate) {
         this.itemDelegate = itemDelegate;
         updatePagination();
     }
 
-    public java.util.List<Item> visibleItems() {
-        if (filterState != FilterState.Unfiltered) {
-            return filteredItems.stream().map(FilteredItem::item).toList();
-        }
-        return items;
-    }
-
     public Item selectedItem() {
-        java.util.List<Item> visibleItems = visibleItems();
+        java.util.List<? extends Item> visibleItems = visibleItems();
         int index = index();
 
         if (index < 0 || visibleItems.isEmpty() || visibleItems.size() <= index) {
             return null;
         }
         return visibleItems.get(index);
+    }
+
+    public java.util.List<? extends Item> visibleItems() {
+        if (filterState != FilterState.Unfiltered) {
+            return filteredItems.stream().map(FilteredItem::item).toList();
+        }
+        return currentPageItems;
     }
 
     public int[] matchesForItem(int index) {
@@ -323,7 +285,7 @@ public class List implements Model, KeyMap {
     }
 
     public int index() {
-        return paginator.page() * paginator.setPerPage() + cursor;
+        return paginator.page() * paginator.perPage() + cursor;
     }
 
     public int globalIndex() {
@@ -340,61 +302,24 @@ public class List implements Model, KeyMap {
         return cursor;
     }
 
-    public void cursorUp() {
-        this.cursor--;
 
-        if (cursor < 0 && paginator.page() == 0) {
-            if (infiniteScrolling) {
-                paginator.setPage(paginator.totalPages() - 1);
-                this.cursor = paginator.itemsOnPage(visibleItems().size()) - 1;
-                return;
-            }
 
-            this.cursor = 0;
-            return;
-        }
-
-        if (cursor >= 0) {
-            return;
-        }
-
-        paginator.prevPage();
-        this.cursor = paginator.itemsOnPage(visibleItems().size()) - 1;
-    }
-
-    public void cursorDown() {
-        int itemsOnPage = paginator.itemsOnPage(visibleItems().size());
-        this.cursor++;
-
-        if (cursor < itemsOnPage) {
-            return;
-        }
-
+    public Command nextPage() {
         if (!paginator.onLastPage()) {
             paginator.nextPage();
-            this.cursor = 0;
-            return;
+            cursor = 0;
+            return fetchCurrentPageItems();
         }
-
-        if (cursor > itemsOnPage) {
-            this.cursor = 0;
-            return;
-        }
-
-        this.cursor = itemsOnPage - 1;
-
-        if (infiniteScrolling) {
-            paginator.setPage(0);
-            this.cursor = 0;
-        }
+        return null;
     }
 
-    public void nextPage() {
-        paginator.nextPage();
-    }
-
-    public void prevPage() {
-        paginator.prevPage();
+    public Command prevPage() {
+        if (paginator.page() > 0) {
+            paginator.prevPage();
+            cursor = 0;
+            return fetchCurrentPageItems();
+        }
+        return null;
     }
 
     public FilterState filterState() {
@@ -475,25 +400,25 @@ public class List implements Model, KeyMap {
         this.statusMessageLifetime = statusMessageLifetime;
     }
 
-    public void setSize(int width, int height) {
+    public Command setSize(int width, int height) {
         int promptWidth = Size.width(styles.title().render(filterInput.prompt()));
 
         this.width = width;
         this.height = height;
         this.help.setWidth(width);
         this.filterInput.setWidth(width - promptWidth - Size.width(spinnerView()));
-        updatePagination();
+        return updatePagination();
     }
 
-    public void setWidth(int width) {
-        setSize(width, height);
+    public Command setWidth(int width) {
+        return setSize(width, height);
     }
 
-    public void setHeight(int height) {
-        setSize(width, height);
+    public Command setHeight(int height) {
+        return setSize(width, height);
     }
 
-    private void resetFiltering() {
+    protected void resetFiltering() {
         if (filterState == FilterState.Unfiltered) {
             return;
         }
@@ -503,15 +428,10 @@ public class List implements Model, KeyMap {
         this.filteredItems = null;
 
         updatePagination();
-        updateKeybindings();
     }
 
-    private java.util.List<FilteredItem> itemsAsFilteredItems() {
-        return items.stream().map(FilteredItem::new).toList();
-    }
-
-    private void updateKeybindings() {
-        if (filterState == FilterState.Filtering) {
+    protected void updateKeybindings() {
+        if (filterState == FilterState.Filtering || fetchingItems) {
             keys.cursorUp().setEnabled(false);
             keys.cursorDown().setEnabled(false);
             keys.nextPage().setEnabled(false);
@@ -526,7 +446,7 @@ public class List implements Model, KeyMap {
             keys.showFullHelp().setEnabled(false);
             keys.closeFullHelp().setEnabled(false);
         } else {
-            boolean hasItems = !items.isEmpty();
+            boolean hasItems = !dataSource.isEmpty();
             keys.cursorUp().setEnabled(hasItems);
             keys.cursorDown().setEnabled(hasItems);
             keys.goToStart().setEnabled(hasItems);
@@ -552,7 +472,7 @@ public class List implements Model, KeyMap {
         }
     }
 
-    private void updatePagination() {
+    Command updatePagination() {
         int index = index();
         int availHeight = this.height;
 
@@ -571,19 +491,19 @@ public class List implements Model, KeyMap {
 
         paginator.setPerPage(Math.max(1, availHeight / (itemDelegate.height() + itemDelegate.spacing())));
 
-        int pages = visibleItems().size();
-        if (pages < 1) {
-            paginator.setTotalPagesFromItemsSize(1);
-        } else {
-            paginator.setTotalPagesFromItemsSize(pages);
-        }
+        long totalItems = dataSource.totalItems();
+        int totalPages = (int) Math.ceil((double) totalItems / paginator.perPage());
+        paginator.setTotalPages(totalPages);
 
-        paginator.setPage(index / paginator.setPerPage());
-        this.cursor = index % paginator.setPerPage();
+        paginator.setPage(index / paginator.perPage());
+        this.cursor = index % paginator.perPage();
 
         if (paginator.page() >= paginator.totalPages() - 1) {
             paginator.setPage(Math.max(0, paginator.totalPages() - 1));
         }
+
+        updateKeybindings();
+        return fetchCurrentPageItems();
     }
 
     private void hideStatusMessage() {
@@ -600,10 +520,7 @@ public class List implements Model, KeyMap {
         paginator.setActiveDot(styles.activePaginationDot().render());
         paginator.setInactiveDot(styles.inactivePaginationDot().render());
 
-        updatePagination();
-        updateKeybindings();
-
-        return null;
+        return updatePagination();
     }
 
     @Override
@@ -614,15 +531,24 @@ public class List implements Model, KeyMap {
             if (Binding.matches(keyPressMessage, keys.forceQuit())) {
                 return UpdateResult.from(this, QuitMessage::new);
             }
+        } else if (msg instanceof FetchedCurrentPageItems fetchedCurrentPageItems) {
+            stopSpinner();
+            this.fetchingItems = false;
+            this.currentPageItems = fetchedCurrentPageItems.items();
+
+            for (Runnable runnable : fetchedCurrentPageItems.postFetch()) {
+                runnable.run();
+            }
+
+            updateKeybindings();
+            return UpdateResult.from(this);
         } else if (msg instanceof FilterMatchesMessage filterMatchesMessage) {
             this.filteredItems = filterMatchesMessage.filteredItems();
             return UpdateResult.from(this);
-        } else if (msg instanceof TickMessage tickMessage) {
+        } else if (msg instanceof TickMessage) {
             UpdateResult<Spinner> updateResult = spinner.update(msg);
             this.spinner = updateResult.model();
-            if (showSpinner) {
-                commands.add(updateResult.command());
-            }
+            commands.add(updateResult.command());
         } else if (msg instanceof StatusMessageTimeoutMessage) {
             hideStatusMessage();
         }
@@ -646,47 +572,123 @@ public class List implements Model, KeyMap {
             } else if (Binding.matches(keyPressMessage, keys.quit())) {
                 return QuitMessage::new;
             } else if (Binding.matches(keyPressMessage, keys.cursorUp())) {
-                cursorUp();
+                commands.add(cursorUp());
             } else if (Binding.matches(keyPressMessage, keys.cursorDown())) {
-                cursorDown();
+                commands.add(cursorDown());
             } else if (Binding.matches(keyPressMessage, keys.prevPage())) {
-                paginator.prevPage();
+                commands.add(cursorLeft());
             } else if (Binding.matches(keyPressMessage, keys.nextPage())) {
-                paginator.nextPage();
+                commands.add(cursorRight());
             } else if (Binding.matches(keyPressMessage, keys.goToStart())) {
                 paginator.setPage(0);
                 this.cursor = 0;
+                commands.add(fetchCurrentPageItems());
             } else if (Binding.matches(keyPressMessage, keys.goToEnd())) {
                 paginator.setPage(paginator.totalPages() - 1);
                 this.cursor = paginator.itemsOnPage(numItems) - 1;
             } else if (Binding.matches(keyPressMessage, keys.filter())) {
                 hideStatusMessage();
                 if ("".equals(filterInput.value())) {
-                    this.filteredItems = itemsAsFilteredItems();
+                    this.filteredItems = dataSource.itemsAsFilteredItems();
                 }
 
                 paginator.setPage(0);
+                commands.add(fetchCurrentPageItems());
                 this.cursor = 0;
                 this.filterState = FilterState.Filtering;
                 filterInput.cursorEnd();
                 filterInput.focus();
                 updateKeybindings();
-                return TextInput::blink;
+//                return TextInput::blink;
+                return batch(commands);
+
             } else if (Binding.matches(keyPressMessage, keys.showFullHelp()) || Binding.matches(keyPressMessage, keys.closeFullHelp())) {
                 help.setShowAll(!help.showAll());
-                updatePagination();
+                commands.add(updatePagination());
             }
 
-            Command cmd = itemDelegate.update(msg, this);
-            commands.add(cmd);
+            commands.add(itemDelegate.update(msg, this));
+        }
+        return batch(commands);
+    }
 
-            int itemsOnPage = paginator.itemsOnPage(visibleItems().size());
-            if (cursor > itemsOnPage - 1) {
-                this.cursor = Math.max(0, itemsOnPage - 1);
+    private Command cursorLeft() {
+        if (paginator.onFirstPage()) {
+            return null;
+        }
+        paginator.prevPage();
+        return fetchCurrentPageItems();
+    }
+
+    private Command cursorRight() {
+        if (paginator.onLastPage()) {
+            return null;
+        }
+        paginator.nextPage();
+        return fetchCurrentPageItems(this::keepCursorInBounds);
+    }
+
+    private void keepCursorInBounds() {
+        int itemsOnPage = visibleItems().size();
+        if (cursor > itemsOnPage - 1) {
+            this.cursor = Math.max(0, itemsOnPage - 1);
+        }
+    }
+
+    public Command cursorUp() {
+        this.cursor--;
+        if (cursor < 0) {
+            if (paginator.page() == 0) {
+                if (infiniteScrolling) {
+                    paginator.setPage(paginator.totalPages() - 1);
+                    return fetchCurrentPageItems(() -> cursor = paginator.itemsOnPage(visibleItems().size()) - 1);
+                }
+
+                this.cursor = 0;
+                return null;
             }
+
+            if (infiniteScrolling) {
+                paginator.setPage(paginator.totalPages() - 1);
+                return fetchCurrentPageItems(() -> cursor = paginator.itemsOnPage(visibleItems().size()) - 1);
+            }
+
+            paginator.prevPage();
+            return fetchCurrentPageItems(() -> cursor = visibleItems().size() - 1);
+        }
+        return null;
+    }
+
+    public Command cursorDown() {
+        int itemsOnPage = visibleItems().size();
+        this.cursor++;
+
+        if (cursor < itemsOnPage) {
+            return null;
         }
 
-        return batch(commands);
+        if (!paginator.onLastPage()) {
+            paginator.nextPage();
+            return fetchCurrentPageItems(
+                    () -> cursor = 0
+            );
+        }
+
+        if (cursor > itemsOnPage) {
+            this.cursor = 0;
+            return null;
+        }
+
+        this.cursor = itemsOnPage - 1;
+
+        if (infiniteScrolling) {
+            paginator.setPage(0);
+            return fetchCurrentPageItems(
+                    () -> cursor = 0
+            );
+        }
+
+        return null;
     }
 
     private Command handleFiltering(Message msg) {
@@ -700,9 +702,8 @@ public class List implements Model, KeyMap {
             } else if (Binding.matches(keyPressMessage, keys.acceptWhileFiltering())) {
                 hideStatusMessage();
 
-                if (!items.isEmpty()) {
-
-                    java.util.List<Item> h = visibleItems();
+                if (!dataSource.isEmpty()) {
+                    java.util.List<? extends Item> h = visibleItems();
                     if (!h.isEmpty()) {
                         filterInput.blur();
                         this.filterState = FilterState.FilterApplied;
@@ -715,7 +716,6 @@ public class List implements Model, KeyMap {
                     } else {
                         resetFiltering();
                     }
-
                 }
             }
         }
@@ -727,7 +727,7 @@ public class List implements Model, KeyMap {
         commands.add(updateResult.command());
 
         if (filterChanged) {
-            commands.add(filterItems());
+            commands.add(dataSource.filterItems(filterInput.value()));
             keys.acceptWhileFiltering().setEnabled(!filterInput.isEmpty());
         }
         updatePagination();
@@ -794,7 +794,6 @@ public class List implements Model, KeyMap {
                 int titleBarGap = titleBarStyle.leftPadding();
                 titleBarStyle = titleBarStyle.paddingLeft(titleBarGap - spinnerWidth - Size.width(spinnerLeftGap));
             }
-
             view.append(styles.title().render(title));
 
             if (filterState != FilterState.Filtering) {
@@ -820,7 +819,7 @@ public class List implements Model, KeyMap {
 
     private String statusView() {
         StringBuilder status = new StringBuilder();
-        int totalItems = items.size();
+        long totalItems = dataSource.totalItems();
         int visibleItems = visibleItems().size();
 
         String itemName = itemNameSingular;
@@ -836,7 +835,7 @@ public class List implements Model, KeyMap {
             } else {
                 status = new StringBuilder(itemsDisplay);
             }
-        } else if (items.isEmpty()) {
+        } else if (dataSource.isEmpty()) {
             status = new StringBuilder(styles.statusEmpty().render("No " + itemNamePlural));
         } else {
             boolean filtered = filterState == FilterState.FilterApplied;
@@ -850,7 +849,7 @@ public class List implements Model, KeyMap {
             status.append(itemsDisplay);
         }
 
-        int numFiltered = totalItems - visibleItems;
+        long numFiltered = totalItems - visibleItems;
         if (numFiltered > 0) {
             status
                     .append(styles.dividerDot().render())
@@ -881,7 +880,7 @@ public class List implements Model, KeyMap {
     }
 
     private String populatedView() {
-        java.util.List<Item> items = visibleItems();
+        java.util.List<? extends Item> items = visibleItems();
 
         StringBuilder b = new StringBuilder();
 
@@ -890,30 +889,23 @@ public class List implements Model, KeyMap {
                 return "";
             }
             return styles.noItems().render("No " + itemNamePlural + ".");
-        } else {
-            Bounds sliceBounds = paginator.getSliceBounds(items.size());
-            int start = sliceBounds.start();
-            int end = sliceBounds.end();
+        }
 
-            java.util.List<Item> docs = items.subList(start, end);
-            for (int i = 0; i < docs.size(); i++) {
-                itemDelegate.render(b, this, i + start, docs.get(i));
-                if (i != end - 1) {
-                    b.append("\n".repeat(itemDelegate.spacing() + 1));
-                }
+        for (int i = 0; i < items.size(); i++) {
+            itemDelegate.render(b, this, paginator.page() * paginator.perPage() + i, items.get(i));
+            if (i != items.size() - 1) {
+                b.append("\n".repeat(itemDelegate.spacing() + 1));
             }
         }
 
-        int itemsOnPage = paginator.itemsOnPage(items.size());
-        if (itemsOnPage < paginator.setPerPage()) {
-            int n = (paginator.setPerPage() - itemsOnPage) * (itemDelegate.height() + itemDelegate.spacing());
-            // can this happen at all ??
+        int itemsOnPage = items.size();
+        if (itemsOnPage < paginator.perPage()) {
+            int emptyLines = (paginator.perPage() - itemsOnPage) * (itemDelegate.height() + itemDelegate.spacing());
             if (items.isEmpty()) {
-                n -= itemDelegate.height() - 1;
+                emptyLines -= itemDelegate.height() - 1;  // Edge case adjustment
             }
-            b.append("\n".repeat(n));
+            b.append("\n".repeat(emptyLines));
         }
-
         return b.toString();
     }
 
@@ -923,32 +915,6 @@ public class List implements Model, KeyMap {
 
     private String spinnerView() {
         return spinner.view();
-    }
-
-    private Command filterItems() {
-        return () -> {
-            if ("".equals(filterInput.value()) || filterState == FilterState.Unfiltered) {
-                return new FilterMatchesMessage(itemsAsFilteredItems());
-            }
-
-            String[] targets = new String[items.size()];
-
-            for (int i = 0; i < items.size(); i++) {
-                targets[i] = items.get(i).filterValue();
-            }
-
-            java.util.List<FilteredItem> filterMatches = new LinkedList<>();
-
-            Rank[] ranks = filterFunction.apply(filterInput.value(), targets);
-            for (Rank rank : ranks) {
-                filterMatches.add(new FilteredItem(
-                        rank.getIndex(),
-                        items.get(rank.getIndex()),
-                        rank.getMatchedIndexes()
-                ));
-            }
-            return new FilterMatchesMessage(filterMatches);
-        };
     }
 
     private int countEnabledBindings(Binding[][] groups) {

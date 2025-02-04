@@ -6,10 +6,13 @@
 
     <groupId>org.flatscrew</groupId>
     <artifactId>latte-parent</artifactId>
-    <version>0.0.8</version>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
     <description>Terminal User Interface framework</description>
     <url>https://github.com/flatscrew/latte</url>
+    <modules>
+        <module>latte-tui-example-spring</module>
+    </modules>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

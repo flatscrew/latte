@@ -120,7 +120,7 @@ public class Paginator {
         return totalPages;
     }
 
-    public int setPerPage() {
+    public int perPage() {
         return perPage;
     }
 
@@ -136,17 +136,8 @@ public class Paginator {
         return page;
     }
 
-    public int totalPages(int items) {
-        if (items < 1) {
-            return totalPages;
-        }
-        int n = items / perPage;
-
-        if (items % perPage > 0) {
-            n++;
-        }
-        this.totalPages = n;
-        return n;
+    public void setTotalPages(int totalPages) {
+        this.totalPages = totalPages;
     }
 
     public int setTotalPagesFromItemsSize(int items) {
