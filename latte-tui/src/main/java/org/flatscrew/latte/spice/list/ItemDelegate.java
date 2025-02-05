@@ -18,7 +18,7 @@ public interface ItemDelegate {
         Binding[][] get();
     }
 
-    void render(StringBuilder output, List list, int index, Item item);
+    void render(StringBuilder output, List list, int index, FilteredItem filteredItem);
     int height();
     int spacing();
     Command update(Message msg, List listModel);

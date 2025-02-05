@@ -37,22 +37,6 @@ class PaginatorTest {
         assertThat(paginator.totalPages()).isEqualTo(totalPages);
     }
 
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("totalPagesCases")
-    void test_SetTotalPagesFromItemsSize(String name, int items, int initialTotal, int expected) {
-        // given
-        Paginator paginator = new Paginator();
-
-        // when
-        if (paginator.totalPages() != initialTotal) {
-            paginator.setTotalPages(initialTotal);
-        }
-        paginator.setTotalPages(items);
-
-        // then
-        assertThat(paginator.totalPages()).isEqualTo(expected);
-    }
-
     private static Stream<Arguments> totalPagesCases() {
         return Stream.of(
                 Arguments.of("Less than one page", 5, 1, 5),

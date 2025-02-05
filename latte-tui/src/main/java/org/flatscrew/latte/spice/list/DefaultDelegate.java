@@ -28,10 +28,12 @@ public class DefaultDelegate implements ItemDelegate, KeyMap {
     }
 
     @Override
-    public void render(StringBuilder output, List list, int index, Item item) {
+    public void render(StringBuilder output, List list, int index, FilteredItem filteredItem) {
         String title = "";
         String desc = "";
-        int[] matchedRunes = new int[0];
+        int[] matchedRunes = filteredItem.matches();
+
+        Item item = filteredItem.item();
 
         if (item instanceof DefaultItem defaultItem) {
             title = defaultItem.title();
@@ -62,10 +64,6 @@ public class DefaultDelegate implements ItemDelegate, KeyMap {
         boolean isSelected = index == list.index();
         boolean emptyFilter = list.filterState() == FilterState.Filtering && list.filterValue().isEmpty();
         boolean isFiltered = list.filterState() == FilterState.Filtering || list.filterState() == FilterState.FilterApplied;
-
-        if (isFiltered && index < list.filteredItems().size()) {
-            matchedRunes = list.matchesForItem(index);
-        }
 
         if (emptyFilter) {
             title = styles.dimmedTitle().render(title);

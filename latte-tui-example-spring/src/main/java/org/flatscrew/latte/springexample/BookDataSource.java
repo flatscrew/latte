@@ -1,17 +1,16 @@
 package org.flatscrew.latte.springexample;
 
 import lombok.RequiredArgsConstructor;
-import org.flatscrew.latte.Command;
-import org.flatscrew.latte.spice.list.FilterMatchesMessage;
+import org.flatscrew.latte.spice.list.FetchedItems;
 import org.flatscrew.latte.spice.list.FilteredItem;
-import org.flatscrew.latte.spice.list.Item;
 import org.flatscrew.latte.spice.list.ListDataSource;
 import org.flatscrew.latte.springexample.model.Book;
 import org.flatscrew.latte.springexample.repository.BookRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -20,53 +19,59 @@ public class BookDataSource implements ListDataSource {
 
     private final BookRepository bookRepository;
 
-    private List<BookItem> visibleItems = new LinkedList<>();
-
     @Override
-    public List<? extends Item> fetchItems(int offset, int limit) {
+    public FetchedItems fetchItems(int offset, int limit, String filterValue) {
         try {
             Thread.sleep(300);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        return bookRepository
-                .findAll(PageRequest.of(offset, limit))
-                .stream()
-                .map(BookItem::new)
-                .toList();
-    }
+        long allItems = bookRepository.count();
 
-    @Override
-    public long totalItems() {
-        return bookRepository.count();
-    }
-
-    @Override
-    public Command filterItems(String filterValue) {
-        return () -> {
-            List<Book> books;
-            if (filterValue.isEmpty()) {
-                books = bookRepository.findAll();
-            } else {
-                books = bookRepository.findByTitleLike(filterValue);
-            }
-
-            this.visibleItems = books.stream()
-                    .map(BookItem::new)
-                    .toList();
-
-            return new FilterMatchesMessage(
-                    visibleItems
-                            .stream()
-                            .map(FilteredItem::new)
-                            .toList()
+        PageRequest pageRequest = PageRequest.of(offset, limit);
+        if (filterValue == null || filterValue.length() < 3) {
+            return fetchedItems(
+                    bookRepository.findAll(pageRequest),
+                    allItems,
+                    filterValue
             );
-        };
+        }
+
+        return fetchedItems(
+                bookRepository.findByTitleIsContaining(filterValue, pageRequest),
+                allItems,
+                filterValue);
     }
 
-    @Override
-    public List<FilteredItem> itemsAsFilteredItems() {
-        return List.of();
+    private static FetchedItems fetchedItems(Page<Book> filteredBooks, long allItems, String filterValue) {
+        return new FetchedItems(
+                filteredBooks
+                        .stream()
+                        .map(BookItem::new)
+                        .map(item -> new FilteredItem(0, item, findMatchedIndexes(item.title(), filterValue)))
+                        .toList(),
+                filteredBooks.getTotalElements(),
+                allItems
+        );
+    }
+
+    private static int[] findMatchedIndexes(String title, String filterValue) {
+        if (filterValue == null || filterValue.isEmpty()) {
+            return new int[0];
+        }
+
+        List<Integer> indexes = new ArrayList<>();
+        int index = title.indexOf(filterValue);
+
+        while (index != -1) {
+            // Add all characters of the match to the list
+            for (int i = 0; i < filterValue.length(); i++) {
+                indexes.add(index + i);
+            }
+            index = title.indexOf(filterValue, index + 1); // Find next occurrence
+        }
+
+        return indexes.stream().mapToInt(Integer::intValue).toArray();
     }
 }

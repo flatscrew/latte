@@ -24,7 +24,7 @@ public class DefaultDataSource implements ListDataSource {
         this.items.set(index, item);
 
         if (list.filterState() != FilterState.Unfiltered) {
-            cmd = filterItems("");
+//            cmd = filterItems("");
         }
 
         list.updatePagination();
@@ -36,7 +36,7 @@ public class DefaultDataSource implements ListDataSource {
         this.items.add(index, item);
 
         if (list.filterState() != FilterState.Unfiltered) {
-            cmd = filterItems("");
+//            cmd = filterItems("");
         }
 
         list.updatePagination();
@@ -48,9 +48,9 @@ public class DefaultDataSource implements ListDataSource {
         this.items.remove(index);
 
         if (list.filterState() != FilterState.Unfiltered) {
-//            this.filteredItems.remove(index);
+//            this.matchedItems.remove(index);
 //
-//            if (filteredItems.isEmpty()) {
+//            if (matchedItems.isEmpty()) {
 //                list.resetFiltering();
 //            }
         }
@@ -66,7 +66,7 @@ public class DefaultDataSource implements ListDataSource {
         Command cmd = null;
 
 //        if (filterState != FilterState.Unfiltered) {
-//            this.filteredItems = null;
+//            this.matchedItems = null;
 //            cmd = filterItems("");
 //        }
 
@@ -75,43 +75,23 @@ public class DefaultDataSource implements ListDataSource {
         return cmd;
     }
 
-    @Override
     public boolean isEmpty() {
         return items == null || items().isEmpty();
     }
 
     @Override
-    public java.util.List<? extends Item> fetchItems(int page, int perPage) {
-        int offset = page * perPage;
-        int toIndex = Math.min(offset + perPage, items.size());
+    public FetchedItems fetchItems(int page, int perPage, String filterValue) {
+        java.util.List<FilteredItem> filteredItems;
 
-        if (offset >= items.size()) {
-            return java.util.List.of();
-        }
-
-        return items.subList(offset, toIndex); // Re
-    }
-
-    @Override
-    public long totalItems() {
-        return items.size();
-    }
-
-    @Override
-    public Command filterItems(String filterValue) {
-        return () -> {
-            if ("".equals(filterValue)) {
-                return new FilterMatchesMessage(itemsAsFilteredItems());
-            }
-
+        if (filterValue == null || filterValue.isEmpty()) {
+            filteredItems = allItemsAsFilteredItems();
+        } else {
             String[] targets = new String[items.size()];
-
             for (int i = 0; i < items.size(); i++) {
                 targets[i] = items.get(i).filterValue();
             }
 
             java.util.List<FilteredItem> filterMatches = new LinkedList<>();
-
             Rank[] ranks = filterFunction.apply(filterValue, targets);
             for (Rank rank : ranks) {
                 filterMatches.add(new FilteredItem(
@@ -120,12 +100,21 @@ public class DefaultDataSource implements ListDataSource {
                         rank.getMatchedIndexes()
                 ));
             }
-            return new FilterMatchesMessage(filterMatches);
-        };
+
+            filteredItems = filterMatches;
+        }
+
+        int offset = page * perPage;
+        int toIndex = Math.min(offset + perPage, filteredItems.size());
+
+        if (offset >= filteredItems.size()) {
+            return new FetchedItems();
+        }
+
+        return new FetchedItems(filteredItems.subList(offset, toIndex), filteredItems.size(), items.size());
     }
 
-    @Override
-    public java.util.List<FilteredItem> itemsAsFilteredItems() {
+    private java.util.List<FilteredItem> allItemsAsFilteredItems() {
         return items.stream().map(FilteredItem::new).toList();
     }
 }

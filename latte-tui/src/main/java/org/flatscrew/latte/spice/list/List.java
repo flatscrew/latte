@@ -37,7 +37,6 @@ import java.util.function.Supplier;
 import static org.flatscrew.latte.Command.batch;
 import static org.flatscrew.latte.spice.list.DefaultItemStyles.ELLIPSIS;
 
-// FIXME it needs a complete overhaul, no idea how bubble guys maintained it o_O
 public class List implements Model, KeyMap {
 
     private boolean showTitle;
@@ -77,8 +76,10 @@ public class List implements Model, KeyMap {
 
     private ListDataSource dataSource;
     private boolean fetchingItems;
-    private java.util.List<? extends Item> currentPageItems;
-    private java.util.List<FilteredItem> filteredItems;
+    private long totalItems = 0;
+    private long matchedItems = 0;
+    private java.util.List<FilteredItem> currentPageItems;
+    //    private java.util.List<FilteredItem> matchedItems;
     private ItemDelegate itemDelegate;
 
     public List(Item[] items, int width, int height) {
@@ -100,7 +101,6 @@ public class List implements Model, KeyMap {
     private void init(ListDataSource dataSource, ItemDelegate delegate, int width, int height) {
         this.dataSource = dataSource;
         this.currentPageItems = new ArrayList<>();
-        this.filteredItems = new LinkedList<>();
         this.filterState = FilterState.Unfiltered;
         this.itemDelegate = delegate;
         this.fetchingItems = false;
@@ -144,11 +144,27 @@ public class List implements Model, KeyMap {
         this.fetchingItems = true;
         updateKeybindings();
 
-        startSpinner();
         return batch(
+                updateFilter(),
                 startSpinner(),
-                () -> new FetchedCurrentPageItems(dataSource.fetchItems(paginator.page(), paginator.perPage()), postFetch)
+                () -> new FetchedCurrentPageItems(
+                        dataSource.fetchItems(
+                                paginator.page(),
+                                paginator.perPage(),
+                                filterInput.value()
+                        ),
+                        postFetch
+                )
         );
+    }
+
+    private Command updateFilter() {
+        if (fetchingItems) {
+            filterInput.blur();
+            return null;
+        } else {
+            return filterInput.focus();
+        }
     }
 
     public void setFilteringEnabled(boolean filteringEnabled) {
@@ -170,12 +186,14 @@ public class List implements Model, KeyMap {
     public void setShowTitle(boolean showTitle) {
         this.showTitle = showTitle;
         updatePagination();
+        // TODO
+        fetchCurrentPageItems();
     }
 
     public Command setFilterText(String filter) {
         this.filterState = FilterState.Filtering;
         this.filterInput.setValue(filter);
-        return dataSource.filterItems(filterInput.value());
+        return fetchCurrentPageItems();
     }
 
     public Command setFilterState(FilterState filterState) {
@@ -195,6 +213,9 @@ public class List implements Model, KeyMap {
     public void setShowFilter(boolean showFilter) {
         this.showFilter = showFilter;
         updatePagination();
+
+        // TODO
+        fetchCurrentPageItems();
     }
 
     public boolean showFilter() {
@@ -204,6 +225,9 @@ public class List implements Model, KeyMap {
     public void setShowStatusBar(boolean showStatusBar) {
         this.showStatusBar = showStatusBar;
         updatePagination();
+
+        // TODO
+        fetchCurrentPageItems();
     }
 
     public boolean showStatusBar() {
@@ -226,6 +250,9 @@ public class List implements Model, KeyMap {
     public void setShowPagination(boolean showPagination) {
         this.showPagination = showPagination;
         updatePagination();
+
+        // TODO
+        fetchCurrentPageItems();
     }
 
     public boolean showPagination() {
@@ -235,6 +262,9 @@ public class List implements Model, KeyMap {
     public void setShowHelp(boolean showHelp) {
         this.showHelp = showHelp;
         updatePagination();
+
+        // TODO
+        fetchCurrentPageItems();
     }
 
     public boolean showHelp() {
@@ -258,51 +288,31 @@ public class List implements Model, KeyMap {
     public void setItemDelegate(ItemDelegate itemDelegate) {
         this.itemDelegate = itemDelegate;
         updatePagination();
+
+        // TODO
+        fetchCurrentPageItems();
     }
 
     public Item selectedItem() {
-        java.util.List<? extends Item> visibleItems = visibleItems();
-        int index = index();
+        java.util.List<FilteredItem> visibleItems = visibleItems();
 
-        if (index < 0 || visibleItems.isEmpty() || visibleItems.size() <= index) {
+        if (cursor < 0 || visibleItems.isEmpty() || visibleItems.size() <= cursor) {
             return null;
         }
-        return visibleItems.get(index);
+        return visibleItems.get(cursor).item();
     }
 
-    public java.util.List<? extends Item> visibleItems() {
-        if (filterState != FilterState.Unfiltered) {
-            return filteredItems.stream().map(FilteredItem::item).toList();
-        }
+    public java.util.List<FilteredItem> visibleItems() {
         return currentPageItems;
-    }
-
-    public int[] matchesForItem(int index) {
-        if (filteredItems == null || index >= filteredItems.size()) {
-            return new int[0];
-        }
-        return filteredItems.get(index).matches();
     }
 
     public int index() {
         return paginator.page() * paginator.perPage() + cursor;
     }
 
-    public int globalIndex() {
-        int index = index();
-
-        if (filteredItems == null || index >= filteredItems.size()) {
-            return index;
-        }
-
-        return filteredItems.get(index).index();
-    }
-
     public int cursor() {
         return cursor;
     }
-
-
 
     public Command nextPage() {
         if (!paginator.onLastPage()) {
@@ -348,14 +358,6 @@ public class List implements Model, KeyMap {
 
     public void setSpinnerType(SpinnerType spinnerType) {
         spinner.setType(spinnerType);
-    }
-
-    public Command toggleSpinner() {
-        if (!showSpinner) {
-            return startSpinner();
-        }
-        stopSpinner();
-        return null;
     }
 
     public Command startSpinner() {
@@ -407,7 +409,9 @@ public class List implements Model, KeyMap {
         this.height = height;
         this.help.setWidth(width);
         this.filterInput.setWidth(width - promptWidth - Size.width(spinnerView()));
-        return updatePagination();
+        updatePagination();
+
+        return fetchCurrentPageItems();
     }
 
     public Command setWidth(int width) {
@@ -425,8 +429,6 @@ public class List implements Model, KeyMap {
 
         this.filterState = FilterState.Unfiltered;
         this.filterInput.reset();
-        this.filteredItems = null;
-
         updatePagination();
     }
 
@@ -446,7 +448,7 @@ public class List implements Model, KeyMap {
             keys.showFullHelp().setEnabled(false);
             keys.closeFullHelp().setEnabled(false);
         } else {
-            boolean hasItems = !dataSource.isEmpty();
+            boolean hasItems = !(totalItems == 0);
             keys.cursorUp().setEnabled(hasItems);
             keys.cursorDown().setEnabled(hasItems);
             keys.goToStart().setEnabled(hasItems);
@@ -472,7 +474,7 @@ public class List implements Model, KeyMap {
         }
     }
 
-    Command updatePagination() {
+    void updatePagination() {
         int index = index();
         int availHeight = this.height;
 
@@ -491,8 +493,7 @@ public class List implements Model, KeyMap {
 
         paginator.setPerPage(Math.max(1, availHeight / (itemDelegate.height() + itemDelegate.spacing())));
 
-        long totalItems = dataSource.totalItems();
-        int totalPages = (int) Math.ceil((double) totalItems / paginator.perPage());
+        int totalPages = (int) Math.ceil((double) matchedItems / paginator.perPage());
         paginator.setTotalPages(totalPages);
 
         paginator.setPage(index / paginator.perPage());
@@ -503,7 +504,6 @@ public class List implements Model, KeyMap {
         }
 
         updateKeybindings();
-        return fetchCurrentPageItems();
     }
 
     private void hideStatusMessage() {
@@ -520,7 +520,9 @@ public class List implements Model, KeyMap {
         paginator.setActiveDot(styles.activePaginationDot().render());
         paginator.setInactiveDot(styles.inactivePaginationDot().render());
 
-        return updatePagination();
+        updatePagination();
+
+        return fetchCurrentPageItems();
     }
 
     @Override
@@ -534,16 +536,19 @@ public class List implements Model, KeyMap {
         } else if (msg instanceof FetchedCurrentPageItems fetchedCurrentPageItems) {
             stopSpinner();
             this.fetchingItems = false;
-            this.currentPageItems = fetchedCurrentPageItems.items();
+
+            FetchedItems fetchedItems = fetchedCurrentPageItems.fetchedItems();
+            this.currentPageItems = fetchedItems.items();
+            this.matchedItems = fetchedItems.matchedItems();
+            this.totalItems = fetchedItems.totalItems();
 
             for (Runnable runnable : fetchedCurrentPageItems.postFetch()) {
                 runnable.run();
             }
 
-            updateKeybindings();
-            return UpdateResult.from(this);
+            updatePagination();
+            return UpdateResult.from(this, updateFilter());
         } else if (msg instanceof FilterMatchesMessage filterMatchesMessage) {
-            this.filteredItems = filterMatchesMessage.filteredItems();
             return UpdateResult.from(this);
         } else if (msg instanceof TickMessage) {
             UpdateResult<Spinner> updateResult = spinner.update(msg);
@@ -588,25 +593,28 @@ public class List implements Model, KeyMap {
                 this.cursor = paginator.itemsOnPage(numItems) - 1;
             } else if (Binding.matches(keyPressMessage, keys.filter())) {
                 hideStatusMessage();
-                if ("".equals(filterInput.value())) {
-                    this.filteredItems = dataSource.itemsAsFilteredItems();
+                commands.add(TextInput::blink);
+
+                if (!paginator.onFirstPage()) {
+                    paginator.setPage(0);
                 }
 
-                paginator.setPage(0);
-                commands.add(fetchCurrentPageItems());
-                this.cursor = 0;
                 this.filterState = FilterState.Filtering;
                 filterInput.cursorEnd();
                 filterInput.focus();
                 updateKeybindings();
-//                return TextInput::blink;
-                return batch(commands);
 
+                commands.add(fetchCurrentPageItems(() -> {
+                    this.cursor = 0;
+                }));
+
+                return batch(commands);
             } else if (Binding.matches(keyPressMessage, keys.showFullHelp()) || Binding.matches(keyPressMessage, keys.closeFullHelp())) {
                 help.setShowAll(!help.showAll());
-                commands.add(updatePagination());
-            }
 
+                updatePagination();
+                commands.add(fetchCurrentPageItems());
+            }
             commands.add(itemDelegate.update(msg, this));
         }
         return batch(commands);
@@ -669,6 +677,7 @@ public class List implements Model, KeyMap {
 
         if (!paginator.onLastPage()) {
             paginator.nextPage();
+            this.cursor = 0;
             return fetchCurrentPageItems(
                     () -> cursor = 0
             );
@@ -697,13 +706,17 @@ public class List implements Model, KeyMap {
         if (msg instanceof KeyPressMessage keyPressMessage) {
             if (Binding.matches(keyPressMessage, keys.cancelWhileFiltering())) {
                 resetFiltering();
-                keys.filter().setEnabled(true);
-                keys.clearFilter().setEnabled(false);
+
+                commands.add(fetchCurrentPageItems(() -> {
+                    keys.filter().setEnabled(true);
+                    keys.clearFilter().setEnabled(false);
+                }));
+
             } else if (Binding.matches(keyPressMessage, keys.acceptWhileFiltering())) {
                 hideStatusMessage();
 
-                if (!dataSource.isEmpty()) {
-                    java.util.List<? extends Item> h = visibleItems();
+                if (totalItems > 0) {
+                    java.util.List<FilteredItem> h = visibleItems();
                     if (!h.isEmpty()) {
                         filterInput.blur();
                         this.filterState = FilterState.FilterApplied;
@@ -711,10 +724,12 @@ public class List implements Model, KeyMap {
 
                         if (filterInput.isEmpty()) {
                             resetFiltering();
+                            commands.add(fetchCurrentPageItems());
                         }
 
                     } else {
                         resetFiltering();
+                        commands.add(fetchCurrentPageItems());
                     }
                 }
             }
@@ -727,8 +742,9 @@ public class List implements Model, KeyMap {
         commands.add(updateResult.command());
 
         if (filterChanged) {
-            commands.add(dataSource.filterItems(filterInput.value()));
-            keys.acceptWhileFiltering().setEnabled(!filterInput.isEmpty());
+            commands.add(fetchCurrentPageItems(() -> {
+                keys.acceptWhileFiltering().setEnabled(!filterInput.isEmpty());
+            }));
         }
         updatePagination();
         return batch(commands);
@@ -785,17 +801,16 @@ public class List implements Model, KeyMap {
         String spinnerLeftGap = " ";
         boolean spinnerOnLeft = titleBarStyle.leftPadding() >= spinnerWidth + Size.width(spinnerLeftGap) && showSpinner;
 
+        if (showSpinner && spinnerOnLeft) {
+            view.append(spinnerView).append(spinnerLeftGap);
+            int titleBarGap = titleBarStyle.leftPadding();
+            titleBarStyle = titleBarStyle.paddingLeft(titleBarGap - spinnerWidth - Size.width(spinnerLeftGap));
+        }
+
         if (showFilter && filterState == FilterState.Filtering) {
             view.append(filterInput.view());
         } else if (showTitle) {
-            if (showSpinner && spinnerOnLeft) {
-                view.append(spinnerView).append(spinnerLeftGap);
-
-                int titleBarGap = titleBarStyle.leftPadding();
-                titleBarStyle = titleBarStyle.paddingLeft(titleBarGap - spinnerWidth - Size.width(spinnerLeftGap));
-            }
             view.append(styles.title().render(title));
-
             if (filterState != FilterState.Filtering) {
                 view.append(" ").append(statusMessage);
                 view = new StringBuilder(Truncate.truncate(view.toString(), width - spinnerWidth, ELLIPSIS));
@@ -819,7 +834,6 @@ public class List implements Model, KeyMap {
 
     private String statusView() {
         StringBuilder status = new StringBuilder();
-        long totalItems = dataSource.totalItems();
         int visibleItems = visibleItems().size();
 
         String itemName = itemNameSingular;
@@ -827,7 +841,7 @@ public class List implements Model, KeyMap {
             itemName = itemNamePlural;
         }
 
-        String itemsDisplay = "%d %s".formatted(visibleItems, itemName);
+        String itemsDisplay = "%d %s".formatted(matchedItems, itemName);
 
         if (filterState == FilterState.Filtering) {
             if (visibleItems == 0) {
@@ -835,7 +849,7 @@ public class List implements Model, KeyMap {
             } else {
                 status = new StringBuilder(itemsDisplay);
             }
-        } else if (dataSource.isEmpty()) {
+        } else if (totalItems == 0) {
             status = new StringBuilder(styles.statusEmpty().render("No " + itemNamePlural));
         } else {
             boolean filtered = filterState == FilterState.FilterApplied;
@@ -849,11 +863,13 @@ public class List implements Model, KeyMap {
             status.append(itemsDisplay);
         }
 
-        long numFiltered = totalItems - visibleItems;
-        if (numFiltered > 0) {
-            status
-                    .append(styles.dividerDot().render())
-                    .append(styles.statusBarFilterCount().render("%d filtered".formatted(numFiltered)));
+        if (filterState == FilterState.Filtering || filterState == FilterState.FilterApplied) {
+            long numFiltered = totalItems - visibleItems;
+            if (numFiltered > 0) {
+                status
+                        .append(styles.dividerDot().render())
+                        .append(styles.statusBarFilterCount().render("%d filtered".formatted(numFiltered)));
+            }
         }
 
         return styles.statusBar().render(status.toString());
@@ -865,10 +881,10 @@ public class List implements Model, KeyMap {
         }
 
         paginator.setType(Type.Dots);
-        String s = paginator.view();
-        if (Size.width(s) > width) {
+        String view = paginator.view();
+        if (Size.width(view) > width) {
             paginator.setType(Type.Arabic);
-            s = styles.arabicPagination().render(paginator.view());
+            view = styles.arabicPagination().render(paginator.view());
         }
 
         Style style = styles.paginationStyle().copy();
@@ -876,11 +892,11 @@ public class List implements Model, KeyMap {
             style = style.marginBottom(1);
         }
 
-        return style.render(s);
+        return style.render(view);
     }
 
     private String populatedView() {
-        java.util.List<? extends Item> items = visibleItems();
+        java.util.List<FilteredItem> items = visibleItems();
 
         StringBuilder b = new StringBuilder();
 
@@ -950,8 +966,8 @@ public class List implements Model, KeyMap {
                 keys.cancelWhileFiltering()
         ));
 
-        if (!filtering && additionalFullHelpKeys != null) {
-            kb.addAll(Arrays.asList(additionalFullHelpKeys.get()));
+        if (!filtering && additionalShortHelpKeys != null) {
+            kb.addAll(Arrays.asList(additionalShortHelpKeys.get()));
         }
 
         kb.addAll(Arrays.asList(
@@ -998,10 +1014,6 @@ public class List implements Model, KeyMap {
                 keys.closeFullHelp()
         });
         return kb.toArray(new Binding[0][]);
-    }
-
-    public java.util.List<FilteredItem> filteredItems() {
-        return filteredItems;
     }
 
     public Styles styles() {

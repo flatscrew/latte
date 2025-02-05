@@ -3,6 +3,7 @@ package org.flatscrew.latte.springexample.model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -30,7 +31,10 @@ public class Book {
     @Column
     private String synopsis;
 
-    @ManyToMany(cascade = CascadeType.PERSIST)
+    @Column(length = 2048)
+    private String description;
+
+    @ManyToMany(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
     @JoinTable(
             name = "book_authors",
             joinColumns = @JoinColumn(name = "book_id"),

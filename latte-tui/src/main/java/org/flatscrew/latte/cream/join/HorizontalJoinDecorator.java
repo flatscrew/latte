@@ -12,7 +12,6 @@ import static org.flatscrew.latte.cream.Position.Top;
 public class HorizontalJoinDecorator {
 
     public static String joinHorizontal(Position position, String... strings) {
-
         if (strings.length == 0) {
             return "";
         }
@@ -60,7 +59,7 @@ public class HorizontalJoinDecorator {
                 int bottom = n - top;
 
                 String[] newBlock = new String[maxHeight];
-                Arrays.fill(newBlock, "");
+                Arrays.fill(newBlock, " ");
                 System.arraycopy(extraLines, top, newBlock, 0, n - top);
                 System.arraycopy(blocks[i], 0, newBlock, n - top, blocks[i].length);
                 System.arraycopy(extraLines, 0, newBlock, n - top + blocks[i].length, bottom);
@@ -75,7 +74,7 @@ public class HorizontalJoinDecorator {
                 String[] block = blocks[j];
 
                 builder.append(block[i]);
-                builder.append(" ".repeat(maxWidths[j] - TextWidth.measureCellWidth(block[i])));
+                builder.append("".repeat(maxWidths[j] - TextWidth.measureCellWidth(block[i])));
             }
             if (i < blocks[0].length - 1) {
                 builder.append('\n');

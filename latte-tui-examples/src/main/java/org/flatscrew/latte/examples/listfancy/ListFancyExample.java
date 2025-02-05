@@ -63,9 +63,7 @@ public class ListFancyExample implements Model {
         } else if (msg instanceof KeyPressMessage keyPressMessage) {
             if (list.filterState() != FilterState.Filtering) {
 
-                if (Binding.matches(keyPressMessage, keys.toggleSpinner())) {
-                    return UpdateResult.from(this, list.toggleSpinner());
-                } else if (Binding.matches(keyPressMessage, keys.toggleTitleBar())) {
+                if (Binding.matches(keyPressMessage, keys.toggleTitleBar())) {
                     boolean v = !list.showTitle();
                     list.setShowTitle(v);
                     list.setShowFilter(v);
@@ -89,8 +87,6 @@ public class ListFancyExample implements Model {
                         return UpdateResult.from(this, Command.batch(insertCmd, statusCmd));
                     }
                     return UpdateResult.from(this);
-                } else if ("g".equals(keyPressMessage.key())) {
-                    return UpdateResult.from(this, list.toggleSpinner());
                 }
             }
         }
