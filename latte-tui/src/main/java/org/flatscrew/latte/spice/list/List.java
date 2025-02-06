@@ -79,7 +79,6 @@ public class List implements Model, KeyMap {
     private long totalItems = 0;
     private long matchedItems = 0;
     private java.util.List<FilteredItem> currentPageItems;
-    //    private java.util.List<FilteredItem> matchedItems;
     private ItemDelegate itemDelegate;
 
     public List(Item[] items, int width, int height) {
@@ -570,7 +569,6 @@ public class List implements Model, KeyMap {
     private Command handleBrowsing(Message msg) {
         java.util.List<Command> commands = new LinkedList<>();
 
-        int numItems = visibleItems().size();
         if (msg instanceof KeyPressMessage keyPressMessage) {
             if (Binding.matches(keyPressMessage, keys.clearFilter())) {
                 resetFiltering();
@@ -585,12 +583,9 @@ public class List implements Model, KeyMap {
             } else if (Binding.matches(keyPressMessage, keys.nextPage())) {
                 commands.add(cursorRight());
             } else if (Binding.matches(keyPressMessage, keys.goToStart())) {
-                paginator.setPage(0);
-                this.cursor = 0;
-                commands.add(fetchCurrentPageItems());
+                commands.add(gotoStart());
             } else if (Binding.matches(keyPressMessage, keys.goToEnd())) {
-                paginator.setPage(paginator.totalPages() - 1);
-                this.cursor = paginator.itemsOnPage(numItems) - 1;
+                commands.add(gotoEnd());
             } else if (Binding.matches(keyPressMessage, keys.filter())) {
                 hideStatusMessage();
                 commands.add(TextInput::blink);
@@ -618,6 +613,17 @@ public class List implements Model, KeyMap {
             commands.add(itemDelegate.update(msg, this));
         }
         return batch(commands);
+    }
+
+    private Command gotoStart() {
+        paginator.setPage(0);
+        this.cursor = 0;
+        return fetchCurrentPageItems();
+    }
+
+    private Command gotoEnd() {
+        paginator.setPage(paginator.totalPages() - 1);
+        return fetchCurrentPageItems(this::keepCursorInBounds);
     }
 
     private Command cursorLeft() {

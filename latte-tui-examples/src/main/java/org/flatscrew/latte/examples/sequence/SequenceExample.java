@@ -11,6 +11,7 @@ import org.flatscrew.latte.message.QuitMessage;
 import static org.flatscrew.latte.Command.println;
 import static org.flatscrew.latte.Command.sequence;
 
+// TODO nested sequences are not supported yet!
 public class SequenceExample implements Model {
 
     @Override

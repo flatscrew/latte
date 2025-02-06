@@ -9,8 +9,8 @@ import org.flatscrew.latte.spice.list.DefaultDataSource;
 public class Delegate {
 
     public static class DelegateKeyMap implements KeyMap {
-        private Binding choose;
-        private Binding remove;
+        private final Binding choose;
+        private final Binding remove;
 
         public DelegateKeyMap() {
             this.choose = new Binding(
@@ -49,27 +49,27 @@ public class Delegate {
 
     public static DefaultDelegate newItemDelegate(DelegateKeyMap keyMap) {
         DefaultDelegate defaultDelegate = new DefaultDelegate();
-        defaultDelegate.setUpdateFunction((msg, model) -> {
-            String title = null;
-            if (model.selectedItem() instanceof FancyItem fancyItem) {
-                title = fancyItem.title();
-            } else {
-                return null;
-            }
-
+        defaultDelegate.setUpdateFunction((msg, list) -> {
             if (msg instanceof KeyPressMessage keyPressMessage) {
-                if (Binding.matches(keyPressMessage, keyMap.choose())) {
-                    return model.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"You choose", title}));
-                } else if (Binding.matches(keyPressMessage, keyMap.remove())) {
-                    int index = model.index();
+                String title = null;
+                if (list.selectedItem() instanceof FancyItem fancyItem) {
+                    title = fancyItem.title();
+                } else {
+                    return null;
+                }
 
-                    if (model.dataSource() instanceof DefaultDataSource defaultDataSource) {
+                if (Binding.matches(keyPressMessage, keyMap.choose())) {
+                    return list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"You choose", title}));
+                } else if (Binding.matches(keyPressMessage, keyMap.remove())) {
+                    int index = list.index();
+
+                    if (list.dataSource() instanceof DefaultDataSource defaultDataSource) {
                         defaultDataSource.removeItem(index);
                         if (defaultDataSource.isEmpty()) {
                             keyMap.remove().setEnabled(false);
                         }
                     }
-                    return model.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Deleted", title}));
+                    return list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Deleted", title}));
                 }
             }
             return null;

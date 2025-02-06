@@ -1,4 +1,4 @@
-package org.flatscrew.latte.springexample;
+package org.flatscrew.latte.springexample.view;
 
 import lombok.RequiredArgsConstructor;
 import org.flatscrew.latte.spice.list.FetchedItems;

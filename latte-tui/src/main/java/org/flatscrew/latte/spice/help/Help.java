@@ -126,7 +126,7 @@ public class Help {
             // Tail
             Result result = shouldAddItem(totalWidth, w);
             if (!result.ok()) {
-                if (result.tail() != null && !result.tail().isEmpty()) {
+                if (!"".equals(result.tail())) {
                     b.append(result.tail());
                 }
                 break;
@@ -143,7 +143,7 @@ public class Help {
         String tail = "";
         if (this.width > 0 && totalWidth+width > this.width) {
             tail = " " + styles.getEllipsis().copy().inline(true).render(this.ellipsis);
-            if (totalWidth + Size.width(tail)  < this.width) {
+            if (totalWidth + Size.width(tail) < this.width) {
                 return new Result(false, tail);
             }
         }

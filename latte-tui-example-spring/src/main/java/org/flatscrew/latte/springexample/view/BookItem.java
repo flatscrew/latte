@@ -1,4 +1,4 @@
-package org.flatscrew.latte.springexample;
+package org.flatscrew.latte.springexample.view;
 
 import lombok.RequiredArgsConstructor;
 import org.flatscrew.latte.spice.list.DefaultItem;
@@ -14,7 +14,7 @@ public class BookItem implements DefaultItem {
 
     @Override
     public String title() {
-        return book.getId() + ". " + book.getTitle();
+        return book.getTitle();
     }
 
     public String authors() {
@@ -29,6 +29,10 @@ public class BookItem implements DefaultItem {
         }
 
         return authorsString.toString();
+    }
+
+    public Book book() {
+        return book;
     }
 
     public String getDescription() {

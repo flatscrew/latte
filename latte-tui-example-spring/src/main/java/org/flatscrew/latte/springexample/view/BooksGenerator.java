@@ -1,4 +1,4 @@
-package org.flatscrew.latte.springexample;
+package org.flatscrew.latte.springexample.view;
 
 import com.github.javafaker.Faker;
 import jakarta.transaction.Transactional;
