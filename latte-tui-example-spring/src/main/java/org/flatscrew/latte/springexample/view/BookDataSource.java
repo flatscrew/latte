@@ -22,7 +22,7 @@ public class BookDataSource implements ListDataSource {
     @Override
     public FetchedItems fetchItems(int offset, int limit, String filterValue) {
         try {
-            Thread.sleep(300);
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

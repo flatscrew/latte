@@ -547,13 +547,10 @@ public class List implements Model, KeyMap {
             return UpdateResult.from(this, updateFilter());
         } else if (msg instanceof FilterMatchesMessage filterMatchesMessage) {
             return UpdateResult.from(this);
-        } else if (msg instanceof TickMessage) {
-            UpdateResult<Spinner> updateResult = spinner.update(msg);
-            this.spinner = updateResult.model();
-            commands.add(updateResult.command());
+        } else if (msg instanceof TickMessage && showSpinner) {
+            commands.add(spinner.update(msg).command());
         } else if (msg instanceof StatusMessageTimeoutMessage) {
             hideStatusMessage();
-
         }
 
         if (filterState == FilterState.Filtering) {

@@ -15,13 +15,18 @@ import org.flatscrew.latte.spice.help.Help;
 import org.flatscrew.latte.spice.help.KeyMap;
 import org.flatscrew.latte.spice.key.Binding;
 import org.flatscrew.latte.springexample.model.Book;
+import org.flatscrew.latte.springexample.repository.BookRepository;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RemoveBookViewModel implements Model, KeyMap {
 
-    private final Book book;
-    private final Model previousViewModel;
-    private final int width;
-    private final int height;
+    private final BookRepository bookRepository;
+    private Model previousModel;
+
+    private Book book;
+    private int width;
+    private int height;
 
     private final Style warningBoxStyle;
     private final Style warningMessageStyle;
@@ -29,12 +34,8 @@ public class RemoveBookViewModel implements Model, KeyMap {
     private final Binding back;
     private Help help;
 
-    public RemoveBookViewModel(Book book, Model previousViewModel, int width, int height) {
-        this.book = book;
-        this.previousViewModel = previousViewModel;
-        this.width = width;
-        this.height = height;
-
+    public RemoveBookViewModel(BookRepository bookRepository) {
+        this.bookRepository = bookRepository;
         this.help = new Help();
 
         this.warningBoxStyle = Style.newStyle()
@@ -52,6 +53,14 @@ public class RemoveBookViewModel implements Model, KeyMap {
         this.back = new Binding(Binding.withKeys("esc"), Binding.withHelp("esc", "go back"));
     }
 
+    public Model prepare(Model previousModel, Book book, int width, int height) {
+        this.previousModel = previousModel;
+        this.book = book;
+        this.width = width;
+        this.height = height;
+        return this;
+    }
+
     @Override
     public Command init() {
         return null;
@@ -61,12 +70,22 @@ public class RemoveBookViewModel implements Model, KeyMap {
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof KeyPressMessage keyPressMessage) {
             if (Binding.matches(keyPressMessage, back)) {
-                return UpdateResult.from(previousViewModel);
+                return UpdateResult.from(previousModel);
             } else if (Binding.matches(keyPressMessage, confirm)) {
-                //
+                return UpdateResult.from(this, removeBook());
             }
         }
+        if (msg instanceof BookRemovedMessage) {
+            return previousModel.update(msg);
+        }
         return UpdateResult.from(this);
+    }
+
+    private Command removeBook() {
+        return () -> {
+            bookRepository.deleteById(book.getId());
+            return new BookRemovedMessage();
+        };
     }
 
     @Override

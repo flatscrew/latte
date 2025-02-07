@@ -6,7 +6,6 @@ import org.flatscrew.latte.Model;
 import org.flatscrew.latte.UpdateResult;
 import org.flatscrew.latte.cream.Position;
 import org.flatscrew.latte.cream.Style;
-import org.flatscrew.latte.cream.align.AlignmentDecorator;
 import org.flatscrew.latte.cream.border.StandardBorder;
 import org.flatscrew.latte.cream.color.Color;
 import org.flatscrew.latte.cream.join.HorizontalJoinDecorator;
@@ -30,6 +29,7 @@ public class MainViewModel implements Model {
     private Style descriptionBlockStyle;
     private Style noSelectionStyle;
 
+    private final RemoveBookViewModel removeBookViewModel;
     private final BookItemDelegateFactory.DelegateKeyMap delegateKeyMap;
     private final BooksGenerator booksGenerator;
     private final List list;
@@ -41,9 +41,11 @@ public class MainViewModel implements Model {
     private int width;
     private int height;
 
-    public MainViewModel(BookItemDelegateFactory bookItemDelegateFactory,
+    public MainViewModel(RemoveBookViewModel removeBookViewModel,
+                         BookItemDelegateFactory bookItemDelegateFactory,
                          BookDataSource bookDataSource,
                          BooksGenerator booksGenerator) {
+        this.removeBookViewModel = removeBookViewModel;
         this.delegateKeyMap = new BookItemDelegateFactory.DelegateKeyMap();
         this.list = new List(bookDataSource, bookItemDelegateFactory.newBokItemDelegate(delegateKeyMap), 0, 0);
         list.setTitle("Books");
@@ -102,8 +104,15 @@ public class MainViewModel implements Model {
         }
 
         if (msg instanceof BookRemovalRequested request) {
-            RemoveBookViewModel removeBookViewModel = new RemoveBookViewModel(request.book(), this, width, height);
-            return UpdateResult.from(removeBookViewModel, removeBookViewModel.init());
+            return UpdateResult.from(
+                    removeBookViewModel.prepare(
+                            this,
+                            request.book(),
+                            width,
+                            height)
+            );
+        } else if (msg instanceof BookRemovedMessage) {
+            return UpdateResult.from(this, list.refresh());
         }
 
         if (msg instanceof KeyPressMessage keyPressMessage && list.selectedItem() instanceof BookItem bookItem) {

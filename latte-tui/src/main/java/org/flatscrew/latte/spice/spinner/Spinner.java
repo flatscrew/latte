@@ -65,6 +65,6 @@ public class Spinner implements Model {
     }
 
     public Message tick() {
-        return new TickMessage(LocalDateTime.now(), id, tag);
+        return new TickMessage(LocalDateTime.now(), tag, id);
     }
 }
