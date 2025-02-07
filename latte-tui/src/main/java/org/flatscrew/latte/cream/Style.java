@@ -433,7 +433,7 @@ public class Style implements Cloneable {
             if (background != null) {
                 st = background.applyAsBackground(st, renderer);
             }
-            string = AlignmentDecorator.alignTextHorizontal(string, horizontalAlign, width, st, renderer);
+            string = AlignmentDecorator.alignTextHorizontal(string, horizontalAlign, width, st);
         }
         if (!inline) {
             string = applyBorders(string);

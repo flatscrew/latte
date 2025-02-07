@@ -96,6 +96,15 @@ public class Help {
         );
     }
 
+    private boolean shouldRenderColumn(Binding[] group) {
+        for (Binding binding : group) {
+            if (binding.isEnabled()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private String shortHelpView(Binding[] bindings) {
         if (bindings == null || bindings.length == 0) {
             return "";
@@ -161,17 +170,8 @@ public class Help {
     public boolean showAll() {
         return showAll;
     }
-
     record Result(boolean ok, String tail) {
 
-    }
 
-    private boolean shouldRenderColumn(Binding[] group) {
-        for (Binding binding : group) {
-            if (binding.isEnabled()) {
-                return true;
-            }
-        }
-        return false;
     }
 }

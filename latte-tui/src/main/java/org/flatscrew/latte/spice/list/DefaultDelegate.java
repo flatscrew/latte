@@ -119,7 +119,7 @@ public class DefaultDelegate implements ItemDelegate, KeyMap {
         this.spacing = spacing;
     }
 
-    public void setUpdateFunction(UpdateFunction updateFunction) {
+    public void onUpdate(UpdateFunction updateFunction) {
         this.updateFunction = updateFunction;
     }
 

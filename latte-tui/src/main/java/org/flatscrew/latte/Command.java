@@ -1,6 +1,7 @@
 package org.flatscrew.latte;
 
 import org.flatscrew.latte.message.BatchMessage;
+import org.flatscrew.latte.message.BlurMessage;
 import org.flatscrew.latte.message.CheckWindowSizeMessage;
 import org.flatscrew.latte.message.ClearScreenMessage;
 import org.flatscrew.latte.message.PrintLineMessage;
@@ -24,11 +25,23 @@ public interface Command {
     Message execute();
 
     static Command batch(Collection<Command> commands) {
-        return () -> new BatchMessage(commands.toArray(new Command[0]));
+        return batch(commands.toArray(new Command[0]));
+
+//        return () -> new BatchMessage(commands.toArray(new Command[0]));
     }
 
     static Command batch(Command... commands) {
-        return () -> new BatchMessage(commands);
+        return new BatchCommand(commands);
+
+//        return () -> new BatchMessage(commands);
+    }
+
+    record BatchCommand(Command... commands) implements Command {
+
+        @Override
+        public Message execute() {
+            return new BatchMessage(commands());
+        }
     }
 
     static Command sequence(Command... commands) {

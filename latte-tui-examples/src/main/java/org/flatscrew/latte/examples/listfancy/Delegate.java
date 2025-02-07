@@ -1,10 +1,13 @@
 package org.flatscrew.latte.examples.listfancy;
 
+import org.flatscrew.latte.Command;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.spice.help.KeyMap;
 import org.flatscrew.latte.spice.key.Binding;
 import org.flatscrew.latte.spice.list.DefaultDelegate;
 import org.flatscrew.latte.spice.list.DefaultDataSource;
+
+import java.util.LinkedList;
 
 public class Delegate {
 
@@ -49,7 +52,7 @@ public class Delegate {
 
     public static DefaultDelegate newItemDelegate(DelegateKeyMap keyMap) {
         DefaultDelegate defaultDelegate = new DefaultDelegate();
-        defaultDelegate.setUpdateFunction((msg, list) -> {
+        defaultDelegate.onUpdate((msg, list) -> {
             if (msg instanceof KeyPressMessage keyPressMessage) {
                 String title = null;
                 if (list.selectedItem() instanceof FancyItem fancyItem) {
@@ -63,13 +66,19 @@ public class Delegate {
                 } else if (Binding.matches(keyPressMessage, keyMap.remove())) {
                     int index = list.index();
 
+                    java.util.List<Command> commands = new LinkedList<>();
+
                     if (list.dataSource() instanceof DefaultDataSource defaultDataSource) {
-                        defaultDataSource.removeItem(index);
-                        if (defaultDataSource.isEmpty()) {
-                            keyMap.remove().setEnabled(false);
-                        }
+                        commands.add(defaultDataSource.removeItem(index, () -> {
+                            if (defaultDataSource.isEmpty()) {
+                                keyMap.remove().setEnabled(false);
+                            }
+                        }));
                     }
-                    return list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Deleted", title}));
+                    commands.add(list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Deleted", title})));
+                    return Command.batch(
+                            commands
+                    );
                 }
             }
             return null;

@@ -1,6 +1,5 @@
 package org.flatscrew.latte.springexample.view;
 
-import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.spice.help.KeyMap;
 import org.flatscrew.latte.spice.key.Binding;
 import org.flatscrew.latte.spice.list.DefaultDelegate;
@@ -12,56 +11,47 @@ public class BookItemDelegateFactory {
     public static class DelegateKeyMap implements KeyMap {
 
         private final Binding remove;
+        private final Binding choose;
 
         public DelegateKeyMap() {
             this.remove = new Binding(
                     Binding.withKeys("x", "backspace"),
                     Binding.withHelp("x", "delete")
             );
+            this.choose = new Binding(
+                    Binding.withKeys("enter"),
+                    Binding.withHelp("enter", "choose")
+            );
         }
 
         @Override
         public Binding[] shortHelp() {
             return new Binding[]{
+                    choose,
                     remove
             };
         }
 
         @Override
         public Binding[][] fullHelp() {
-            return new Binding[][] {
-                    new Binding[]{remove}
+            return new Binding[][]{
+                    new Binding[]{remove, choose}
             };
         }
 
         public Binding remove() {
             return remove;
         }
+
+        public Binding choose() {
+            return choose;
+        }
     }
 
     public DefaultDelegate newBokItemDelegate(DelegateKeyMap keyMap) {
         DefaultDelegate defaultDelegate = new DefaultDelegate();
-
-        defaultDelegate.setUpdateFunction((msg, listModel) -> {
-
-            if (msg instanceof KeyPressMessage keyPressMessage) {
-                if (Binding.matches(keyPressMessage, keyMap.remove())) {
-
-                    if (listModel.selectedItem() instanceof BookItem bookItem) {
-                        return () -> new BookRemovalRequested(bookItem.book());
-                    }
-                }
-            }
-
-            return null;
-        });
-
-        Binding[] help = new Binding[]{
-                keyMap.remove()
-        };
-        defaultDelegate.setShortHelpFunc(() -> help);
-        defaultDelegate.setFullHelpFunc(() -> new Binding[][]{help});
-
+        defaultDelegate.setShortHelpFunc(keyMap::shortHelp);
+        defaultDelegate.setFullHelpFunc(keyMap::fullHelp);
         return defaultDelegate;
     }
 }

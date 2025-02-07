@@ -6,12 +6,14 @@ import org.flatscrew.latte.Model;
 import org.flatscrew.latte.UpdateResult;
 import org.flatscrew.latte.cream.Position;
 import org.flatscrew.latte.cream.Style;
+import org.flatscrew.latte.cream.align.AlignmentDecorator;
 import org.flatscrew.latte.cream.border.StandardBorder;
 import org.flatscrew.latte.cream.color.Color;
 import org.flatscrew.latte.cream.join.HorizontalJoinDecorator;
 import org.flatscrew.latte.cream.join.VerticalJoinDecorator;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.WindowSizeMessage;
+import org.flatscrew.latte.spice.key.Binding;
 import org.flatscrew.latte.spice.list.List;
 import org.flatscrew.latte.spice.spinner.Spinner;
 import org.flatscrew.latte.spice.spinner.SpinnerType;
@@ -25,6 +27,8 @@ public class MainViewModel implements Model {
     private Style listStyle;
     private Style detailsHeaderStyle;
     private Style sectionHeaderStyle;
+    private Style descriptionBlockStyle;
+    private Style noSelectionStyle;
 
     private final BookItemDelegateFactory.DelegateKeyMap delegateKeyMap;
     private final BooksGenerator booksGenerator;
@@ -48,13 +52,14 @@ public class MainViewModel implements Model {
                 .padding(0, 1, 0, 0)
                 .margin(0, 1, 0, 0)
                 .border(StandardBorder.DoubleBorder, false, true, false, false);
-
         this.detailsHeaderStyle = Style.newStyle()
                 .background(Color.color("62"))
                 .foreground(Color.color("230"))
                 .padding(0, 1)
                 .marginBottom(1);
         this.sectionHeaderStyle = Style.newStyle().bold(true);
+        this.descriptionBlockStyle = Style.newStyle().inline(false);
+        this.noSelectionStyle = Style.newStyle().align(Position.Center, Position.Center);
 
         this.spinner = new Spinner(SpinnerType.DOT);
         this.booksGenerator = booksGenerator;
@@ -80,9 +85,10 @@ public class MainViewModel implements Model {
             this.height = windowSizeMessage.height();
 
             listStyle = listStyle
-//                    .width(windowSizeMessage.width() - LIST_WIDTH - 1)
                     .height(windowSizeMessage.height());
-            return UpdateResult.from(this, list.setSize(LIST_WIDTH, windowSizeMessage.height()));
+            descriptionBlockStyle = descriptionBlockStyle.width(width - LIST_WIDTH - 1);
+            noSelectionStyle = noSelectionStyle.width(width - LIST_WIDTH - 1).height(height);
+            return UpdateResult.from(this, list.setSize(LIST_WIDTH, height));
         }
 
         if (msg instanceof BooksGenerated) {
@@ -100,15 +106,15 @@ public class MainViewModel implements Model {
             return UpdateResult.from(removeBookViewModel, removeBookViewModel.init());
         }
 
-        UpdateResult<List> listUpdateResult = list.update(msg);
-
-        if (msg instanceof KeyPressMessage keyPressMessage) {
-            if ("enter".equals(keyPressMessage.key()) && list.selectedItem() instanceof BookItem bookItem) {
+        if (msg instanceof KeyPressMessage keyPressMessage && list.selectedItem() instanceof BookItem bookItem) {
+            if (Binding.matches(keyPressMessage, delegateKeyMap.choose())) {
                 this.choosenItem = bookItem;
+            } else if (Binding.matches(keyPressMessage, delegateKeyMap.remove())) {
+                return UpdateResult.from(this, () -> new BookRemovalRequested(bookItem.book()));
             }
         }
 
-        return UpdateResult.from(this, listUpdateResult.command());
+        return UpdateResult.from(this, list.update(msg).command());
     }
 
     @Override
@@ -116,13 +122,10 @@ public class MainViewModel implements Model {
         if (!booksGenerated) {
             return spinner.view() + " Generating books";
         }
-        return VerticalJoinDecorator.joinVertical(
+        return HorizontalJoinDecorator.joinHorizontal(
                 Position.Top,
-                HorizontalJoinDecorator.joinHorizontal(
-                        Position.Top,
-                        listStyle.render(listView()),
-                        detailsView()
-                )
+                listStyle.render(listView()),
+                detailsView()
         );
     }
 
@@ -132,7 +135,7 @@ public class MainViewModel implements Model {
 
     private String detailsView() {
         if (choosenItem == null) {
-            return "- select book -";
+            return noSelectionStyle.render("- choose a book -");
         }
 
         return VerticalJoinDecorator.joinVertical(
@@ -143,10 +146,10 @@ public class MainViewModel implements Model {
                         choosenItem.title()
                 ),
                 "",
-                sectionHeaderStyle.render("Authors"),
+                sectionHeaderStyle.render("Authors:"),
                 choosenItem.authors(),
                 "",
-                choosenItem.getDescription()
+                descriptionBlockStyle.render(choosenItem.getDescription())
         );
     }
 

@@ -29,7 +29,6 @@ public class RemoveBookViewModel implements Model, KeyMap {
     private final Binding back;
     private Help help;
 
-
     public RemoveBookViewModel(Book book, Model previousViewModel, int width, int height) {
         this.book = book;
         this.previousViewModel = previousViewModel;

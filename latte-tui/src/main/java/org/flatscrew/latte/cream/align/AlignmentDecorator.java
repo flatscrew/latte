@@ -38,7 +38,7 @@ public class AlignmentDecorator {
         return input;
     }
 
-    public static String alignTextHorizontal(String input, Position position, int width, AttributedStyle attributedStyle, Renderer renderer) {
+    public static String alignTextHorizontal(String input, Position position, int width, AttributedStyle attributedStyle) {
         TextLines textLines = TextLines.fromText(input);
         int widestLine = textLines.widestLineLength();
 
@@ -65,9 +65,6 @@ public class AlignmentDecorator {
 
                     l = leftSpaces + l + rightSpaces;
                 } else {
-//                    AttributedStyle attributedStyle = new AttributedStyle();
-//                    attributedStyle = backgroundColor.applyAsBackground(attributedStyle, renderer);
-
                     l += new AttributedString(" ".repeat(shortAmount), attributedStyle).toAnsi();
                 }
             }

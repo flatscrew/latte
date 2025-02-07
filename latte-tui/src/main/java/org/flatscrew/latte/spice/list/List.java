@@ -26,13 +26,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Objects;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static org.flatscrew.latte.Command.batch;
 import static org.flatscrew.latte.spice.list.DefaultItemStyles.ELLIPSIS;
@@ -71,12 +71,13 @@ public class List implements Model, KeyMap {
 
     private Duration statusMessageLifetime;
     private String statusMessage;
-    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private Timer statusMessageTimer;
     private Future<? extends Message> statusMessageFuture;
 
     private ListDataSource dataSource;
     private boolean fetchingItems;
     private long totalItems = 0;
+    private int totalPages;
     private long matchedItems = 0;
     private java.util.List<FilteredItem> currentPageItems;
     private ItemDelegate itemDelegate;
@@ -139,6 +140,14 @@ public class List implements Model, KeyMap {
         return dataSource;
     }
 
+    public Command refresh(Runnable... postRefresh) {
+        return fetchCurrentPageItems(
+                Stream.concat(
+                        Stream.of(postRefresh),
+                        Stream.of(this::keepCursorInBounds)
+                ).toArray(Runnable[]::new));
+    }
+
     private Command fetchCurrentPageItems(Runnable... postFetch) {
         this.fetchingItems = true;
         updateKeybindings();
@@ -182,11 +191,9 @@ public class List implements Model, KeyMap {
         this.title = title;
     }
 
-    public void setShowTitle(boolean showTitle) {
+    public Command setShowTitle(boolean showTitle) {
         this.showTitle = showTitle;
-        updatePagination();
-        // TODO
-        fetchCurrentPageItems();
+        return fetchCurrentPageItems();
     }
 
     public Command setFilterText(String filter) {
@@ -209,24 +216,18 @@ public class List implements Model, KeyMap {
         return showTitle;
     }
 
-    public void setShowFilter(boolean showFilter) {
+    public Command setShowFilter(boolean showFilter) {
         this.showFilter = showFilter;
-        updatePagination();
-
-        // TODO
-        fetchCurrentPageItems();
+        return fetchCurrentPageItems();
     }
 
     public boolean showFilter() {
         return showFilter;
     }
 
-    public void setShowStatusBar(boolean showStatusBar) {
+    public Command setShowStatusBar(boolean showStatusBar) {
         this.showStatusBar = showStatusBar;
-        updatePagination();
-
-        // TODO
-        fetchCurrentPageItems();
+        return fetchCurrentPageItems();
     }
 
     public boolean showStatusBar() {
@@ -246,24 +247,18 @@ public class List implements Model, KeyMap {
         return itemNamePlural;
     }
 
-    public void setShowPagination(boolean showPagination) {
+    public Command setShowPagination(boolean showPagination) {
         this.showPagination = showPagination;
-        updatePagination();
-
-        // TODO
-        fetchCurrentPageItems();
+        return fetchCurrentPageItems();
     }
 
     public boolean showPagination() {
         return showPagination;
     }
 
-    public void setShowHelp(boolean showHelp) {
+    public Command setShowHelp(boolean showHelp) {
         this.showHelp = showHelp;
-        updatePagination();
-
-        // TODO
-        fetchCurrentPageItems();
+        return fetchCurrentPageItems();
     }
 
     public boolean showHelp() {
@@ -284,12 +279,9 @@ public class List implements Model, KeyMap {
         resetFiltering();
     }
 
-    public void setItemDelegate(ItemDelegate itemDelegate) {
+    public Command setItemDelegate(ItemDelegate itemDelegate) {
         this.itemDelegate = itemDelegate;
-        updatePagination();
-
-        // TODO
-        fetchCurrentPageItems();
+        return fetchCurrentPageItems();
     }
 
     public Item selectedItem() {
@@ -377,22 +369,28 @@ public class List implements Model, KeyMap {
     public Command newStatusMessage(String status) {
         this.statusMessage = status;
 
-        if (statusMessageFuture != null && !statusMessageFuture.isDone()) {
-            statusMessageFuture.cancel(true);
+        if (statusMessageTimer != null) {
+            statusMessageTimer.cancel();
         }
-        statusMessageFuture = scheduler.schedule(
-                StatusMessageTimeoutMessage::new,
-                statusMessageLifetime.toMillis(),
-                TimeUnit.MILLISECONDS
-        );
 
+        statusMessageTimer = new Timer();
         return () -> {
+            BlockingQueue<StatusMessageTimeoutMessage> queue = new ArrayBlockingQueue<>(1);
+            statusMessageTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    queue.offer(new StatusMessageTimeoutMessage());
+                }
+            }, statusMessageLifetime.toMillis());
+
             try {
-                return statusMessageFuture.get();
-            } catch (InterruptedException | CancellationException e) {
-                return null;
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
+                return queue.take();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return new StatusMessageTimeoutMessage();
+            } finally {
+                statusMessageTimer.cancel();
+                statusMessageTimer = null;
             }
         };
     }
@@ -441,7 +439,9 @@ public class List implements Model, KeyMap {
             keys.goToEnd().setEnabled(false);
             keys.filter().setEnabled(false);
             keys.clearFilter().setEnabled(false);
-            keys.cancelWhileFiltering().setEnabled(true);
+            if (!fetchingItems) {
+                keys.cancelWhileFiltering().setEnabled(true);
+            }
             keys.acceptWhileFiltering().setEnabled(!"".equals(filterInput.value()));
             keys.quit().setEnabled(false);
             keys.showFullHelp().setEnabled(false);
@@ -491,15 +491,12 @@ public class List implements Model, KeyMap {
         }
 
         paginator.setPerPage(Math.max(1, availHeight / (itemDelegate.height() + itemDelegate.spacing())));
-
-        int totalPages = (int) Math.ceil((double) matchedItems / paginator.perPage());
         paginator.setTotalPages(totalPages);
-
         paginator.setPage(index / paginator.perPage());
         this.cursor = index % paginator.perPage();
 
         if (paginator.page() >= paginator.totalPages() - 1) {
-            paginator.setPage(Math.max(0, paginator.totalPages() - 1));
+            paginator.setPage(Math.max(0, paginator.totalPages() - 1 ));
         }
 
         updateKeybindings();
@@ -540,6 +537,7 @@ public class List implements Model, KeyMap {
             this.currentPageItems = fetchedItems.items();
             this.matchedItems = fetchedItems.matchedItems();
             this.totalItems = fetchedItems.totalItems();
+            this.totalPages = fetchedItems.totalPages();
 
             for (Runnable runnable : fetchedCurrentPageItems.postFetch()) {
                 runnable.run();
@@ -555,6 +553,7 @@ public class List implements Model, KeyMap {
             commands.add(updateResult.command());
         } else if (msg instanceof StatusMessageTimeoutMessage) {
             hideStatusMessage();
+
         }
 
         if (filterState == FilterState.Filtering) {
@@ -683,7 +682,6 @@ public class List implements Model, KeyMap {
 
         if (!paginator.onLastPage()) {
             paginator.nextPage();
-            this.cursor = 0;
             return fetchCurrentPageItems(
                     () -> cursor = 0
             );
@@ -697,7 +695,6 @@ public class List implements Model, KeyMap {
         this.cursor = itemsOnPage - 1;
 
         if (infiniteScrolling) {
-            paginator.setPage(0);
             return fetchCurrentPageItems(
                     () -> cursor = 0
             );

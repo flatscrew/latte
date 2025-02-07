@@ -20,41 +20,18 @@ public class DefaultDataSource implements ListDataSource {
     }
 
     public Command setItem(int index, Item item) {
-        Command cmd = null;
         this.items.set(index, item);
-
-        if (list.filterState() != FilterState.Unfiltered) {
-//            cmd = filterItems("");
-        }
-
-        list.updatePagination();
-        return cmd;
+        return list.refresh();
     }
 
     public Command insertItem(int index, Item item) {
-        Command cmd = null;
         this.items.add(index, item);
-
-        if (list.filterState() != FilterState.Unfiltered) {
-//            cmd = filterItems("");
-        }
-
-        list.updatePagination();
-        list.updateKeybindings();
-        return cmd;
+        return list.refresh();
     }
 
-    public void removeItem(int index) {
+    public Command removeItem(int index, Runnable... postRemove) {
         this.items.remove(index);
-
-        if (list.filterState() != FilterState.Unfiltered) {
-//            this.matchedItems.remove(index);
-//
-//            if (matchedItems.isEmpty()) {
-//                list.resetFiltering();
-//            }
-        }
-        list.updatePagination();
+        return list.refresh(postRemove);
     }
 
     public java.util.List<Item> items() {
@@ -63,16 +40,7 @@ public class DefaultDataSource implements ListDataSource {
 
     public Command setItems(Item... items) {
         this.items = java.util.List.of(items);
-        Command cmd = null;
-
-//        if (filterState != FilterState.Unfiltered) {
-//            this.matchedItems = null;
-//            cmd = filterItems("");
-//        }
-
-        list.updatePagination();
-        list.updateKeybindings();
-        return cmd;
+        return list.refresh();
     }
 
     public boolean isEmpty() {
@@ -106,12 +74,14 @@ public class DefaultDataSource implements ListDataSource {
 
         int offset = page * perPage;
         int toIndex = Math.min(offset + perPage, filteredItems.size());
+        long matchedItems = filteredItems.size();
+        long totalItems = items.size();
+        int totalPages = (int) Math.ceil((double) totalItems / perPage);
 
-        if (offset >= filteredItems.size()) {
-            return new FetchedItems();
+        if (offset >= matchedItems) {
+            offset = offset - perPage;
         }
-
-        return new FetchedItems(filteredItems.subList(offset, toIndex), filteredItems.size(), items.size());
+        return new FetchedItems(filteredItems.subList(offset, toIndex), matchedItems, totalItems, totalPages);
     }
 
     private java.util.List<FilteredItem> allItemsAsFilteredItems() {

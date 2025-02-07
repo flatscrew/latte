@@ -52,7 +52,8 @@ public class BookDataSource implements ListDataSource {
                         .map(item -> new FilteredItem(0, item, findMatchedIndexes(item.title(), filterValue)))
                         .toList(),
                 filteredBooks.getTotalElements(),
-                allItems
+                allItems,
+                filteredBooks.getTotalPages()
         );
     }
 
