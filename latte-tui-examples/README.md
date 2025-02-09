@@ -75,7 +75,7 @@ The `textinputs` example shows multiple `textinputs` and being able to switch fo
 
 ### Default List
 
-The `list-default` example shows how to use the list bubble.
+The `list-default` example shows how to use the list bubble. Have a look [here](../ListComponent.md) for some more details on how to use `List`.
 
 <a href="./src/main/java/org/flatscrew/latte/examples/listdefault/ListDefaultExample.java">
   <img width="750" src="list-default-tape.gif" />
