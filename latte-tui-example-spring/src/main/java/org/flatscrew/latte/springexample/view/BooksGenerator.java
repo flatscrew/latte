@@ -30,7 +30,7 @@ public class BooksGenerator {
                 book.getAuthors().add(author);
             }
 
-            book.setDescription(String.join("\n", faker.lorem().paragraphs(5)));
+            book.setDescription(String.join("\n", faker.lorem().paragraphs(2)));
             bookRepository.save(book);
         }
     }
