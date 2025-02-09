@@ -65,6 +65,12 @@ public class Sanitizer {
     }
 
     private static boolean isLatinLetter(char c) {
-        return UCharacter.isLetterOrDigit(c) || UCharacter.isWhitespace(c);
+        return UCharacter.isLetterOrDigit(c) ||
+                UCharacter.isWhitespace(c) ||
+                UCharacter.getType(c) == UCharacter.OTHER_PUNCTUATION ||
+                UCharacter.getType(c) == UCharacter.MATH_SYMBOL ||
+                UCharacter.getType(c) == UCharacter.DASH_PUNCTUATION ||
+                UCharacter.getType(c) == UCharacter.CURRENCY_SYMBOL;
     }
+
 }

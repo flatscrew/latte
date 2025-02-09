@@ -9,6 +9,7 @@ import org.flatscrew.latte.cream.Style;
 import org.flatscrew.latte.cream.color.Color;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.WindowSizeMessage;
+import org.flatscrew.latte.spice.list.FilteredItem;
 import org.flatscrew.latte.spice.list.Item;
 import org.flatscrew.latte.spice.list.ItemDelegate;
 import org.flatscrew.latte.spice.list.List;
@@ -33,7 +34,8 @@ public class ListSimpleExample implements Model {
     class SimpleItemDelegate implements ItemDelegate {
 
         @Override
-        public void render(StringBuilder output, List list, int index, Item item) {
+        public void render(StringBuilder output, List list, int index, FilteredItem filteredItem) {
+            Item item = filteredItem.item();
             if (item instanceof SimpleItem simpleItem) {
                 String str = "%d. %s".formatted(index + 1, simpleItem.value());
                 if (index == list.index()) {
@@ -87,21 +89,23 @@ public class ListSimpleExample implements Model {
 
     @Override
     public Command init() {
+        Command listInitCmd = list.init();
+
         list.setTitle("What do you want for dinner?");
-        list.setShowStatusBar(false);
-        list.setFilteringEnabled(false);
         list.styles().setTitle(titleStyle);
         list.styles().setPaginationStyle(paginationStyle);
         list.styles().setHelpStyle(helpStyle);
 
-        return list.init();
+        return Command.sequence(listInitCmd, () -> {
+            list.setShowStatusBar(false);
+            return null;
+        });
     }
 
     @Override
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof WindowSizeMessage windowSizeMessage) {
-            list.setWidth(windowSizeMessage.width());
-            return UpdateResult.from(this);
+            return UpdateResult.from(this, list.setWidth(windowSizeMessage.width()));
         }
 
         if (msg instanceof KeyPressMessage keyPressMessage) {

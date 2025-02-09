@@ -14,8 +14,6 @@ import org.flatscrew.latte.message.QuitMessage;
 import org.flatscrew.latte.spice.help.Help;
 import org.flatscrew.latte.spice.help.KeyMap;
 import org.flatscrew.latte.spice.key.Binding;
-import org.flatscrew.latte.spice.list.fuzzy.FuzzyFilter;
-import org.flatscrew.latte.spice.paginator.Bounds;
 import org.flatscrew.latte.spice.paginator.Paginator;
 import org.flatscrew.latte.spice.paginator.Type;
 import org.flatscrew.latte.spice.spinner.Spinner;
@@ -28,18 +26,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Objects;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static org.flatscrew.latte.Command.batch;
 import static org.flatscrew.latte.spice.list.DefaultItemStyles.ELLIPSIS;
 
-// FIXME it needs a complete overhaul, no idea how bubble guys maintained it o_O
 public class List implements Model, KeyMap {
 
     private boolean showTitle;
@@ -57,7 +54,6 @@ public class List implements Model, KeyMap {
     private boolean infiniteScrolling;
 
     private Keys keys;
-    private FilterFunction filterFunction;
     private boolean disableQuitKeybindings;
 
     private Supplier<Binding[]> additionalShortHelpKeys;
@@ -72,14 +68,19 @@ public class List implements Model, KeyMap {
     private Help help;
     private TextInput filterInput;
     private FilterState filterState;
+    private boolean filterOnAcceptOnly;
 
     private Duration statusMessageLifetime;
     private String statusMessage;
-    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private Timer statusMessageTimer;
     private Future<? extends Message> statusMessageFuture;
 
-    private java.util.List<Item> items;
-    private java.util.List<FilteredItem> filteredItems;
+    private ListDataSource dataSource;
+    private boolean fetchingItems;
+    private long totalItems = 0;
+    private int totalPages;
+    private long matchedItems = 0;
+    private java.util.List<FilteredItem> currentPageItems;
     private ItemDelegate itemDelegate;
 
     public List(Item[] items, int width, int height) {
@@ -87,12 +88,26 @@ public class List implements Model, KeyMap {
     }
 
     public List(Item[] items, ItemDelegate delegate, int width, int height) {
+        setup(new DefaultDataSource(this, items), delegate, width, height);
+    }
+
+    public List(ListDataSource dataSource, ItemDelegate delegate, int width, int height) {
+        setup(dataSource, delegate, width, height);
+    }
+
+    public List(ListDataSource dataSource, int width, int height) {
+        this(dataSource, new DefaultDelegate(), width, height);
+    }
+
+    private void setup(ListDataSource dataSource, ItemDelegate delegate, int width, int height) {
+        this.dataSource = dataSource;
+        this.currentPageItems = new ArrayList<>();
         this.filterState = FilterState.Unfiltered;
+        this.itemDelegate = delegate;
+        this.fetchingItems = false;
+
         this.width = width;
         this.height = height;
-        this.itemDelegate = delegate;
-        this.items = new ArrayList<>(Arrays.asList(items));
-        this.filteredItems = new LinkedList<>();
         this.title = "List";
         this.showTitle = true;
         this.showFilter = true;
@@ -103,7 +118,6 @@ public class List implements Model, KeyMap {
         this.itemNamePlural = "items";
         this.filteringEnabled = true;
         this.keys = new Keys();
-        this.filterFunction = FuzzyFilter::defaultFilter;
         this.styles = Styles.defaultStyles();
         this.statusMessageLifetime = Duration.ofSeconds(1);
         this.statusMessage = "";
@@ -123,12 +137,64 @@ public class List implements Model, KeyMap {
         paginator.setType(Type.Dots);
     }
 
-    public void setFilteringEnabled(boolean filteringEnabled) {
+    @Override
+    public Command init() {
+        paginator.setActiveDot(styles.activePaginationDot().render());
+        paginator.setInactiveDot(styles.inactivePaginationDot().render());
+
+        updatePagination();
+        return fetchCurrentPageItems();
+    }
+
+    public ListDataSource dataSource() {
+        return dataSource;
+    }
+
+    public Command refresh(Runnable... postRefresh) {
+        return fetchCurrentPageItems(
+                Stream.concat(
+                        Stream.of(postRefresh),
+                        Stream.of(this::keepCursorInBounds)
+                ).toArray(Runnable[]::new));
+    }
+
+    private Command fetchCurrentPageItems(Runnable... postFetch) {
+        this.fetchingItems = true;
+        updateKeybindings();
+
+        return batch(
+                updateFilter(),
+                startSpinner(),
+                () -> new FetchedCurrentPageItems(
+                        dataSource.fetchItems(
+                                paginator.page(),
+                                paginator.perPage(),
+                                filterInput.value()
+                        ),
+                        postFetch
+                )
+        );
+    }
+
+    private Command updateFilter() {
+        if (fetchingItems) {
+            filterInput.blur();
+            return null;
+        } else {
+            return filterInput.focus();
+        }
+    }
+
+    public void setFilterOnAcceptOnly(boolean filterOnAcceptOnly) {
+        this.filterOnAcceptOnly = filterOnAcceptOnly;
+    }
+
+    public Command setFilteringEnabled(boolean filteringEnabled) {
         this.filteringEnabled = filteringEnabled;
         if (!filteringEnabled) {
-            resetFiltering();
+            return resetFiltering();
         }
-        updateKeybindings();
+        return null;
     }
 
     public boolean filteringEnabled() {
@@ -139,36 +205,25 @@ public class List implements Model, KeyMap {
         this.title = title;
     }
 
-    public void setShowTitle(boolean showTitle) {
+    public Command setShowTitle(boolean showTitle) {
         this.showTitle = showTitle;
-        updatePagination();
+        return fetchCurrentPageItems();
     }
 
-    public void setFilterText(String filter) {
+    public Command setFilterText(String filter) {
         this.filterState = FilterState.Filtering;
         this.filterInput.setValue(filter);
-
-        Command cmd = filterItems();
-        Message msg = cmd.execute();
-
-        if (msg instanceof FilterMatchesMessage filterMatchesMessage) {
-            this.filteredItems = filterMatchesMessage.filteredItems();
-            this.filterState = FilterState.FilterApplied;
-            this.paginator.setPage(0);
-            this.cursor = 0;
-            this.filterInput.cursorEnd();
-
-            updatePagination();
-            updateKeybindings();
-        }
+        return fetchCurrentPageItems();
     }
 
-    public void setFilterState(FilterState filterState) {
+    public Command setFilterState(FilterState filterState) {
         this.paginator.setPage(0);
         this.cursor = 0;
         this.filterInput.cursorEnd();
         this.filterInput.focus();
         this.filterState = filterState;
+
+        return fetchCurrentPageItems();
     }
 
     public boolean showTitle() {
@@ -215,186 +270,67 @@ public class List implements Model, KeyMap {
         return showPagination;
     }
 
-    public void setShowHelp(boolean showHelp) {
+    public Command setShowHelp(boolean showHelp) {
         this.showHelp = showHelp;
-        updatePagination();
+        return fetchCurrentPageItems();
     }
 
     public boolean showHelp() {
         return showHelp;
     }
 
-    public java.util.List<Item> items() {
-        return items;
-    }
-
-    public Command setItems(Item... items) {
-        this.items = java.util.List.of(items);
-        Command cmd = null;
-
-        if (filterState != FilterState.Unfiltered) {
-            this.filteredItems = null;
-            cmd = filterItems();
-        }
-
-        updatePagination();
-        updateKeybindings();
-        return cmd;
-    }
-
-    public void select(int index) {
-        this.paginator.setPage(index / paginator.setPerPage());
-        this.cursor = index & paginator.setPerPage();
+    public Command select(int index) {
+        this.paginator.setPage(index / paginator.perPage());
+        this.cursor = index & paginator.perPage();
+        return fetchCurrentPageItems();
     }
 
     public void resetSelected() {
         select(0);
     }
 
-    public void resetFilter() {
-        resetFiltering();
-    }
-
-    public Command setItem(int index, Item item) {
-        Command cmd = null;
-        this.items.set(index, item);
-
-        if (filterState != FilterState.Unfiltered) {
-            cmd = filterItems();
-        }
-
-        updatePagination();
-        return cmd;
-    }
-
-    public Command insertItem(int index, Item item) {
-        Command cmd = null;
-        this.items.add(index, item);
-
-        if (filterState != FilterState.Unfiltered) {
-            cmd = filterItems();
-        }
-
-        updatePagination();
-        updateKeybindings();
-        return cmd;
-    }
-
-    public void removeItem(int index) {
-        this.items.remove(index);
-
-        if (filterState != FilterState.Unfiltered) {
-            this.filteredItems.remove(index);
-
-            if (filteredItems.isEmpty()) {
-                resetFiltering();
-            }
-        }
-        updatePagination();
-    }
-
-    public void setItemDelegate(ItemDelegate itemDelegate) {
+    public Command setItemDelegate(ItemDelegate itemDelegate) {
         this.itemDelegate = itemDelegate;
-        updatePagination();
-    }
-
-    public java.util.List<Item> visibleItems() {
-        if (filterState != FilterState.Unfiltered) {
-            return filteredItems.stream().map(FilteredItem::item).toList();
-        }
-        return items;
+        return fetchCurrentPageItems();
     }
 
     public Item selectedItem() {
-        java.util.List<Item> visibleItems = visibleItems();
-        int index = index();
+        java.util.List<FilteredItem> visibleItems = visibleItems();
 
-        if (index < 0 || visibleItems.isEmpty() || visibleItems.size() <= index) {
+        if (cursor < 0 || visibleItems.isEmpty() || visibleItems.size() <= cursor) {
             return null;
         }
-        return visibleItems.get(index);
+        return visibleItems.get(cursor).item();
     }
 
-    public int[] matchesForItem(int index) {
-        if (filteredItems == null || index >= filteredItems.size()) {
-            return new int[0];
-        }
-        return filteredItems.get(index).matches();
+    public java.util.List<FilteredItem> visibleItems() {
+        return currentPageItems;
     }
 
     public int index() {
-        return paginator.page() * paginator.setPerPage() + cursor;
-    }
-
-    public int globalIndex() {
-        int index = index();
-
-        if (filteredItems == null || index >= filteredItems.size()) {
-            return index;
-        }
-
-        return filteredItems.get(index).index();
+        return paginator.page() * paginator.perPage() + cursor;
     }
 
     public int cursor() {
         return cursor;
     }
 
-    public void cursorUp() {
-        this.cursor--;
-
-        if (cursor < 0 && paginator.page() == 0) {
-            if (infiniteScrolling) {
-                paginator.setPage(paginator.totalPages() - 1);
-                this.cursor = paginator.itemsOnPage(visibleItems().size()) - 1;
-                return;
-            }
-
-            this.cursor = 0;
-            return;
-        }
-
-        if (cursor >= 0) {
-            return;
-        }
-
-        paginator.prevPage();
-        this.cursor = paginator.itemsOnPage(visibleItems().size()) - 1;
-    }
-
-    public void cursorDown() {
-        int itemsOnPage = paginator.itemsOnPage(visibleItems().size());
-        this.cursor++;
-
-        if (cursor < itemsOnPage) {
-            return;
-        }
-
+    public Command nextPage() {
         if (!paginator.onLastPage()) {
             paginator.nextPage();
-            this.cursor = 0;
-            return;
+            cursor = 0;
+            return fetchCurrentPageItems();
         }
-
-        if (cursor > itemsOnPage) {
-            this.cursor = 0;
-            return;
-        }
-
-        this.cursor = itemsOnPage - 1;
-
-        if (infiniteScrolling) {
-            paginator.setPage(0);
-            this.cursor = 0;
-        }
+        return null;
     }
 
-    public void nextPage() {
-        paginator.nextPage();
-    }
-
-    public void prevPage() {
-        paginator.prevPage();
+    public Command prevPage() {
+        if (paginator.page() > 0) {
+            paginator.prevPage();
+            cursor = 0;
+            return fetchCurrentPageItems();
+        }
+        return null;
     }
 
     public FilterState filterState() {
@@ -425,14 +361,6 @@ public class List implements Model, KeyMap {
         spinner.setType(spinnerType);
     }
 
-    public Command toggleSpinner() {
-        if (!showSpinner) {
-            return startSpinner();
-        }
-        stopSpinner();
-        return null;
-    }
-
     public Command startSpinner() {
         this.showSpinner = true;
         return spinner::tick;
@@ -451,22 +379,28 @@ public class List implements Model, KeyMap {
     public Command newStatusMessage(String status) {
         this.statusMessage = status;
 
-        if (statusMessageFuture != null && !statusMessageFuture.isDone()) {
-            statusMessageFuture.cancel(true);
+        if (statusMessageTimer != null) {
+            statusMessageTimer.cancel();
         }
-        statusMessageFuture = scheduler.schedule(
-                StatusMessageTimeoutMessage::new,
-                statusMessageLifetime.toMillis(),
-                TimeUnit.MILLISECONDS
-        );
 
+        statusMessageTimer = new Timer();
         return () -> {
+            BlockingQueue<StatusMessageTimeoutMessage> queue = new ArrayBlockingQueue<>(1);
+            statusMessageTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    queue.offer(new StatusMessageTimeoutMessage());
+                }
+            }, statusMessageLifetime.toMillis());
+
             try {
-                return statusMessageFuture.get();
-            } catch (InterruptedException | CancellationException e) {
-                return null;
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
+                return queue.take();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return new StatusMessageTimeoutMessage();
+            } finally {
+                statusMessageTimer.cancel();
+                statusMessageTimer = null;
             }
         };
     }
@@ -475,7 +409,7 @@ public class List implements Model, KeyMap {
         this.statusMessageLifetime = statusMessageLifetime;
     }
 
-    public void setSize(int width, int height) {
+    public Command setSize(int width, int height) {
         int promptWidth = Size.width(styles.title().render(filterInput.prompt()));
 
         this.width = width;
@@ -483,35 +417,31 @@ public class List implements Model, KeyMap {
         this.help.setWidth(width);
         this.filterInput.setWidth(width - promptWidth - Size.width(spinnerView()));
         updatePagination();
+
+        return fetchCurrentPageItems();
     }
 
-    public void setWidth(int width) {
-        setSize(width, height);
+    public Command setWidth(int width) {
+        return setSize(width, height);
     }
 
-    public void setHeight(int height) {
-        setSize(width, height);
+    public Command setHeight(int height) {
+        return setSize(width, height);
     }
 
-    private void resetFiltering() {
+    protected Command resetFiltering() {
         if (filterState == FilterState.Unfiltered) {
-            return;
+            return null;
         }
 
         this.filterState = FilterState.Unfiltered;
         this.filterInput.reset();
-        this.filteredItems = null;
 
-        updatePagination();
-        updateKeybindings();
+        return fetchCurrentPageItems();
     }
 
-    private java.util.List<FilteredItem> itemsAsFilteredItems() {
-        return items.stream().map(FilteredItem::new).toList();
-    }
-
-    private void updateKeybindings() {
-        if (filterState == FilterState.Filtering) {
+    protected void updateKeybindings() {
+        if (filterState == FilterState.Filtering || fetchingItems) {
             keys.cursorUp().setEnabled(false);
             keys.cursorDown().setEnabled(false);
             keys.nextPage().setEnabled(false);
@@ -520,13 +450,15 @@ public class List implements Model, KeyMap {
             keys.goToEnd().setEnabled(false);
             keys.filter().setEnabled(false);
             keys.clearFilter().setEnabled(false);
-            keys.cancelWhileFiltering().setEnabled(true);
+            if (!fetchingItems) {
+                keys.cancelWhileFiltering().setEnabled(true);
+            }
             keys.acceptWhileFiltering().setEnabled(!"".equals(filterInput.value()));
             keys.quit().setEnabled(false);
             keys.showFullHelp().setEnabled(false);
             keys.closeFullHelp().setEnabled(false);
         } else {
-            boolean hasItems = !items.isEmpty();
+            boolean hasItems = !(totalItems == 0);
             keys.cursorUp().setEnabled(hasItems);
             keys.cursorDown().setEnabled(hasItems);
             keys.goToStart().setEnabled(hasItems);
@@ -552,9 +484,20 @@ public class List implements Model, KeyMap {
         }
     }
 
-    private void updatePagination() {
+    private void hideStatusMessage() {
+        this.statusMessage = "";
+
+        // Cancel the active timer if it's still running
+        if (statusMessageFuture != null && !statusMessageFuture.isDone()) {
+            statusMessageFuture.cancel(true);
+        }
+    }
+
+    void updatePagination() {
         int index = index();
         int availHeight = this.height;
+
+        paginator.setTotalPages(totalPages);
 
         if (showTitle || (showFilter && filteringEnabled)) {
             availHeight -= Size.height(titleView());
@@ -569,41 +512,15 @@ public class List implements Model, KeyMap {
             availHeight -= Size.height(helpView());
         }
 
+        this.cursor = index % paginator.perPage();
         paginator.setPerPage(Math.max(1, availHeight / (itemDelegate.height() + itemDelegate.spacing())));
-
-        int pages = visibleItems().size();
-        if (pages < 1) {
-            paginator.setTotalPagesFromItemsSize(1);
-        } else {
-            paginator.setTotalPagesFromItemsSize(pages);
-        }
-
-        paginator.setPage(index / paginator.setPerPage());
-        this.cursor = index % paginator.setPerPage();
+//        paginator.setPage(index / paginator.perPage());
 
         if (paginator.page() >= paginator.totalPages() - 1) {
-            paginator.setPage(Math.max(0, paginator.totalPages() - 1));
+            paginator.setPage(Math.max(0, paginator.totalPages() - 1 ));
         }
-    }
 
-    private void hideStatusMessage() {
-        this.statusMessage = "";
-
-        // Cancel the active timer if it's still running
-        if (statusMessageFuture != null && !statusMessageFuture.isDone()) {
-            statusMessageFuture.cancel(true);
-        }
-    }
-
-    @Override
-    public Command init() {
-        paginator.setActiveDot(styles.activePaginationDot().render());
-        paginator.setInactiveDot(styles.inactivePaginationDot().render());
-
-        updatePagination();
         updateKeybindings();
-
-        return null;
     }
 
     @Override
@@ -614,15 +531,26 @@ public class List implements Model, KeyMap {
             if (Binding.matches(keyPressMessage, keys.forceQuit())) {
                 return UpdateResult.from(this, QuitMessage::new);
             }
-        } else if (msg instanceof FilterMatchesMessage filterMatchesMessage) {
-            this.filteredItems = filterMatchesMessage.filteredItems();
-            return UpdateResult.from(this);
-        } else if (msg instanceof TickMessage tickMessage) {
-            UpdateResult<Spinner> updateResult = spinner.update(msg);
-            this.spinner = updateResult.model();
-            if (showSpinner) {
-                commands.add(updateResult.command());
+        } else if (msg instanceof FetchedCurrentPageItems fetchedCurrentPageItems) {
+            stopSpinner();
+            this.fetchingItems = false;
+
+            FetchedItems fetchedItems = fetchedCurrentPageItems.fetchedItems();
+            this.currentPageItems = fetchedItems.items();
+            this.matchedItems = fetchedItems.matchedItems();
+            this.totalItems = fetchedItems.totalItems();
+            this.totalPages = fetchedItems.totalPages();
+            updatePagination();
+
+            for (Runnable runnable : fetchedCurrentPageItems.postFetch()) {
+                runnable.run();
             }
+
+            return UpdateResult.from(this, updateFilter());
+        } else if (msg instanceof FilterMatchesMessage filterMatchesMessage) {
+            return UpdateResult.from(this);
+        } else if (msg instanceof TickMessage && showSpinner) {
+            commands.add(spinner.update(msg).command());
         } else if (msg instanceof StatusMessageTimeoutMessage) {
             hideStatusMessage();
         }
@@ -639,54 +567,139 @@ public class List implements Model, KeyMap {
     private Command handleBrowsing(Message msg) {
         java.util.List<Command> commands = new LinkedList<>();
 
-        int numItems = visibleItems().size();
         if (msg instanceof KeyPressMessage keyPressMessage) {
             if (Binding.matches(keyPressMessage, keys.clearFilter())) {
-                resetFiltering();
+                commands.add(resetFiltering());
             } else if (Binding.matches(keyPressMessage, keys.quit())) {
                 return QuitMessage::new;
             } else if (Binding.matches(keyPressMessage, keys.cursorUp())) {
-                cursorUp();
+                commands.add(cursorUp());
             } else if (Binding.matches(keyPressMessage, keys.cursorDown())) {
-                cursorDown();
+                commands.add(cursorDown());
             } else if (Binding.matches(keyPressMessage, keys.prevPage())) {
-                paginator.prevPage();
+                commands.add(cursorLeft());
             } else if (Binding.matches(keyPressMessage, keys.nextPage())) {
-                paginator.nextPage();
+                commands.add(cursorRight());
             } else if (Binding.matches(keyPressMessage, keys.goToStart())) {
-                paginator.setPage(0);
-                this.cursor = 0;
+                commands.add(gotoStart());
             } else if (Binding.matches(keyPressMessage, keys.goToEnd())) {
-                paginator.setPage(paginator.totalPages() - 1);
-                this.cursor = paginator.itemsOnPage(numItems) - 1;
+                commands.add(gotoEnd());
             } else if (Binding.matches(keyPressMessage, keys.filter())) {
                 hideStatusMessage();
-                if ("".equals(filterInput.value())) {
-                    this.filteredItems = itemsAsFilteredItems();
+                commands.add(TextInput::blink);
+
+                if (!paginator.onFirstPage()) {
+                    paginator.setPage(0);
                 }
 
-                paginator.setPage(0);
-                this.cursor = 0;
                 this.filterState = FilterState.Filtering;
                 filterInput.cursorEnd();
                 filterInput.focus();
                 updateKeybindings();
-                return TextInput::blink;
+
+                commands.add(fetchCurrentPageItems(() -> {
+                    this.cursor = 0;
+                }));
+
+                return batch(commands);
             } else if (Binding.matches(keyPressMessage, keys.showFullHelp()) || Binding.matches(keyPressMessage, keys.closeFullHelp())) {
                 help.setShowAll(!help.showAll());
+
                 updatePagination();
+                commands.add(fetchCurrentPageItems());
+            }
+            commands.add(itemDelegate.update(msg, this));
+        }
+        return batch(commands);
+    }
+
+    private Command gotoStart() {
+        paginator.setPage(0);
+        this.cursor = 0;
+        return fetchCurrentPageItems();
+    }
+
+    private Command gotoEnd() {
+        paginator.setPage(paginator.totalPages() - 1);
+        return fetchCurrentPageItems(this::keepCursorInBounds);
+    }
+
+    private Command cursorLeft() {
+        if (paginator.onFirstPage()) {
+            return null;
+        }
+        paginator.prevPage();
+        return fetchCurrentPageItems();
+    }
+
+    private Command cursorRight() {
+        if (paginator.onLastPage()) {
+            return null;
+        }
+        paginator.nextPage();
+        return fetchCurrentPageItems(this::keepCursorInBounds);
+    }
+
+    private void keepCursorInBounds() {
+        int itemsOnPage = visibleItems().size();
+        if (cursor > itemsOnPage - 1) {
+            this.cursor = Math.max(0, itemsOnPage - 1);
+        }
+    }
+
+    public Command cursorUp() {
+        this.cursor--;
+        if (cursor < 0) {
+            if (paginator.page() == 0) {
+                if (infiniteScrolling) {
+                    paginator.setPage(paginator.totalPages() - 1);
+                    return fetchCurrentPageItems(() -> cursor = paginator.itemsOnPage(visibleItems().size()) - 1);
+                }
+
+                this.cursor = 0;
+                return null;
             }
 
-            Command cmd = itemDelegate.update(msg, this);
-            commands.add(cmd);
-
-            int itemsOnPage = paginator.itemsOnPage(visibleItems().size());
-            if (cursor > itemsOnPage - 1) {
-                this.cursor = Math.max(0, itemsOnPage - 1);
+            if (infiniteScrolling) {
+                paginator.setPage(paginator.totalPages() - 1);
+                return fetchCurrentPageItems(() -> cursor = paginator.itemsOnPage(visibleItems().size()) - 1);
             }
+
+            paginator.prevPage();
+            return fetchCurrentPageItems(() -> cursor = visibleItems().size() - 1);
+        }
+        return null;
+    }
+
+    public Command cursorDown() {
+        int itemsOnPage = visibleItems().size();
+        this.cursor++;
+
+        if (cursor < itemsOnPage) {
+            return null;
         }
 
-        return batch(commands);
+        if (!paginator.onLastPage()) {
+            paginator.nextPage();
+            return fetchCurrentPageItems(
+                    () -> cursor = 0
+            );
+        }
+
+        if (cursor > itemsOnPage) {
+            this.cursor = 0;
+            return null;
+        }
+
+        this.cursor = itemsOnPage - 1;
+
+        if (infiniteScrolling) {
+            return fetchCurrentPageItems(
+                    () -> cursor = 0
+            );
+        }
+
+        return null;
     }
 
     private Command handleFiltering(Message msg) {
@@ -695,27 +708,29 @@ public class List implements Model, KeyMap {
         if (msg instanceof KeyPressMessage keyPressMessage) {
             if (Binding.matches(keyPressMessage, keys.cancelWhileFiltering())) {
                 resetFiltering();
-                keys.filter().setEnabled(true);
-                keys.clearFilter().setEnabled(false);
+
+                commands.add(fetchCurrentPageItems(() -> {
+                    keys.filter().setEnabled(true);
+                    keys.clearFilter().setEnabled(false);
+                }));
+
             } else if (Binding.matches(keyPressMessage, keys.acceptWhileFiltering())) {
                 hideStatusMessage();
 
-                if (!items.isEmpty()) {
-
-                    java.util.List<Item> h = visibleItems();
+                if (totalItems > 0) {
+                    java.util.List<FilteredItem> h = visibleItems();
                     if (!h.isEmpty()) {
                         filterInput.blur();
                         this.filterState = FilterState.FilterApplied;
                         updateKeybindings();
 
                         if (filterInput.isEmpty()) {
-                            resetFiltering();
+                            commands.add(resetFiltering());
                         }
 
                     } else {
-                        resetFiltering();
+                        commands.add(resetFiltering());
                     }
-
                 }
             }
         }
@@ -726,11 +741,12 @@ public class List implements Model, KeyMap {
         this.filterInput = updateResult.model();
         commands.add(updateResult.command());
 
-        if (filterChanged) {
-            commands.add(filterItems());
-            keys.acceptWhileFiltering().setEnabled(!filterInput.isEmpty());
+        if (filterChanged && !filterOnAcceptOnly) {
+            commands.add(fetchCurrentPageItems(() -> {
+                keys.acceptWhileFiltering().setEnabled(!filterInput.isEmpty());
+                updatePagination();
+            }));
         }
-        updatePagination();
         return batch(commands);
     }
 
@@ -785,18 +801,16 @@ public class List implements Model, KeyMap {
         String spinnerLeftGap = " ";
         boolean spinnerOnLeft = titleBarStyle.leftPadding() >= spinnerWidth + Size.width(spinnerLeftGap) && showSpinner;
 
+        if (showSpinner && spinnerOnLeft) {
+            view.append(spinnerView).append(spinnerLeftGap);
+            int titleBarGap = titleBarStyle.leftPadding();
+            titleBarStyle = titleBarStyle.paddingLeft(titleBarGap - spinnerWidth - Size.width(spinnerLeftGap));
+        }
+
         if (showFilter && filterState == FilterState.Filtering) {
             view.append(filterInput.view());
         } else if (showTitle) {
-            if (showSpinner && spinnerOnLeft) {
-                view.append(spinnerView).append(spinnerLeftGap);
-
-                int titleBarGap = titleBarStyle.leftPadding();
-                titleBarStyle = titleBarStyle.paddingLeft(titleBarGap - spinnerWidth - Size.width(spinnerLeftGap));
-            }
-
             view.append(styles.title().render(title));
-
             if (filterState != FilterState.Filtering) {
                 view.append(" ").append(statusMessage);
                 view = new StringBuilder(Truncate.truncate(view.toString(), width - spinnerWidth, ELLIPSIS));
@@ -820,7 +834,6 @@ public class List implements Model, KeyMap {
 
     private String statusView() {
         StringBuilder status = new StringBuilder();
-        int totalItems = items.size();
         int visibleItems = visibleItems().size();
 
         String itemName = itemNameSingular;
@@ -828,7 +841,7 @@ public class List implements Model, KeyMap {
             itemName = itemNamePlural;
         }
 
-        String itemsDisplay = "%d %s".formatted(visibleItems, itemName);
+        String itemsDisplay = "%d %s".formatted(matchedItems, itemName);
 
         if (filterState == FilterState.Filtering) {
             if (visibleItems == 0) {
@@ -836,7 +849,7 @@ public class List implements Model, KeyMap {
             } else {
                 status = new StringBuilder(itemsDisplay);
             }
-        } else if (items.isEmpty()) {
+        } else if (totalItems == 0) {
             status = new StringBuilder(styles.statusEmpty().render("No " + itemNamePlural));
         } else {
             boolean filtered = filterState == FilterState.FilterApplied;
@@ -850,38 +863,40 @@ public class List implements Model, KeyMap {
             status.append(itemsDisplay);
         }
 
-        int numFiltered = totalItems - visibleItems;
-        if (numFiltered > 0) {
-            status
-                    .append(styles.dividerDot().render())
-                    .append(styles.statusBarFilterCount().render("%d filtered".formatted(numFiltered)));
+        if (filterState == FilterState.Filtering || filterState == FilterState.FilterApplied) {
+            long numFiltered = totalItems - visibleItems;
+            if (numFiltered > 0) {
+                status
+                        .append(styles.dividerDot().render())
+                        .append(styles.statusBarFilterCount().render("%d filtered".formatted(numFiltered)));
+            }
         }
 
         return styles.statusBar().render(status.toString());
     }
 
     private String paginationView() {
+        Style style = styles.paginationStyle().copy();
+        if (itemDelegate.spacing() == 0 && style.topMargin() == 0) {
+            style = style.marginTop(1);
+        }
+
         if (paginator.totalPages() < 2) {
-            return "";
+            return style.render("");
         }
 
         paginator.setType(Type.Dots);
-        String s = paginator.view();
-        if (Size.width(s) > width) {
+        String view = paginator.view();
+        if (Size.width(view) > width) {
             paginator.setType(Type.Arabic);
-            s = styles.arabicPagination().render(paginator.view());
+            view = styles.arabicPagination().render(paginator.view());
         }
 
-        Style style = styles.paginationStyle().copy();
-        if (itemDelegate.spacing() == 0 && style.topMargin() == 0) {
-            style = style.marginBottom(1);
-        }
-
-        return style.render(s);
+        return style.render(view);
     }
 
     private String populatedView() {
-        java.util.List<Item> items = visibleItems();
+        java.util.List<FilteredItem> items = visibleItems();
 
         StringBuilder b = new StringBuilder();
 
@@ -890,30 +905,23 @@ public class List implements Model, KeyMap {
                 return "";
             }
             return styles.noItems().render("No " + itemNamePlural + ".");
-        } else {
-            Bounds sliceBounds = paginator.getSliceBounds(items.size());
-            int start = sliceBounds.start();
-            int end = sliceBounds.end();
+        }
 
-            java.util.List<Item> docs = items.subList(start, end);
-            for (int i = 0; i < docs.size(); i++) {
-                itemDelegate.render(b, this, i + start, docs.get(i));
-                if (i != end - 1) {
-                    b.append("\n".repeat(itemDelegate.spacing() + 1));
-                }
+        for (int i = 0; i < items.size(); i++) {
+            itemDelegate.render(b, this, paginator.page() * paginator.perPage() + i, items.get(i));
+            if (i != items.size() - 1) {
+                b.append("\n".repeat(itemDelegate.spacing() + 1));
             }
         }
 
-        int itemsOnPage = paginator.itemsOnPage(items.size());
-        if (itemsOnPage < paginator.setPerPage()) {
-            int n = (paginator.setPerPage() - itemsOnPage) * (itemDelegate.height() + itemDelegate.spacing());
-            // can this happen at all ??
+        int itemsOnPage = items.size();
+        if (itemsOnPage < paginator.perPage()) {
+            int emptyLines = (paginator.perPage() - itemsOnPage) * (itemDelegate.height() + itemDelegate.spacing());
             if (items.isEmpty()) {
-                n -= itemDelegate.height() - 1;
+                emptyLines -= itemDelegate.height() - 1;  // Edge case adjustment
             }
-            b.append("\n".repeat(n));
+            b.append("\n".repeat(emptyLines));
         }
-
         return b.toString();
     }
 
@@ -923,32 +931,6 @@ public class List implements Model, KeyMap {
 
     private String spinnerView() {
         return spinner.view();
-    }
-
-    private Command filterItems() {
-        return () -> {
-            if ("".equals(filterInput.value()) || filterState == FilterState.Unfiltered) {
-                return new FilterMatchesMessage(itemsAsFilteredItems());
-            }
-
-            String[] targets = new String[items.size()];
-
-            for (int i = 0; i < items.size(); i++) {
-                targets[i] = items.get(i).filterValue();
-            }
-
-            java.util.List<FilteredItem> filterMatches = new LinkedList<>();
-
-            Rank[] ranks = filterFunction.apply(filterInput.value(), targets);
-            for (Rank rank : ranks) {
-                filterMatches.add(new FilteredItem(
-                        rank.getIndex(),
-                        items.get(rank.getIndex()),
-                        rank.getMatchedIndexes()
-                ));
-            }
-            return new FilterMatchesMessage(filterMatches);
-        };
     }
 
     private int countEnabledBindings(Binding[][] groups) {
@@ -984,8 +966,8 @@ public class List implements Model, KeyMap {
                 keys.cancelWhileFiltering()
         ));
 
-        if (!filtering && additionalFullHelpKeys != null) {
-            kb.addAll(Arrays.asList(additionalFullHelpKeys.get()));
+        if (!filtering && additionalShortHelpKeys != null) {
+            kb.addAll(Arrays.asList(additionalShortHelpKeys.get()));
         }
 
         kb.addAll(Arrays.asList(
@@ -1032,10 +1014,6 @@ public class List implements Model, KeyMap {
                 keys.closeFullHelp()
         });
         return kb.toArray(new Binding[0][]);
-    }
-
-    public java.util.List<FilteredItem> filteredItems() {
-        return filteredItems;
     }
 
     public Styles styles() {

@@ -23,7 +23,7 @@ class PaginatorTest {
         Paginator paginator = new Paginator();
 
         // then
-        assertThat(paginator.setPerPage()).isEqualTo(1);
+        assertThat(paginator.perPage()).isEqualTo(1);
         assertThat(paginator.totalPages()).isEqualTo(1);
 
         // when
@@ -33,24 +33,8 @@ class PaginatorTest {
         );
 
         // then
-        assertThat(paginator.setPerPage()).isEqualTo(perPage);
+        assertThat(paginator.perPage()).isEqualTo(perPage);
         assertThat(paginator.totalPages()).isEqualTo(totalPages);
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("totalPagesCases")
-    void test_SetTotalPagesFromItemsSize(String name, int items, int initialTotal, int expected) {
-        // given
-        Paginator paginator = new Paginator();
-
-        // when
-        if (paginator.totalPages() != initialTotal) {
-            paginator.totalPages(initialTotal);
-        }
-        paginator.totalPages(items);
-
-        // then
-        assertThat(paginator.totalPages()).isEqualTo(expected);
     }
 
     private static Stream<Arguments> totalPagesCases() {
@@ -67,7 +51,7 @@ class PaginatorTest {
     void test_PrevPage(String name, int totalPages, int page, int expected) {
         // given
         Paginator paginator = new Paginator();
-        paginator.totalPages(totalPages);
+        paginator.setTotalPages(totalPages);
         paginator.setPage(page);
 
         // when
@@ -89,7 +73,7 @@ class PaginatorTest {
     void test_NextPage(String name, int totalPages, int page, int expected) {
         // given
         Paginator paginator = new Paginator();
-        paginator.totalPages(totalPages);
+        paginator.setTotalPages(totalPages);
         paginator.setPage(page);
 
         // when
@@ -111,7 +95,7 @@ class PaginatorTest {
     void test_OnLastPage(String name, int page, int totalPages, boolean expected) {
         // given
         Paginator paginator = new Paginator();
-        paginator.totalPages(totalPages);
+        paginator.setTotalPages(totalPages);
         paginator.setPage(page);
 
         // when
@@ -133,7 +117,7 @@ class PaginatorTest {
     void test_OnFirstPage(String name, int page, int totalPages, boolean expected) {
         // given
         Paginator paginator = new Paginator();
-        paginator.totalPages(totalPages);
+        paginator.setTotalPages(totalPages);
         paginator.setPage(page);
 
         // when
@@ -156,7 +140,7 @@ class PaginatorTest {
         // given
         Paginator paginator = new Paginator();
         paginator.setPage(currentPage);
-        paginator.totalPages(totalPages);
+        paginator.setTotalPages(totalPages);
 
         // when
         int actualItems = paginator.itemsOnPage(totalItems);

@@ -1,12 +1,12 @@
 package org.flatscrew.latte.spice.list;
 
 public class FilteredItem {
-    private int index;
+    private int rankIndex;
     private Item item;
     private int[] matches;
 
-    public FilteredItem(int index, Item item, int[] matches) {
-        this.index = index;
+    public FilteredItem(int rankIndex, Item item, int[] matches) {
+        this.rankIndex = rankIndex;
         this.item = item;
         this.matches = matches;
     }
@@ -24,7 +24,7 @@ public class FilteredItem {
         return matches;
     }
 
-    public int index() {
-        return index;
+    public int rankIndex() {
+        return rankIndex;
     }
 }

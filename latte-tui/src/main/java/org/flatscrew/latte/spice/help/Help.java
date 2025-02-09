@@ -96,6 +96,15 @@ public class Help {
         );
     }
 
+    private boolean shouldRenderColumn(Binding[] group) {
+        for (Binding binding : group) {
+            if (binding.isEnabled()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private String shortHelpView(Binding[] bindings) {
         if (bindings == null || bindings.length == 0) {
             return "";
@@ -126,7 +135,7 @@ public class Help {
             // Tail
             Result result = shouldAddItem(totalWidth, w);
             if (!result.ok()) {
-                if (result.tail() != null && !result.tail().isEmpty()) {
+                if (!"".equals(result.tail())) {
                     b.append(result.tail());
                 }
                 break;
@@ -143,7 +152,7 @@ public class Help {
         String tail = "";
         if (this.width > 0 && totalWidth+width > this.width) {
             tail = " " + styles.getEllipsis().copy().inline(true).render(this.ellipsis);
-            if (totalWidth + Size.width(tail)  < this.width) {
+            if (totalWidth + Size.width(tail) < this.width) {
                 return new Result(false, tail);
             }
         }
@@ -161,17 +170,8 @@ public class Help {
     public boolean showAll() {
         return showAll;
     }
-
     record Result(boolean ok, String tail) {
 
-    }
 
-    private boolean shouldRenderColumn(Binding[] group) {
-        for (Binding binding : group) {
-            if (binding.isEnabled()) {
-                return true;
-            }
-        }
-        return false;
     }
 }

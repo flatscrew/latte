@@ -12,10 +12,12 @@ import org.flatscrew.latte.spice.key.Binding;
 import org.flatscrew.latte.spice.list.FilterState;
 import org.flatscrew.latte.spice.list.Item;
 import org.flatscrew.latte.spice.list.List;
+import org.flatscrew.latte.spice.list.DefaultDataSource;
 
 public class ListFancyExample implements Model {
 
     private List list;
+
     private RandomItemGenerator itemGenerator;
     private Keys keys;
     private Delegate.DelegateKeyMap delegateKeys;
@@ -46,28 +48,28 @@ public class ListFancyExample implements Model {
 
     @Override
     public Command init() {
-        return Command.sequence(Command.checkWindowSize(), list.init());
+        return list.init();
     }
 
     @Override
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof WindowSizeMessage windowSizeMessage) {
             Dimensions frameSize = Styles.appStyle.frameSize();
-            list.setSize(
-                    windowSizeMessage.width() - frameSize.width(),
-                    windowSizeMessage.height() - frameSize.height()
+            return UpdateResult.from(
+                    this,
+                    list.setSize(
+                            windowSizeMessage.width() - frameSize.width(),
+                            windowSizeMessage.height() - frameSize.height()
+                    )
             );
         } else if (msg instanceof KeyPressMessage keyPressMessage) {
             if (list.filterState() != FilterState.Filtering) {
 
-                if (Binding.matches(keyPressMessage, keys.toggleSpinner())) {
-                    return UpdateResult.from(this, list.toggleSpinner());
-                } else if (Binding.matches(keyPressMessage, keys.toggleTitleBar())) {
+                if (Binding.matches(keyPressMessage, keys.toggleTitleBar())) {
                     boolean v = !list.showTitle();
                     list.setShowTitle(v);
                     list.setShowFilter(v);
-                    list.setFilteringEnabled(v);
-                    return UpdateResult.from(this);
+                    return UpdateResult.from(this, list.setFilteringEnabled(v));
                 } else if (Binding.matches(keyPressMessage, keys.toggleStatusBar())) {
                     list.setShowStatusBar(!list.showStatusBar());
                     return UpdateResult.from(this);
@@ -78,11 +80,14 @@ public class ListFancyExample implements Model {
                     list.setShowHelp(!list.showHelp());
                     return UpdateResult.from(this);
                 } else if (Binding.matches(keyPressMessage, keys.insertItem())) {
-                    delegateKeys.remove().setEnabled(true);
-                    FancyItem newItem = itemGenerator.next();
-                    Command insertCmd = list.insertItem(0, newItem);
-                    Command statusCmd = list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Added", newItem.title()}));
-                    return UpdateResult.from(this, Command.batch(insertCmd, statusCmd));
+                    if (list.dataSource() instanceof DefaultDataSource defaultDataSource) {
+                        delegateKeys.remove().setEnabled(true);
+                        FancyItem newItem = itemGenerator.next();
+                        Command insertCmd = defaultDataSource.insertItem(0, newItem);
+                        Command statusCmd = list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Added", newItem.title()}));
+                        return UpdateResult.from(this, Command.batch(insertCmd, statusCmd));
+                    }
+                    return UpdateResult.from(this);
                 }
             }
         }

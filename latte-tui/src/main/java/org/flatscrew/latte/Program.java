@@ -154,7 +154,7 @@ public class Program {
 
     private Model eventLoop() {
         while (isRunning.get()) {
-            Message msg;// = messageQueue.poll();
+            Message msg;
             try {
                 msg = messageQueue.poll(10, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
@@ -186,7 +186,7 @@ public class Program {
                                             future.thenCompose(__ ->
                                                     commandExecutor.executeIfPresent(command, this::send, this::sendError)
                                             ),
-                                    (f1, f2) -> f1.thenCompose(__ -> f2)
+                                    (f1, f2) -> f2
                             ).join();
                     continue;
                 } else if (msg instanceof ErrorMessage errorMessage) {

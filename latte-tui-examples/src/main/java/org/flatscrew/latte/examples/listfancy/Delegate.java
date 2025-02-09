@@ -1,15 +1,19 @@
 package org.flatscrew.latte.examples.listfancy;
 
+import org.flatscrew.latte.Command;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.spice.help.KeyMap;
 import org.flatscrew.latte.spice.key.Binding;
+import org.flatscrew.latte.spice.list.DefaultDataSource;
 import org.flatscrew.latte.spice.list.DefaultDelegate;
+
+import java.util.LinkedList;
 
 public class Delegate {
 
     public static class DelegateKeyMap implements KeyMap {
-        private Binding choose;
-        private Binding remove;
+        private final Binding choose;
+        private final Binding remove;
 
         public DelegateKeyMap() {
             this.choose = new Binding(
@@ -48,24 +52,28 @@ public class Delegate {
 
     public static DefaultDelegate newItemDelegate(DelegateKeyMap keyMap) {
         DefaultDelegate defaultDelegate = new DefaultDelegate();
-        defaultDelegate.setUpdateFunction((msg, model) -> {
-            String title = null;
-            if (model.selectedItem() instanceof FancyItem fancyItem) {
-                title = fancyItem.title();
-            } else {
-                return null;
-            }
-
+        defaultDelegate.onUpdate((msg, list) -> {
             if (msg instanceof KeyPressMessage keyPressMessage) {
+                String title = null;
+                int index = -1;
+                if (list.selectedItem() instanceof FancyItem fancyItem && list.dataSource() instanceof DefaultDataSource defaultDataSource) {
+                    index = defaultDataSource.indexOf(fancyItem);
+                    title = fancyItem.title();
+                } else {
+                    return null;
+                }
+
                 if (Binding.matches(keyPressMessage, keyMap.choose())) {
-                    return model.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"You choose", title}));
-                } else if (Binding.matches(keyPressMessage, keyMap.remove())) {
-                    int index = model.index();
-                    model.removeItem(index);
-                    if (model.items().size() == 0) {
-                        keyMap.remove().setEnabled(false);
-                    }
-                    return model.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Deleted", title}));
+                    return list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"You choose", title}));
+                } else if (Binding.matches(keyPressMessage, keyMap.remove()) && index != -1) {
+                    return Command.batch(
+                            defaultDataSource.removeItem(index, () -> {
+                                if (defaultDataSource.isEmpty()) {
+                                    keyMap.remove().setEnabled(false);
+                                }
+                            }),
+                            list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Deleted", title}))
+                    );
                 }
             }
             return null;

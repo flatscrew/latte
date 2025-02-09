@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 
 public class CommandExecutor {
 
-    private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private final ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor();
 
     public void shutdown() {
         executorService.shutdown();
