@@ -66,6 +66,7 @@ public class Delegate {
                 } else if (Binding.matches(keyPressMessage, keyMap.remove())) {
                     int index = list.index();
 
+
                     java.util.List<Command> commands = new LinkedList<>();
 
                     if (list.dataSource() instanceof DefaultDataSource defaultDataSource) {

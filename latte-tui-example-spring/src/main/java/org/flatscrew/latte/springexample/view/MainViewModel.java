@@ -13,6 +13,7 @@ import org.flatscrew.latte.cream.join.VerticalJoinDecorator;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.message.WindowSizeMessage;
 import org.flatscrew.latte.spice.key.Binding;
+import org.flatscrew.latte.spice.list.FilterState;
 import org.flatscrew.latte.spice.list.List;
 import org.flatscrew.latte.spice.spinner.Spinner;
 import org.flatscrew.latte.spice.spinner.SpinnerType;
@@ -49,6 +50,7 @@ public class MainViewModel implements Model {
         this.delegateKeyMap = new BookItemDelegateFactory.DelegateKeyMap();
         this.list = new List(bookDataSource, bookItemDelegateFactory.newBokItemDelegate(delegateKeyMap), 0, 0);
         list.setTitle("Books");
+//        list.setFilterOnAcceptOnly(true);
 
         this.listStyle = Style.newStyle()
                 .padding(0, 1, 0, 0)
@@ -115,11 +117,13 @@ public class MainViewModel implements Model {
             return UpdateResult.from(this, list.refresh());
         }
 
-        if (msg instanceof KeyPressMessage keyPressMessage && list.selectedItem() instanceof BookItem bookItem) {
-            if (Binding.matches(keyPressMessage, delegateKeyMap.choose())) {
-                this.choosenItem = bookItem;
-            } else if (Binding.matches(keyPressMessage, delegateKeyMap.remove())) {
-                return UpdateResult.from(this, () -> new BookRemovalRequested(bookItem.book()));
+        if (list.filterState() != FilterState.Filtering) {
+            if (msg instanceof KeyPressMessage keyPressMessage && list.selectedItem() instanceof BookItem bookItem) {
+                if (Binding.matches(keyPressMessage, delegateKeyMap.choose())) {
+                    this.choosenItem = bookItem;
+                } else if (Binding.matches(keyPressMessage, delegateKeyMap.remove())) {
+                    return UpdateResult.from(this, () -> new BookRemovalRequested(bookItem.book()));
+                }
             }
         }
 

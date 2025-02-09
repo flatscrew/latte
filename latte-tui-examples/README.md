@@ -92,6 +92,7 @@ The `list-fancy` example shows how to use the list bubble with extra customizati
 ### Simple List
 
 The `list-simple` example shows how to use the list and customize it to have a simpler, more compact, appearance.
+This example shows how to implement your own custom **ItemDelegate**.
 
 <a href="./src/main/java/org/flatscrew/latte/examples/listsimple/ListSimpleExample.java">
   <img width="750" src="list-simple-tape.gif" />

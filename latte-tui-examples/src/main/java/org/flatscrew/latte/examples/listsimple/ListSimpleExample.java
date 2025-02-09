@@ -89,21 +89,23 @@ public class ListSimpleExample implements Model {
 
     @Override
     public Command init() {
+        Command listInitCmd = list.init();
+
         list.setTitle("What do you want for dinner?");
-        list.setShowStatusBar(false);
-        list.setFilteringEnabled(false);
         list.styles().setTitle(titleStyle);
         list.styles().setPaginationStyle(paginationStyle);
         list.styles().setHelpStyle(helpStyle);
 
-        return list.init();
+        return Command.sequence(listInitCmd, () -> {
+            list.setShowStatusBar(false);
+            return null;
+        });
     }
 
     @Override
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof WindowSizeMessage windowSizeMessage) {
-            list.setWidth(windowSizeMessage.width());
-            return UpdateResult.from(this);
+            return UpdateResult.from(this, list.setWidth(windowSizeMessage.width()));
         }
 
         if (msg instanceof KeyPressMessage keyPressMessage) {

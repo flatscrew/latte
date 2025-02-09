@@ -15,7 +15,7 @@ public class BookItemDelegateFactory {
 
         public DelegateKeyMap() {
             this.remove = new Binding(
-                    Binding.withKeys("x", "backspace"),
+                    Binding.withKeys("x"),
                     Binding.withHelp("x", "delete")
             );
             this.choose = new Binding(

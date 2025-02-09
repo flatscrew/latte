@@ -44,7 +44,6 @@ public class ListFancyExample implements Model {
                 keys.togglePagination(),
                 keys.toggleHelpMenu()
         });
-
     }
 
     @Override
@@ -56,9 +55,12 @@ public class ListFancyExample implements Model {
     public UpdateResult<? extends Model> update(Message msg) {
         if (msg instanceof WindowSizeMessage windowSizeMessage) {
             Dimensions frameSize = Styles.appStyle.frameSize();
-            list.setSize(
-                    windowSizeMessage.width() - frameSize.width(),
-                    windowSizeMessage.height() - frameSize.height()
+            return UpdateResult.from(
+                    this,
+                    list.setSize(
+                            windowSizeMessage.width() - frameSize.width(),
+                            windowSizeMessage.height() - frameSize.height()
+                    )
             );
         } else if (msg instanceof KeyPressMessage keyPressMessage) {
             if (list.filterState() != FilterState.Filtering) {
@@ -67,8 +69,7 @@ public class ListFancyExample implements Model {
                     boolean v = !list.showTitle();
                     list.setShowTitle(v);
                     list.setShowFilter(v);
-                    list.setFilteringEnabled(v);
-                    return UpdateResult.from(this);
+                    return UpdateResult.from(this, list.setFilteringEnabled(v));
                 } else if (Binding.matches(keyPressMessage, keys.toggleStatusBar())) {
                     list.setShowStatusBar(!list.showStatusBar());
                     return UpdateResult.from(this);

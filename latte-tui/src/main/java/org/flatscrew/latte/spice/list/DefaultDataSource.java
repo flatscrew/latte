@@ -34,17 +34,13 @@ public class DefaultDataSource implements ListDataSource {
         return list.refresh(postRemove);
     }
 
-    public java.util.List<Item> items() {
-        return items;
-    }
-
     public Command setItems(Item... items) {
         this.items = java.util.List.of(items);
         return list.refresh();
     }
 
     public boolean isEmpty() {
-        return items == null || items().isEmpty();
+        return items == null || items.isEmpty();
     }
 
     @Override
@@ -76,7 +72,7 @@ public class DefaultDataSource implements ListDataSource {
         int toIndex = Math.min(offset + perPage, filteredItems.size());
         long matchedItems = filteredItems.size();
         long totalItems = items.size();
-        int totalPages = (int) Math.ceil((double) totalItems / perPage);
+        int totalPages = (int) Math.ceil((double) matchedItems / perPage);
 
         if (offset >= matchedItems) {
             offset = offset - perPage;
