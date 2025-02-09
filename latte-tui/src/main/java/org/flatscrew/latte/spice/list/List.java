@@ -416,7 +416,7 @@ public class List implements Model, KeyMap {
         this.height = height;
         this.help.setWidth(width);
         this.filterInput.setWidth(width - promptWidth - Size.width(spinnerView()));
-//        updatePagination();
+        updatePagination();
 
         return fetchCurrentPageItems();
     }
@@ -514,7 +514,7 @@ public class List implements Model, KeyMap {
 
         this.cursor = index % paginator.perPage();
         paginator.setPerPage(Math.max(1, availHeight / (itemDelegate.height() + itemDelegate.spacing())));
-        paginator.setPage(index / paginator.perPage());
+//        paginator.setPage(index / paginator.perPage());
 
         if (paginator.page() >= paginator.totalPages() - 1) {
             paginator.setPage(Math.max(0, paginator.totalPages() - 1 ));

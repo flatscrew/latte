@@ -74,7 +74,7 @@ public class DefaultDataSource implements ListDataSource {
         long totalItems = items.size();
         int totalPages = (int) Math.ceil((double) matchedItems / perPage);
 
-        if (offset >= matchedItems) {
+        if (offset >= matchedItems/* && offset - perPage >= 0*/) {
             offset = offset - perPage;
         }
         return new FetchedItems(filteredItems.subList(offset, toIndex), matchedItems, totalItems, totalPages);
@@ -82,5 +82,9 @@ public class DefaultDataSource implements ListDataSource {
 
     private java.util.List<FilteredItem> allItemsAsFilteredItems() {
         return items.stream().map(FilteredItem::new).toList();
+    }
+
+    public int indexOf(DefaultItem defaultItem) {
+        return items.indexOf(defaultItem);
     }
 }

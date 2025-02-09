@@ -48,7 +48,7 @@ public class ListFancyExample implements Model {
 
     @Override
     public Command init() {
-        return Command.sequence(Command.checkWindowSize(), list.init());
+        return list.init();
     }
 
     @Override

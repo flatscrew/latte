@@ -4,8 +4,8 @@ import org.flatscrew.latte.Command;
 import org.flatscrew.latte.message.KeyPressMessage;
 import org.flatscrew.latte.spice.help.KeyMap;
 import org.flatscrew.latte.spice.key.Binding;
-import org.flatscrew.latte.spice.list.DefaultDelegate;
 import org.flatscrew.latte.spice.list.DefaultDataSource;
+import org.flatscrew.latte.spice.list.DefaultDelegate;
 
 import java.util.LinkedList;
 
@@ -55,7 +55,9 @@ public class Delegate {
         defaultDelegate.onUpdate((msg, list) -> {
             if (msg instanceof KeyPressMessage keyPressMessage) {
                 String title = null;
-                if (list.selectedItem() instanceof FancyItem fancyItem) {
+                int index = -1;
+                if (list.selectedItem() instanceof FancyItem fancyItem && list.dataSource() instanceof DefaultDataSource defaultDataSource) {
+                    index = defaultDataSource.indexOf(fancyItem);
                     title = fancyItem.title();
                 } else {
                     return null;
@@ -63,22 +65,14 @@ public class Delegate {
 
                 if (Binding.matches(keyPressMessage, keyMap.choose())) {
                     return list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"You choose", title}));
-                } else if (Binding.matches(keyPressMessage, keyMap.remove())) {
-                    int index = list.index();
-
-
-                    java.util.List<Command> commands = new LinkedList<>();
-
-                    if (list.dataSource() instanceof DefaultDataSource defaultDataSource) {
-                        commands.add(defaultDataSource.removeItem(index, () -> {
-                            if (defaultDataSource.isEmpty()) {
-                                keyMap.remove().setEnabled(false);
-                            }
-                        }));
-                    }
-                    commands.add(list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Deleted", title})));
+                } else if (Binding.matches(keyPressMessage, keyMap.remove()) && index != -1) {
                     return Command.batch(
-                            commands
+                            defaultDataSource.removeItem(index, () -> {
+                                if (defaultDataSource.isEmpty()) {
+                                    keyMap.remove().setEnabled(false);
+                                }
+                            }),
+                            list.newStatusMessage(Styles.statusMessageStyle.apply(new String[]{"Deleted", title}))
                     );
                 }
             }
