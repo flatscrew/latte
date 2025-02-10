@@ -493,7 +493,7 @@ public class List implements Model, KeyMap {
         }
     }
 
-    void updatePagination() {
+    boolean updatePagination() {
         int index = index();
         int availHeight = this.height;
 
@@ -514,13 +514,15 @@ public class List implements Model, KeyMap {
 
         this.cursor = index % paginator.perPage();
         paginator.setPerPage(Math.max(1, availHeight / (itemDelegate.height() + itemDelegate.spacing())));
-//        paginator.setPage(index / paginator.perPage());
 
-        if (paginator.page() >= paginator.totalPages() - 1) {
-            paginator.setPage(Math.max(0, paginator.totalPages() - 1 ));
+        if (paginator.page() >= paginator.totalPages()) {
+            paginator.setPage(Math.max(0, paginator.totalPages() - 1));
+            updateKeybindings();
+            return true;
         }
 
         updateKeybindings();
+        return false;
     }
 
     @Override
@@ -540,15 +542,20 @@ public class List implements Model, KeyMap {
             this.matchedItems = fetchedItems.matchedItems();
             this.totalItems = fetchedItems.totalItems();
             this.totalPages = fetchedItems.totalPages();
-            updatePagination();
+
+            updateKeybindings();
 
             for (Runnable runnable : fetchedCurrentPageItems.postFetch()) {
                 runnable.run();
             }
 
+            // page changed thus need to re-fetch
+            boolean forcedPageChange = updatePagination();
+            if (forcedPageChange) {
+                return UpdateResult.from(this, fetchCurrentPageItems());
+            }
+
             return UpdateResult.from(this, updateFilter());
-        } else if (msg instanceof FilterMatchesMessage filterMatchesMessage) {
-            return UpdateResult.from(this);
         } else if (msg instanceof TickMessage && showSpinner) {
             commands.add(spinner.update(msg).command());
         } else if (msg instanceof StatusMessageTimeoutMessage) {
@@ -597,15 +604,13 @@ public class List implements Model, KeyMap {
                 filterInput.focus();
                 updateKeybindings();
 
-                commands.add(fetchCurrentPageItems(() -> {
-                    this.cursor = 0;
-                }));
+                commands.add(fetchCurrentPageItems(() -> this.cursor = 0));
 
                 return batch(commands);
             } else if (Binding.matches(keyPressMessage, keys.showFullHelp()) || Binding.matches(keyPressMessage, keys.closeFullHelp())) {
                 help.setShowAll(!help.showAll());
-
                 updatePagination();
+
                 commands.add(fetchCurrentPageItems());
             }
             commands.add(itemDelegate.update(msg, this));
@@ -614,12 +619,20 @@ public class List implements Model, KeyMap {
     }
 
     private Command gotoStart() {
+        if (paginator.onFirstPage()) {
+            return null;
+        }
+
         paginator.setPage(0);
         this.cursor = 0;
         return fetchCurrentPageItems();
     }
 
     private Command gotoEnd() {
+        if (paginator.onLastPage()) {
+            return null;
+        }
+
         paginator.setPage(paginator.totalPages() - 1);
         return fetchCurrentPageItems(this::keepCursorInBounds);
     }
@@ -727,7 +740,6 @@ public class List implements Model, KeyMap {
                         if (filterInput.isEmpty()) {
                             commands.add(resetFiltering());
                         }
-
                     } else {
                         commands.add(resetFiltering());
                     }

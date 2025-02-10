@@ -20,7 +20,7 @@ public class BookDataSource implements ListDataSource {
     private final BookRepository bookRepository;
 
     @Override
-    public FetchedItems fetchItems(int offset, int limit, String filterValue) {
+    public FetchedItems fetchItems(int page, int perPage, String filterValue) {
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -28,15 +28,7 @@ public class BookDataSource implements ListDataSource {
         }
 
         long allItems = bookRepository.count();
-
-        PageRequest pageRequest = PageRequest.of(offset, limit);
-        if (filterValue == null || filterValue.length() < 3) {
-            return fetchedItems(
-                    bookRepository.findAll(pageRequest),
-                    allItems,
-                    filterValue
-            );
-        }
+        PageRequest pageRequest = PageRequest.of(page, perPage);
 
         return fetchedItems(
                 bookRepository.findByTitleIsContaining(filterValue, pageRequest),

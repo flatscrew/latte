@@ -91,6 +91,7 @@ public class ListSimpleExample implements Model {
     public Command init() {
         Command listInitCmd = list.init();
 
+        list.setFilteringEnabled(false);
         list.setTitle("What do you want for dinner?");
         list.styles().setTitle(titleStyle);
         list.styles().setPaginationStyle(paginationStyle);
